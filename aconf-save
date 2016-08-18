@@ -1,0 +1,48 @@
+#!/bin/zsh
+set -eu
+
+mkdir -p config
+
+PACKAGES=()
+
+for FILE in config/*.sh(N)
+do
+	echo "Sourcing $FILE..."
+	source "$FILE"
+done
+
+INSTALLED_PACKAGES=$(pacman --query --quiet --explicit --native | sort)
+
+IFS=$'\n'
+
+PACKAGES=($(echo "$PACKAGES" | sort))
+
+# Unknown packages (installed but not listed)
+
+UNKNOWN_PACKAGES=($(comm -13 <(echo "$PACKAGES") <(echo "$INSTALLED_PACKAGES")))
+
+if [[ ${#UNKNOWN_PACKAGES} != 0 ]]
+then
+	echo "Found ${#UNKNOWN_PACKAGES} unknown packages."
+	echo "\n\n# $(date)\n\n" >> config/99-unsorted.sh
+	for PACKAGE in $UNKNOWN_PACKAGES
+	do
+		echo "PACKAGES+=$PACKAGE #$(pacman -Qi $PACKAGE | grep '^Description' | cut -d ':' -f 2)" >> config/99-unsorted.sh
+	done
+fi
+
+# Missing packages (listed but not installed on current system)
+
+MISSING_PACKAGES=($(comm -23 <(echo "$PACKAGES") <(echo "$INSTALLED_PACKAGES")))
+
+for PACKAGE in $MISSING_PACKAGES
+do
+	echo "Found missing package: $PACKAGE"
+done
+
+if [[ ${#MISSING_PACKAGES} != 0 ]]
+then
+	echo "Run aconf-apply to install missing packages."
+fi
+
+echo "Done."

@@ -1,0 +1,40 @@
+#!/bin/zsh
+set -eu
+
+mkdir -p config
+
+PACKAGES=()
+
+for FILE in config/*.sh(N)
+do
+	echo "Sourcing $FILE..."
+	source "$FILE"
+done
+
+INSTALLED_PACKAGES=$(pacman --query --quiet --explicit --native | sort)
+
+IFS=$'\n'
+
+PACKAGES=($(echo "$PACKAGES" | sort))
+
+# Unknown packages (installed but not listed)
+
+UNKNOWN_PACKAGES=($(comm -13 <(echo "$PACKAGES") <(echo "$INSTALLED_PACKAGES")))
+
+if [[ ${#UNKNOWN_PACKAGES} != 0 ]]
+then
+	echo "Removing ${#UNKNOWN_PACKAGES} unknown packages."
+	sudo pacman --remove "$UNKNOWN_PACKAGES"
+fi
+
+# Missing packages (listed but not installed on current system)
+
+MISSING_PACKAGES=($(comm -23 <(echo "$PACKAGES") <(echo "$INSTALLED_PACKAGES")))
+
+if [[ ${#MISSING_PACKAGES} != 0 ]]
+then
+	echo "Installing ${#MISSING_PACKAGES} missing packages."
+	sudo pacman --sync --needed "$MISSING_PACKAGES"
+fi
+
+echo "Done."
