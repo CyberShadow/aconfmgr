@@ -6,6 +6,8 @@ IFS=$'\n'
 CONFIG_DIR=config
 OUTPUT_DIR=output
 
+CONFIG_SAVE_TARGET=$CONFIG_DIR/99-unsorted.sh
+
 mkdir -p "$CONFIG_DIR"
 
 function aconf-compile {

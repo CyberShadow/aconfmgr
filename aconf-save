@@ -11,10 +11,10 @@ UNKNOWN_PACKAGES=($(comm -13 <(echo "$PACKAGES") <(echo "$INSTALLED_PACKAGES")))
 if [[ ${#UNKNOWN_PACKAGES} != 0 ]]
 then
 	echo "Found ${#UNKNOWN_PACKAGES} unknown packages. Registering..."
-	echo "\n\n# $(date)\n\n" >> $CONFIG_DIR/99-unsorted.sh
+	echo "\n\n# $(date) - Unknown packages\n\n" >> $CONFIG_SAVE_TARGET
 	for PACKAGE in $UNKNOWN_PACKAGES
 	do
-		echo ">> \"\$OUTPUT_DIR\"/packages.txt echo '$PACKAGE' #$(pacman -Qi $PACKAGE | grep '^Description' | cut -d ':' -f 2)" >> $CONFIG_DIR/99-unsorted.sh
+		echo ">> \"\$OUTPUT_DIR\"/packages.txt echo '$PACKAGE' #$(pacman -Qi $PACKAGE | grep '^Description' | cut -d ':' -f 2)" >> $CONFIG_SAVE_TARGET
 	done
 fi
 
@@ -22,14 +22,14 @@ fi
 
 MISSING_PACKAGES=($(comm -23 <(echo "$PACKAGES") <(echo "$INSTALLED_PACKAGES")))
 
-for PACKAGE in $MISSING_PACKAGES
-do
-	echo "Found missing package: $PACKAGE"
-done
-
 if [[ ${#MISSING_PACKAGES} != 0 ]]
 then
-	echo "Run aconf-apply to install missing packages."
+	echo "Found ${#MISSING_PACKAGES} missing packages. Un-registering."
+	echo "\n\n# $(date) - Missing packages\n\n" >> $CONFIG_SAVE_TARGET
+	for PACKAGE in $MISSING_PACKAGES
+	do
+		echo "sed -i '/^$PACKAGE\$/d' \"\$OUTPUT_DIR\"/packages.txt" >> $CONFIG_SAVE_TARGET
+	done
 fi
 
 echo "Done."
