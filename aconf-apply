@@ -1,21 +1,8 @@
 #!/bin/zsh
 set -eu
+source src/common.sh
 
-mkdir -p config
-
-PACKAGES=()
-
-for FILE in config/*.sh(N)
-do
-	echo "Sourcing $FILE..."
-	source "$FILE"
-done
-
-INSTALLED_PACKAGES=$(pacman --query --quiet --explicit --native | sort)
-
-IFS=$'\n'
-
-PACKAGES=($(echo "$PACKAGES" | sort))
+aconf-compile
 
 # Unknown packages (installed but not listed)
 
