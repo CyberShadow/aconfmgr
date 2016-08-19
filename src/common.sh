@@ -4,11 +4,13 @@ set -eu
 IFS=$'\n'
 
 CONFIG_DIR=config
+OUTPUT_DIR=output
 
 mkdir -p "$CONFIG_DIR"
 
 function aconf-compile {
-	PACKAGES=()
+	rm -rf "$OUTPUT_DIR"
+	mkdir "$OUTPUT_DIR"
 
 	for FILE in "$CONFIG_DIR"/*.sh(N)
 	do
@@ -16,7 +18,12 @@ function aconf-compile {
 		source "$FILE"
 	done
 
-	PACKAGES=($(IFS=' ' echo "$PACKAGES" | sort | uniq))
+	if [[ -f "$OUTPUT_DIR"/packages.txt ]]
+	then
+		PACKAGES=($(cat "$OUTPUT_DIR"/packages.txt | sort | uniq))
+	else
+		PACKAGES=()
+	fi
 }
 
 echo "Querying package list..."

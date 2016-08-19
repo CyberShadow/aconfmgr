@@ -14,7 +14,7 @@ then
 	echo "\n\n# $(date)\n\n" >> $CONFIG_DIR/99-unsorted.sh
 	for PACKAGE in $UNKNOWN_PACKAGES
 	do
-		echo "PACKAGES+=$PACKAGE #$(pacman -Qi $PACKAGE | grep '^Description' | cut -d ':' -f 2)" >> $CONFIG_DIR/99-unsorted.sh
+		echo ">> \"\$OUTPUT_DIR\"/packages.txt echo '$PACKAGE' #$(pacman -Qi $PACKAGE | grep '^Description' | cut -d ':' -f 2)" >> $CONFIG_DIR/99-unsorted.sh
 	done
 fi
 
