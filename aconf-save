@@ -32,4 +32,99 @@ then
 	done
 fi
 
+# Modified files - collect
+
+WARN_SIZE_THRESHOLD=$((10*1024*1024))
+
+function aconf-add-file {
+	mkdir -p "$(dirname "$SYSTEM_DIR"/files/"$1")"
+	if sudo test -h "$1"
+	then
+		ln -s "$(sudo readlink "$1")" "$SYSTEM_DIR"/files/"$1"
+	else
+		SIZE=$(sudo stat "$1" --format=%s)
+		if [[ $SIZE -gt $WARN_SIZE_THRESHOLD ]]
+		then
+			echo "Warning: copying large file ($SIZE bytes). Add to IGNORE_PATHS to ignore." # TODO
+		fi
+		sudo cat "$1" > "$SYSTEM_DIR"/files/"$1"
+	fi
+	echo "mode	$(sudo stat --format=%a "$1")	$1" >> "$SYSTEM_DIR"/file-props.txt
+	echo "owner	$(sudo stat --format=%U "$1")	$1" >> "$SYSTEM_DIR"/file-props.txt
+	echo "group	$(sudo stat --format=%G "$1")	$1" >> "$SYSTEM_DIR"/file-props.txt
+}
+
+ANSI_CLEAR_LINE="[0K"
+
+echo "Checking for modified files..."
+while read LINE
+do
+	if [[ $LINE =~ '^(.*): '\''(.*)'\'' md5sum mismatch' ]]
+	then
+		echo "${match[1]}": "${match[2]}"
+		aconf-add-file "${match[2]}"
+	elif [[ $LINE =~ '^(.*): ' ]]
+	then
+		echo -n "${ANSI_CLEAR_LINE}${match[1]}\r"
+		#echo "Now at ${match[1]}"
+	fi
+done < <(sudo sh -c "stdbuf -o0 paccheck --md5sum --files --backup --noupgrade apcupsd 2>&1")
+echo
+
+# TODO: add untracked files
+
+# Modified files - diff
+
+mkdir -p "$OUTPUT_DIR"/files
+mkdir -p "$SYSTEM_DIR"/files
+
+NEW_FILES=()
+EXTRA_FILES=()
+
+while read LINE
+do
+	if [[ $LINE =~ '^Files (.*) and (.*) differ$' ]]
+	then
+		FILE=${match[1]#$OUTPUT_DIR/files}
+		echo "Modified file: $FILE"
+		NEW_FILES+=($FILE)
+	elif [[ $LINE =~ '^Only in (.*): (.*)$' ]]
+	then
+		FILES=()
+		while read FILE
+		do
+			FILES+=("${FILE#${match[1]}/}")
+		done < <(find "${match[1]}/${match[2]}" -type f -or -type l)
+
+		if [[ "${match[1]}" == "$OUTPUT_DIR"/files ]]
+		then # Only in output, but not on live system
+			EXTRA_FILES+=$FILES
+			echo "Extraneous file/dir: ${match[2]}"
+		else
+			NEW_FILES+=$FILES
+			echo "New file/dir: ${match[2]}"
+		fi
+	fi
+done < <(diff --brief --recursive "$OUTPUT_DIR"/files "$SYSTEM_DIR"/files)
+
+if [[ ${#NEW_FILES} != 0 ]]
+then
+	echo "Found ${#NEW_FILES} new files. "
+	echo "\n\n# $(date) - New files\n\n" >> $CONFIG_SAVE_TARGET
+	for FILE in $NEW_FILES
+	do
+		mkdir -p "$(dirname "$CONFIG_DIR"/99-unsorted/"$FILE")"
+		cp "$SYSTEM_DIR"/files/"$FILE" "$CONFIG_DIR"/99-unsorted/"$FILE"
+
+		echo "mkdir -p \"\$OUTPUT_DIR\"/files/'$(dirname "$FILE")'" >> $CONFIG_SAVE_TARGET
+		echo "cp \"\$CONFIG_DIR\"/99-unsorted/'$FILE' \"\$OUTPUT_DIR\"/files/'$FILE'" >> $CONFIG_SAVE_TARGET
+		#echo "echo 'mode	$(stat --format=%a "$1")	$1' >> \"\$OUTPUT_DIR\"/file-props.txt" >> $CONFIG_SAVE_TARGET
+		#echo "echo 'owner	$(stat --format=%U "$1")	$1'" >> "$SYSTEM_DIR"/file-props.txt
+		#echo "echo 'group	$(stat --format=%G "$1")	$1'" >> "$SYSTEM_DIR"/file-props.txt
+		#echo ">> \"\$OUTPUT_DIR\"/packages.txt echo '$PACKAGE' #$(pacman -Qi $PACKAGE | grep '^Description' | cut -d ':' -f 2)" >> $CONFIG_SAVE_TARGET
+	done
+fi
+
+# Report
+
 echo "Done."
