@@ -5,14 +5,19 @@ IFS=$'\n'
 
 CONFIG_DIR=config
 OUTPUT_DIR=output
+SYSTEM_DIR=system # Current system configuration, to be compared against the output directory
 
 CONFIG_SAVE_TARGET=$CONFIG_DIR/99-unsorted.sh
 
 mkdir -p "$CONFIG_DIR"
 
 function aconf-compile {
+
+	# Configuration
+
 	rm -rf "$OUTPUT_DIR"
 	mkdir "$OUTPUT_DIR"
+	touch "$OUTPUT_DIR"/packages.txt
 
 	for FILE in "$CONFIG_DIR"/*.sh(N)
 	do
@@ -20,13 +25,17 @@ function aconf-compile {
 		source "$FILE"
 	done
 
-	if [[ -f "$OUTPUT_DIR"/packages.txt ]]
-	then
-		PACKAGES=($(cat "$OUTPUT_DIR"/packages.txt | sort | uniq))
-	else
-		PACKAGES=()
-	fi
-}
 
-echo "Querying package list..."
-INSTALLED_PACKAGES=$(pacman --query --quiet --explicit --native | sort)
+	# System
+
+	rm -rf "$SYSTEM_DIR"
+	mkdir "$SYSTEM_DIR"
+
+	echo "Querying package list..."
+	pacman --query --quiet --explicit --native | sort > "$SYSTEM_DIR"/packages.txt
+
+	# Vars
+
+	PACKAGES=($(cat "$OUTPUT_DIR"/packages.txt | sort | uniq))
+	INSTALLED_PACKAGES=($(cat "$SYSTEM_DIR"/packages.txt | sort | uniq))
+}
