@@ -37,6 +37,6 @@ function aconf-compile {
 
 	# Vars
 
-	PACKAGES=($(cat "$OUTPUT_DIR"/packages.txt | sort | uniq))
-	INSTALLED_PACKAGES=($(cat "$SYSTEM_DIR"/packages.txt | sort | uniq))
+	PACKAGES=($(cat "$OUTPUT_DIR"/packages.txt | sort --unique))
+	INSTALLED_PACKAGES=($(cat "$SYSTEM_DIR"/packages.txt | sort --unique))
 }
