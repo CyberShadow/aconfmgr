@@ -18,6 +18,7 @@ function aconf-compile {
 	rm -rf "$OUTPUT_DIR"
 	mkdir "$OUTPUT_DIR"
 	touch "$OUTPUT_DIR"/packages.txt
+	touch "$OUTPUT_DIR"/file-props.txt
 
 	for FILE in "$CONFIG_DIR"/*.sh(N)
 	do

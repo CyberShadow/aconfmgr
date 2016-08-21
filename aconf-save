@@ -28,7 +28,7 @@ then
 	echo "\n\n# $(date) - Missing packages\n\n" >> $CONFIG_SAVE_TARGET
 	for PACKAGE in $MISSING_PACKAGES
 	do
-		echo "sed -i '/^$PACKAGE\$/d' \"\$OUTPUT_DIR\"/packages.txt" >> $CONFIG_SAVE_TARGET
+		echo "sed -i \"\$OUTPUT_DIR\"/packages.txt -e '/^$PACKAGE\$/d'" >> $CONFIG_SAVE_TARGET
 	done
 fi
 
@@ -68,7 +68,7 @@ do
 		echo -n "${ANSI_CLEAR_LINE}${match[1]}\r"
 		#echo "Now at ${match[1]}"
 	fi
-done < <(sudo sh -c "stdbuf -o0 paccheck --md5sum --files --backup --noupgrade apcupsd 2>&1")
+done < <(sudo sh -c "stdbuf -o0 paccheck --md5sum --files --backup --noupgrade 2>&1")
 echo
 
 # TODO: add untracked files
@@ -118,10 +118,85 @@ then
 
 		echo "mkdir -p \"\$OUTPUT_DIR\"/files/'$(dirname "$FILE")'" >> $CONFIG_SAVE_TARGET
 		echo "cp \"\$CONFIG_DIR\"/99-unsorted/'$FILE' \"\$OUTPUT_DIR\"/files/'$FILE'" >> $CONFIG_SAVE_TARGET
-		#echo "echo 'mode	$(stat --format=%a "$1")	$1' >> \"\$OUTPUT_DIR\"/file-props.txt" >> $CONFIG_SAVE_TARGET
-		#echo "echo 'owner	$(stat --format=%U "$1")	$1'" >> "$SYSTEM_DIR"/file-props.txt
-		#echo "echo 'group	$(stat --format=%G "$1")	$1'" >> "$SYSTEM_DIR"/file-props.txt
-		#echo ">> \"\$OUTPUT_DIR\"/packages.txt echo '$PACKAGE' #$(pacman -Qi $PACKAGE | grep '^Description' | cut -d ':' -f 2)" >> $CONFIG_SAVE_TARGET
+	done
+fi
+
+if [[ ${#EXTRA_FILES} != 0 ]]
+then
+	echo "Found ${#EXTRA_FILES} extra files. "
+	echo "\n\n# $(date) - Extra files\n\n" >> $CONFIG_SAVE_TARGET
+	for FILE in $EXTRA_FILES
+	do
+		echo "rm \"\$OUTPUT_DIR\"/files/'$FILE'" >> $CONFIG_SAVE_TARGET
+	done
+fi
+
+# Modified file properties
+
+function aconf-read-file-props() {
+	unset FILE_PROPS
+	typeset -A FILE_PROPS
+
+	while read LINE
+	do
+		if [[ $LINE =~ '^(.*)	(.*)	(.*)$' ]]
+		then
+			if [[ -z "${match[2]}" ]]
+			then
+				unset "FILE_PROPS[${match[1]}:${match[3]}]"
+			else
+				FILE_PROPS[${match[1]}:${match[3]}]="${match[2]}"
+			fi
+		fi
+	done < "$1"
+
+	#eval "typeset -A $2 ; set -A $2 \${(kv)FILE_PROPS}"
+	typeset -Ag $2
+	if [[ ${#FILE_PROPS} != 0 ]]
+	then
+		set -A $2 ${(kv)FILE_PROPS}
+	fi
+}
+
+aconf-read-file-props "$OUTPUT_DIR"/file-props.txt OUTPUT_FILE_PROPS
+aconf-read-file-props "$SYSTEM_DIR"/file-props.txt SYSTEM_FILE_PROPS
+
+NEW_FILE_PROPS=()
+EXTRA_FILE_PROPS=()
+
+for KEY in "${(@k)SYSTEM_FILE_PROPS}"
+do
+	if ( ! (( ${+OUTPUT_FILE_PROPS[$KEY]} )) ) || [[ "${SYSTEM_FILE_PROPS[$KEY]}" != "${OUTPUT_FILE_PROPS[$KEY]}" ]]
+	then
+		NEW_FILE_PROPS+=("$KEY")
+	fi
+done
+
+for KEY in "${(@k)OUTPUT_FILE_PROPS}"
+do
+	if ! (( ${+SYSTEM_FILE_PROPS[$KEY]} ))
+	then
+		EXTRA_FILE_PROPS+=("$KEY")
+	fi
+done
+
+if [[ ${#NEW_FILE_PROPS} != 0 ]]
+then
+	echo "\n\n# $(date) - New file properties\n\n" >> $CONFIG_SAVE_TARGET
+	for KEY in $NEW_FILE_PROPS
+	do
+		LINE="${KEY%%:*}	${SYSTEM_FILE_PROPS[$KEY]}	${KEY#*:}"
+		echo ">> \"\$OUTPUT_DIR\"/file-props.txt echo '$LINE'" >> $CONFIG_SAVE_TARGET
+	done
+fi
+
+if [[ ${#EXTRA_FILE_PROPS} != 0 ]]
+then
+	echo "\n\n# $(date) - Extra file properties\n\n" >> $CONFIG_SAVE_TARGET
+	for KEY in $EXTRA_FILE_PROPS
+	do
+		LINE="${KEY%%:*}		${KEY#*:}"
+		echo ">> \"\$OUTPUT_DIR\"/file-props.txt echo '$LINE'" >> $CONFIG_SAVE_TARGET
 	done
 fi
 
