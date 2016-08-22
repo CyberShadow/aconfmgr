@@ -9,6 +9,23 @@ SYSTEM_DIR=system # Current system configuration, to be compared against the out
 
 CONFIG_SAVE_TARGET=$CONFIG_DIR/99-unsorted.sh
 
+IGNORE_PATHS=(
+    '/dev'
+    '/home'
+    '/mnt'
+    '/proc'
+    '/root'
+    '/run'
+    '/sys'
+    '/tmp'
+    # '/var/.updated'
+    '/var/cache'
+    # '/var/lib'
+    # '/var/lock'
+    # '/var/log'
+    # '/var/spool'
+)
+
 mkdir -p "$CONFIG_DIR"
 
 function aconf-compile {

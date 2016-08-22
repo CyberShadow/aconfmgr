@@ -14,7 +14,7 @@ then
 	echo "\n\n# $(date) - Unknown packages\n\n" >> $CONFIG_SAVE_TARGET
 	for PACKAGE in $UNKNOWN_PACKAGES
 	do
-		echo ">> \"\$OUTPUT_DIR\"/packages.txt echo '$PACKAGE' #$(pacman -Qi $PACKAGE | grep '^Description' | cut -d ':' -f 2)" >> $CONFIG_SAVE_TARGET
+		echo ">> \"\$OUTPUT_DIR\"/packages.txt echo '$PACKAGE' #$(pacman --query --info $PACKAGE | grep '^Description' | cut -d ':' -f 2)" >> $CONFIG_SAVE_TARGET
 	done
 fi
 
@@ -54,9 +54,29 @@ function aconf-add-file {
 	echo "group	$(sudo stat --format=%G "$1")	$1" >> "$SYSTEM_DIR"/file-props.txt
 }
 
+IGNORE_ARGS=()
+for IGNORE_PATH in $IGNORE_PATHS
+do
+	IGNORE_ARGS+=(-wholename "$IGNORE_PATH" -prune -o)
+done
+
+echo "Searching for untracked files..."
+while read LINE
+do
+	echo "IGNORE_PATHS+='$LINE' # "
+done < <(																	\
+	comm -13																\
+		 <(pacman --query --list --quiet | sed '/\/$/d' | sort --unique)	\
+		 <(sudo find / -not \(												\
+				"${IGNORE_ARGS[@]}"											\
+				-type d														\
+				\) |														\
+				  sort --unique) )											\
+
+
 ANSI_CLEAR_LINE="[0K"
 
-echo "Checking for modified files..."
+echo "Searching for modified files..."
 while read LINE
 do
 	if [[ $LINE =~ '^(.*): '\''(.*)'\'' md5sum mismatch' ]]
