@@ -61,7 +61,7 @@ do
 done
 
 echo "Searching for untracked files..."
-while read LINE
+while read -r LINE
 do
 	echo "IGNORE_PATHS+='$LINE' # "
 done < <(																	\
@@ -77,7 +77,7 @@ done < <(																	\
 ANSI_CLEAR_LINE="[0K"
 
 echo "Searching for modified files..."
-while read LINE
+while read -r LINE
 do
 	if [[ $LINE =~ '^(.*): '\''(.*)'\'' md5sum mismatch' ]]
 	then
@@ -101,7 +101,7 @@ mkdir -p "$SYSTEM_DIR"/files
 NEW_FILES=()
 EXTRA_FILES=()
 
-while read LINE
+while read -r LINE
 do
 	if [[ $LINE =~ '^Files (.*) and (.*) differ$' ]]
 	then
@@ -111,17 +111,17 @@ do
 	elif [[ $LINE =~ '^Only in (.*): (.*)$' ]]
 	then
 		FILES=()
-		while read FILE
+		while read -r FILE
 		do
 			FILES+=("${FILE#${match[1]}/}")
 		done < <(find "${match[1]}/${match[2]}" -type f -or -type l)
 
 		if [[ "${match[1]}" == "$OUTPUT_DIR"/files ]]
 		then # Only in output, but not on live system
-			EXTRA_FILES+=$FILES
+			EXTRA_FILES+=($FILES)
 			echo "Extraneous file/dir: ${match[2]}"
 		else
-			NEW_FILES+=$FILES
+			NEW_FILES+=($FILES)
 			echo "New file/dir: ${match[2]}"
 		fi
 	fi
@@ -157,7 +157,7 @@ function aconf-read-file-props() {
 	unset FILE_PROPS
 	typeset -A FILE_PROPS
 
-	while read LINE
+	while read -r LINE
 	do
 		if [[ $LINE =~ '^(.*)	(.*)	(.*)$' ]]
 		then
