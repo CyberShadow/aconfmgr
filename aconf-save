@@ -125,7 +125,7 @@ do
 			echo "New file/dir: ${match[2]}"
 		fi
 	fi
-done < <(diff --brief --recursive "$OUTPUT_DIR"/files "$SYSTEM_DIR"/files)
+done < <(diff --no-dereference --brief --recursive "$OUTPUT_DIR"/files "$SYSTEM_DIR"/files)
 
 if [[ ${#NEW_FILES} != 0 ]]
 then
@@ -134,10 +134,10 @@ then
 	for FILE in $NEW_FILES
 	do
 		mkdir -p "$(dirname "$CONFIG_DIR"/99-unsorted/"$FILE")"
-		cp "$SYSTEM_DIR"/files/"$FILE" "$CONFIG_DIR"/99-unsorted/"$FILE"
+		cp --no-dereference "$SYSTEM_DIR"/files/"$FILE" "$CONFIG_DIR"/99-unsorted/"$FILE"
 
 		echo "mkdir -p \"\$OUTPUT_DIR\"/files/'$(dirname "$FILE")'" >> $CONFIG_SAVE_TARGET
-		echo "cp \"\$CONFIG_DIR\"/99-unsorted/'$FILE' \"\$OUTPUT_DIR\"/files/'$FILE'" >> $CONFIG_SAVE_TARGET
+		echo "cp --no-dereference \"\$CONFIG_DIR\"/99-unsorted/'$FILE' \"\$OUTPUT_DIR\"/files/'$FILE'" >> $CONFIG_SAVE_TARGET
 	done
 fi
 
