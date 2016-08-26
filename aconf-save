@@ -32,11 +32,12 @@ then
 	done
 fi
 
-# Modified files - collect
+# Untracked/modified files - collect
 
 WARN_SIZE_THRESHOLD=$((10*1024*1024))
 
 function aconf-add-file {
+	echo "Adding file: $1"
 	mkdir -p "$(dirname "$SYSTEM_DIR"/files/"$1")"
 	if sudo test -h "$1"
 	then
@@ -45,7 +46,7 @@ function aconf-add-file {
 		SIZE=$(sudo stat "$1" --format=%s)
 		if [[ $SIZE -gt $WARN_SIZE_THRESHOLD ]]
 		then
-			echo "Warning: copying large file ($SIZE bytes). Add to IGNORE_PATHS to ignore." # TODO
+			echo "Warning: copying large file ($SIZE bytes). Add to IGNORE_PATHS to ignore."
 		fi
 		sudo cat "$1" > "$SYSTEM_DIR"/files/"$1"
 	fi
@@ -53,6 +54,8 @@ function aconf-add-file {
 	echo "owner	$(sudo stat --format=%U "$1")	$1" >> "$SYSTEM_DIR"/file-props.txt
 	echo "group	$(sudo stat --format=%G "$1")	$1" >> "$SYSTEM_DIR"/file-props.txt
 }
+
+# Untracked files
 
 IGNORE_ARGS=()
 for IGNORE_PATH in $IGNORE_PATHS
@@ -63,7 +66,8 @@ done
 echo "Searching for untracked files..."
 while read -r LINE
 do
-	echo "IGNORE_PATHS+='$LINE' # "
+	#echo "IGNORE_PATHS+='$LINE' # "
+	aconf-add-file "$LINE"
 done < <(																	\
 	comm -13																\
 		 <(pacman --query --list --quiet | sed '/\/$/d' | sort --unique)	\
@@ -73,6 +77,7 @@ done < <(																	\
 				\) |														\
 				  sort --unique) )											\
 
+# Modified files
 
 ANSI_CLEAR_LINE="[0K"
 
@@ -91,9 +96,7 @@ do
 done < <(sudo sh -c "stdbuf -o0 paccheck --md5sum --files --backup --noupgrade 2>&1")
 echo
 
-# TODO: add untracked files
-
-# Modified files - diff
+# Untracked/modified files - diff
 
 mkdir -p "$OUTPUT_DIR"/files
 mkdir -p "$SYSTEM_DIR"/files
@@ -110,20 +113,29 @@ do
 		NEW_FILES+=($FILE)
 	elif [[ $LINE =~ '^Only in (.*): (.*)$' ]]
 	then
+		FILE_PATH="${match[1]}/${match[2]}"
+		unset PREFIX
+		if [[ $FILE_PATH == "$OUTPUT_DIR"/files/* ]]
+		then
+			PREFIX="$OUTPUT_DIR/files"
+			TARGET=EXTRA_FILES
+			LABEL="Extra"
+		elif [[ $FILE_PATH == "$SYSTEM_DIR"/files/* ]]
+		then
+			PREFIX="$SYSTEM_DIR/files"
+			TARGET=NEW_FILES
+			LABEL="New"
+		fi
+		REL_FILE=${FILE_PATH#$PREFIX}
+
 		FILES=()
 		while read -r FILE
 		do
-			FILES+=("${FILE#${match[1]}/}")
-		done < <(find "${match[1]}/${match[2]}" -type f -or -type l)
+			FILES+=("${FILE#$PREFIX/}")
+		done < <(find "$FILE_PATH" -type f -or -type l)
 
-		if [[ "${match[1]}" == "$OUTPUT_DIR"/files ]]
-		then # Only in output, but not on live system
-			EXTRA_FILES+=($FILES)
-			echo "Extraneous file/dir: ${match[2]}"
-		else
-			NEW_FILES+=($FILES)
-			echo "New file/dir: ${match[2]}"
-		fi
+		eval "$TARGET+=(\$FILES)"
+		echo "$LABEL file/dir: $REL_FILE"
 	fi
 done < <(diff --no-dereference --brief --recursive "$OUTPUT_DIR"/files "$SYSTEM_DIR"/files)
 
