@@ -6,6 +6,7 @@ IFS=$'\n'
 CONFIG_DIR=config
 OUTPUT_DIR=output
 SYSTEM_DIR=system # Current system configuration, to be compared against the output directory
+TMP_DIR=tmp
 
 CONFIG_SAVE_TARGET=$CONFIG_DIR/99-unsorted.sh
 

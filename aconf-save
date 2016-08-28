@@ -67,19 +67,19 @@ done
 
 echo "Searching for untracked files..."
 
-while read -r LINE
+while read -r -d $'\0' LINE
 do
 	#echo "IGNORE_PATHS+='$LINE' # "
 	printf "Found untracked file: %s\n" "$LINE"
 	AconfAddFile "$LINE"
-done < <(																	\
-	comm -13																\
-		 <(pacman --query --list --quiet | sed '/\/$/d' | sort --unique)	\
-		 <(sudo find / -not \(												\
-				"${IGNORE_ARGS[@]}"											\
-				-type d														\
-				\) |														\
-				  sort --unique) )											\
+done < <(																				\
+	comm -13 --zero-terminated															\
+		 <(pacman --query --list --quiet | sed '/\/$/d' | sort --unique | tr '\n' '\0')	\
+		 <(sudo find / -not \(															\
+				"${IGNORE_ARGS[@]}"														\
+				-type d																	\
+				\) -print0 |															\
+				  sort --unique --zero-terminated) )									\
 
 # Modified files
 
@@ -91,6 +91,7 @@ do
 	if [[ $LINE =~ ^(.*):\ \'(.*)\'\ md5sum\ mismatch ]]
 	then
 		printf "%s: %s\n" "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}"
+		# TODO: Check ignores
 		AconfAddFile "${BASH_REMATCH[2]}"
 	elif [[ $LINE =~ ^(.*):\  ]]
 	then
@@ -104,45 +105,35 @@ printf "\n"
 
 mkdir --parents "$OUTPUT_DIR"/files
 mkdir --parents "$SYSTEM_DIR"/files
+mkdir --parents "$TMP_DIR"
+
+( cd "$OUTPUT_DIR"/files && find . -not -type d -print0 ) | cut --zero-terminated -c 3- | sort --zero-terminated > "$TMP_DIR"/output-files
+( cd "$SYSTEM_DIR"/files && find . -not -type d -print0 ) | cut --zero-terminated -c 3- | sort --zero-terminated > "$TMP_DIR"/system-files
 
 NEW_FILES=()
+
+while read -r -d $'\0' FILE
+do
+	printf "New file: %s\n" "$FILE"
+	NEW_FILES+=("$FILE")
+done < <(comm -13 --zero-terminated "$TMP_DIR"/output-files "$TMP_DIR"/system-files)
+
+while read -r -d $'\0' FILE
+do
+	if ! diff --no-dereference --brief "$OUTPUT_DIR"/files/"$FILE" "$SYSTEM_DIR"/files/"$FILE" > /dev/null
+	then
+		printf "Changed file: %s\n" "$FILE"
+		NEW_FILES+=("$FILE")
+	fi
+done < <(comm -12 --zero-terminated "$TMP_DIR"/output-files "$TMP_DIR"/system-files)
+
 EXTRA_FILES=()
 
-while read -r LINE
+while read -r -d $'\0' FILE
 do
-	if [[ $LINE =~ ^Files\ (.*)\ and\ (.*)\ differ$ ]]
-	then
-		FILE=${BASH_REMATCH[1]#$OUTPUT_DIR/files}
-		printf "Modified file: %s\n" "$FILE"
-		NEW_FILES+=($FILE)
-	elif [[ $LINE =~ ^Only\ in\ (.*):\ (.*)$ ]]
-	then
-		ITEM_PATH="${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
-		unset PREFIX
-		unset LABEL
-
-		if [[ $ITEM_PATH == "$OUTPUT_DIR"/files/* ]]
-		then
-			PREFIX="$OUTPUT_DIR/files"
-			TARGET=EXTRA_FILES
-			LABEL="Extra"
-		elif [[ $ITEM_PATH == "$SYSTEM_DIR"/files/* ]]
-		then
-			PREFIX="$SYSTEM_DIR/files"
-			TARGET=NEW_FILES
-			LABEL="New"
-		fi
-		REL_PATH=${ITEM_PATH#$PREFIX}
-
-		printf "%s file/dir: %s\n" "$LABEL" "$REL_PATH"
-
-		while read -r FILE
-		do
-			REL_FILE="${FILE#$PREFIX/}"
-			eval "$TARGET+=(\"\$REL_FILE\")"
-		done < <(find "$ITEM_PATH" -type f -or -type l)
-	fi
-done < <(diff --no-dereference --brief --recursive "$OUTPUT_DIR"/files "$SYSTEM_DIR"/files)
+	printf "Extra file: %s\n" "$FILE"
+	EXTRA_FILES+=("$FILE")
+done < <(comm -23 --zero-terminated "$TMP_DIR"/output-files "$TMP_DIR"/system-files)
 
 if [[ ${#NEW_FILES[@]} != 0 ]]
 then
