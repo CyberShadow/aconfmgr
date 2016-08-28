@@ -1,5 +1,5 @@
-#!/bin/zsh
-set -eu
+#!/bin/bash
+# (for shellcheck)
 
 IFS=$'\n'
 
@@ -28,7 +28,7 @@ IGNORE_PATHS=(
 
 mkdir -p "$CONFIG_DIR"
 
-function aconf-compile {
+function AconfCompile() {
 
 	# Configuration
 
@@ -37,12 +37,11 @@ function aconf-compile {
 	touch "$OUTPUT_DIR"/packages.txt
 	touch "$OUTPUT_DIR"/file-props.txt
 
-	for FILE in "$CONFIG_DIR"/*.sh(N)
+	for FILE in "$CONFIG_DIR"/*.sh
 	do
-		echo "Sourcing $FILE..."
+		printf "Sourcing %s...\n" "$FILE"
 		source "$FILE"
 	done
-
 
 	# System
 
@@ -54,6 +53,6 @@ function aconf-compile {
 
 	# Vars
 
-	PACKAGES=($(cat "$OUTPUT_DIR"/packages.txt | sort --unique))
-	INSTALLED_PACKAGES=($(cat "$SYSTEM_DIR"/packages.txt | sort --unique))
+	PACKAGES=($(< "$OUTPUT_DIR"/packages.txt sort --unique))
+	INSTALLED_PACKAGES=($(< "$SYSTEM_DIR"/packages.txt sort --unique))
 }

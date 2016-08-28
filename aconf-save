@@ -1,34 +1,34 @@
-#!/bin/zsh
+#!/bin/bash
 set -eu
 source src/common.sh
 
-aconf-compile
+AconfCompile
 
 # Unknown packages (installed but not listed)
 
-UNKNOWN_PACKAGES=($(comm -13 <(echo "$PACKAGES") <(echo "$INSTALLED_PACKAGES")))
+UNKNOWN_PACKAGES=($(comm -13 <(echo "${PACKAGES[*]}") <(echo "${INSTALLED_PACKAGES[*]}")))
 
-if [[ ${#UNKNOWN_PACKAGES} != 0 ]]
+if [[ ${#UNKNOWN_PACKAGES[@]} != 0 ]]
 then
-	echo "Found ${#UNKNOWN_PACKAGES} unknown packages. Registering..."
-	echo "\n\n# $(date) - Unknown packages\n\n" >> $CONFIG_SAVE_TARGET
-	for PACKAGE in $UNKNOWN_PACKAGES
+	printf "Found %s unknown packages. Registering...\n" ${#UNKNOWN_PACKAGES}
+	printf "\n\n# %s - Unknown packages\n\n\n" "$(date)" >> "$CONFIG_SAVE_TARGET"
+	for PACKAGE in "${UNKNOWN_PACKAGES[@]}"
 	do
-		echo ">> \"\$OUTPUT_DIR\"/packages.txt echo '$PACKAGE' #$(pacman --query --info $PACKAGE | grep '^Description' | cut -d ':' -f 2)" >> $CONFIG_SAVE_TARGET
+		printf ">> \"\$OUTPUT_DIR\"/packages.txt echo %q #%s\n" "$PACKAGE" "$(pacman --query --info "$PACKAGE" | grep '^Description' | cut -d ':' -f 2)" >> "$CONFIG_SAVE_TARGET"
 	done
 fi
 
 # Missing packages (listed but not installed on current system)
 
-MISSING_PACKAGES=($(comm -23 <(echo "$PACKAGES") <(echo "$INSTALLED_PACKAGES")))
+MISSING_PACKAGES=($(comm -23 <(echo "${PACKAGES[*]}") <(echo "${INSTALLED_PACKAGES[*]}")))
 
-if [[ ${#MISSING_PACKAGES} != 0 ]]
+if [[ ${#MISSING_PACKAGES[@]} != 0 ]]
 then
-	echo "Found ${#MISSING_PACKAGES} missing packages. Un-registering."
-	echo "\n\n# $(date) - Missing packages\n\n" >> $CONFIG_SAVE_TARGET
-	for PACKAGE in $MISSING_PACKAGES
+	printf "Found %s missing packages. Un-registering.\n" ${#MISSING_PACKAGES[@]}
+	printf "\n\n# %s - Missing packages\n\n\n" "$(date)" >> "$CONFIG_SAVE_TARGET"
+	for PACKAGE in "${MISSING_PACKAGES[@]}"
 	do
-		echo "sed -i \"\$OUTPUT_DIR\"/packages.txt -e '/^$PACKAGE\$/d'" >> $CONFIG_SAVE_TARGET
+		printf "sed -i \"\$OUTPUT_DIR\"/packages.txt -e '/^'%q'\$/d'\n" "$PACKAGE" >> "$CONFIG_SAVE_TARGET"
 	done
 fi
 
@@ -36,9 +36,8 @@ fi
 
 WARN_SIZE_THRESHOLD=$((10*1024*1024))
 
-function aconf-add-file {
-	echo "Adding file: $1"
-	mkdir -p "$(dirname "$SYSTEM_DIR"/files/"$1")"
+function AconfAddFile() {
+	mkdir --parents "$(dirname "$SYSTEM_DIR"/files/"$1")"
 	if sudo test -h "$1"
 	then
 		ln -s "$(sudo readlink "$1")" "$SYSTEM_DIR"/files/"$1"
@@ -46,28 +45,33 @@ function aconf-add-file {
 		SIZE=$(sudo stat "$1" --format=%s)
 		if [[ $SIZE -gt $WARN_SIZE_THRESHOLD ]]
 		then
-			echo "Warning: copying large file ($SIZE bytes). Add to IGNORE_PATHS to ignore."
+			printf "Warning: copying large file (%s bytes). Add to IGNORE_PATHS to ignore.\n" "$SIZE"
 		fi
-		sudo cat "$1" > "$SYSTEM_DIR"/files/"$1"
+		( sudo cat "$1" ) > "$SYSTEM_DIR"/files/"$1"
 	fi
-	echo "mode	$(sudo stat --format=%a "$1")	$1" >> "$SYSTEM_DIR"/file-props.txt
-	echo "owner	$(sudo stat --format=%U "$1")	$1" >> "$SYSTEM_DIR"/file-props.txt
-	echo "group	$(sudo stat --format=%G "$1")	$1" >> "$SYSTEM_DIR"/file-props.txt
+
+	{
+		printf "mode	%s	%q\n" "$(sudo stat --format=%a "$1")" "$1"
+		printf "owner	%s	%q\n" "$(sudo stat --format=%U "$1")" "$1"
+		printf "group	%s	%q\n" "$(sudo stat --format=%G "$1")" "$1"
+	} >> "$SYSTEM_DIR"/file-props.txt
 }
 
 # Untracked files
 
 IGNORE_ARGS=()
-for IGNORE_PATH in $IGNORE_PATHS
+for IGNORE_PATH in "${IGNORE_PATHS[@]}"
 do
 	IGNORE_ARGS+=(-wholename "$IGNORE_PATH" -prune -o)
 done
 
 echo "Searching for untracked files..."
+
 while read -r LINE
 do
 	#echo "IGNORE_PATHS+='$LINE' # "
-	aconf-add-file "$LINE"
+	printf "Found untracked file: %s\n" "$LINE"
+	AconfAddFile "$LINE"
 done < <(																	\
 	comm -13																\
 		 <(pacman --query --list --quiet | sed '/\/$/d' | sort --unique)	\
@@ -84,82 +88,83 @@ ANSI_CLEAR_LINE="[0K"
 echo "Searching for modified files..."
 while read -r LINE
 do
-	if [[ $LINE =~ '^(.*): '\''(.*)'\'' md5sum mismatch' ]]
+	if [[ $LINE =~ ^(.*):\ \'(.*)\'\ md5sum\ mismatch ]]
 	then
-		echo "${match[1]}": "${match[2]}"
-		aconf-add-file "${match[2]}"
-	elif [[ $LINE =~ '^(.*): ' ]]
+		printf "%s: %s\n" "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}"
+		AconfAddFile "${BASH_REMATCH[2]}"
+	elif [[ $LINE =~ ^(.*):\  ]]
 	then
-		echo -n "${ANSI_CLEAR_LINE}${match[1]}\r"
-		#echo "Now at ${match[1]}"
+		printf "%s%s\r" "${ANSI_CLEAR_LINE}" "${BASH_REMATCH[1]}"
+		#echo "Now at ${BASH_REMATCH[1]}"
 	fi
 done < <(sudo sh -c "stdbuf -o0 paccheck --md5sum --files --backup --noupgrade 2>&1")
-echo
+printf "\n"
 
 # Untracked/modified files - diff
 
-mkdir -p "$OUTPUT_DIR"/files
-mkdir -p "$SYSTEM_DIR"/files
+mkdir --parents "$OUTPUT_DIR"/files
+mkdir --parents "$SYSTEM_DIR"/files
 
 NEW_FILES=()
 EXTRA_FILES=()
 
 while read -r LINE
 do
-	if [[ $LINE =~ '^Files (.*) and (.*) differ$' ]]
+	if [[ $LINE =~ ^Files\ (.*)\ and\ (.*)\ differ$ ]]
 	then
-		FILE=${match[1]#$OUTPUT_DIR/files}
-		echo "Modified file: $FILE"
+		FILE=${BASH_REMATCH[1]#$OUTPUT_DIR/files}
+		printf "Modified file: %s\n" "$FILE"
 		NEW_FILES+=($FILE)
-	elif [[ $LINE =~ '^Only in (.*): (.*)$' ]]
+	elif [[ $LINE =~ ^Only\ in\ (.*):\ (.*)$ ]]
 	then
-		FILE_PATH="${match[1]}/${match[2]}"
+		ITEM_PATH="${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
 		unset PREFIX
-		if [[ $FILE_PATH == "$OUTPUT_DIR"/files/* ]]
+		unset LABEL
+
+		if [[ $ITEM_PATH == "$OUTPUT_DIR"/files/* ]]
 		then
 			PREFIX="$OUTPUT_DIR/files"
 			TARGET=EXTRA_FILES
 			LABEL="Extra"
-		elif [[ $FILE_PATH == "$SYSTEM_DIR"/files/* ]]
+		elif [[ $ITEM_PATH == "$SYSTEM_DIR"/files/* ]]
 		then
 			PREFIX="$SYSTEM_DIR/files"
 			TARGET=NEW_FILES
 			LABEL="New"
 		fi
-		REL_FILE=${FILE_PATH#$PREFIX}
+		REL_PATH=${ITEM_PATH#$PREFIX}
 
-		FILES=()
+		printf "%s file/dir: %s\n" "$LABEL" "$REL_PATH"
+
 		while read -r FILE
 		do
-			FILES+=("${FILE#$PREFIX/}")
-		done < <(find "$FILE_PATH" -type f -or -type l)
-
-		eval "$TARGET+=(\$FILES)"
-		echo "$LABEL file/dir: $REL_FILE"
+			REL_FILE="${FILE#$PREFIX/}"
+			eval "$TARGET+=(\"\$REL_FILE\")"
+		done < <(find "$ITEM_PATH" -type f -or -type l)
 	fi
 done < <(diff --no-dereference --brief --recursive "$OUTPUT_DIR"/files "$SYSTEM_DIR"/files)
 
-if [[ ${#NEW_FILES} != 0 ]]
+if [[ ${#NEW_FILES[@]} != 0 ]]
 then
-	echo "Found ${#NEW_FILES} new files. "
-	echo "\n\n# $(date) - New files\n\n" >> $CONFIG_SAVE_TARGET
-	for FILE in $NEW_FILES
+	printf "Found %s new files.\n" ${#NEW_FILES[@]}
+	printf "\n\n# %s - New files\n\n\n" "$(date)" >> "$CONFIG_SAVE_TARGET"
+	for FILE in "${NEW_FILES[@]}"
 	do
-		mkdir -p "$(dirname "$CONFIG_DIR"/99-unsorted/"$FILE")"
+		mkdir --parents "$(dirname "$CONFIG_DIR"/99-unsorted/"$FILE")"
 		cp --no-dereference "$SYSTEM_DIR"/files/"$FILE" "$CONFIG_DIR"/99-unsorted/"$FILE"
 
-		echo "mkdir -p \"\$OUTPUT_DIR\"/files/'$(dirname "$FILE")'" >> $CONFIG_SAVE_TARGET
-		echo "cp --no-dereference \"\$CONFIG_DIR\"/99-unsorted/'$FILE' \"\$OUTPUT_DIR\"/files/'$FILE'" >> $CONFIG_SAVE_TARGET
+		printf "mkdir --parents \"\$OUTPUT_DIR\"/files/%q\n" "$(dirname "$FILE")" >> "$CONFIG_SAVE_TARGET"
+		printf "cp --no-dereference \"\$CONFIG_DIR\"/99-unsorted/%q \"\$OUTPUT_DIR\"/files/%q\n" "$FILE" "$FILE" >> "$CONFIG_SAVE_TARGET"
 	done
 fi
 
-if [[ ${#EXTRA_FILES} != 0 ]]
+if [[ ${#EXTRA_FILES[@]} != 0 ]]
 then
-	echo "Found ${#EXTRA_FILES} extra files. "
-	echo "\n\n# $(date) - Extra files\n\n" >> $CONFIG_SAVE_TARGET
-	for FILE in $EXTRA_FILES
+	printf "Found %s extra files.\n" ${#EXTRA_FILES[@]}
+	printf "\n\n# %s - Extra files\n\n\n" "$(date)" >> "$CONFIG_SAVE_TARGET"
+	for FILE in "${EXTRA_FILES[@]}"
 	do
-		echo "rm \"\$OUTPUT_DIR\"/files/'$FILE'" >> $CONFIG_SAVE_TARGET
+		printf "rm \"\$OUTPUT_DIR\"/files/%q\n" "$FILE" >> "$CONFIG_SAVE_TARGET"
 	done
 fi
 
@@ -167,27 +172,20 @@ fi
 
 function aconf-read-file-props() {
 	unset FILE_PROPS
-	typeset -A FILE_PROPS
+	typeset -Ag "$2"
 
 	while read -r LINE
 	do
-		if [[ $LINE =~ '^(.*)	(.*)	(.*)$' ]]
+		if [[ $LINE =~ ^(.*)\	(.*)\	(.*)$ ]]
 		then
-			if [[ -z "${match[2]}" ]]
+			if [[ -z "${BASH_REMATCH[2]}" ]]
 			then
-				unset "FILE_PROPS[${match[1]}:${match[3]}]"
+				unset "$2[${BASH_REMATCH[1]}:${BASH_REMATCH[3]}]"
 			else
-				FILE_PROPS[${match[1]}:${match[3]}]="${match[2]}"
+				eval "$2[\${BASH_REMATCH[1]}:\${BASH_REMATCH[3]}]=\"\${BASH_REMATCH[2]}\""
 			fi
 		fi
 	done < "$1"
-
-	#eval "typeset -A $2 ; set -A $2 \${(kv)FILE_PROPS}"
-	typeset -Ag $2
-	if [[ ${#FILE_PROPS} != 0 ]]
-	then
-		set -A $2 ${(kv)FILE_PROPS}
-	fi
 }
 
 aconf-read-file-props "$OUTPUT_DIR"/file-props.txt OUTPUT_FILE_PROPS
@@ -196,39 +194,39 @@ aconf-read-file-props "$SYSTEM_DIR"/file-props.txt SYSTEM_FILE_PROPS
 NEW_FILE_PROPS=()
 EXTRA_FILE_PROPS=()
 
-for KEY in "${(@k)SYSTEM_FILE_PROPS}"
+for KEY in "${!SYSTEM_FILE_PROPS[@]}"
 do
-	if ( ! (( ${+OUTPUT_FILE_PROPS[$KEY]} )) ) || [[ "${SYSTEM_FILE_PROPS[$KEY]}" != "${OUTPUT_FILE_PROPS[$KEY]}" ]]
+	if [[ -z "${OUTPUT_FILE_PROPS[$KEY]+x}" || "${SYSTEM_FILE_PROPS[$KEY]}" != "${OUTPUT_FILE_PROPS[$KEY]}" ]]
 	then
 		NEW_FILE_PROPS+=("$KEY")
 	fi
 done
 
-for KEY in "${(@k)OUTPUT_FILE_PROPS}"
+for KEY in "${!OUTPUT_FILE_PROPS[@]}"
 do
-	if ! (( ${+SYSTEM_FILE_PROPS[$KEY]} ))
+	if [[ -z "${SYSTEM_FILE_PROPS[$KEY]+x}" ]]
 	then
 		EXTRA_FILE_PROPS+=("$KEY")
 	fi
 done
 
-if [[ ${#NEW_FILE_PROPS} != 0 ]]
+if [[ ${#NEW_FILE_PROPS[@]} != 0 ]]
 then
-	echo "\n\n# $(date) - New file properties\n\n" >> $CONFIG_SAVE_TARGET
-	for KEY in $NEW_FILE_PROPS
+	printf "\n\n# %s - New file properties\n\n\n" "$(date)" >> "$CONFIG_SAVE_TARGET"
+	for KEY in "${NEW_FILE_PROPS[@]}"
 	do
 		LINE="${KEY%%:*}	${SYSTEM_FILE_PROPS[$KEY]}	${KEY#*:}"
-		echo ">> \"\$OUTPUT_DIR\"/file-props.txt echo '$LINE'" >> $CONFIG_SAVE_TARGET
+		printf ">> \"\$OUTPUT_DIR\"/file-props.txt echo %q\n" "$LINE" >> "$CONFIG_SAVE_TARGET"
 	done
 fi
 
-if [[ ${#EXTRA_FILE_PROPS} != 0 ]]
+if [[ ${#EXTRA_FILE_PROPS[@]} != 0 ]]
 then
-	echo "\n\n# $(date) - Extra file properties\n\n" >> $CONFIG_SAVE_TARGET
-	for KEY in $EXTRA_FILE_PROPS
+	printf "\n\n# %s - Extra file properties\n\n\n" "$(date)" >> "$CONFIG_SAVE_TARGET"
+	for KEY in "${EXTRA_FILE_PROPS[@]}"
 	do
 		LINE="${KEY%%:*}		${KEY#*:}"
-		echo ">> \"\$OUTPUT_DIR\"/file-props.txt echo '$LINE'" >> $CONFIG_SAVE_TARGET
+		printf ">> \"\$OUTPUT_DIR\"/file-props.txt echo %q\n" "$LINE" >> "$CONFIG_SAVE_TARGET"
 	done
 fi
 

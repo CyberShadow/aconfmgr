@@ -1,27 +1,27 @@
-#!/bin/zsh
+#!/bin/bash
 set -eu
 source src/common.sh
 
-aconf-compile
+AconfCompile
 
 # Unknown packages (installed but not listed)
 
-UNKNOWN_PACKAGES=($(comm -13 <(echo "$PACKAGES") <(echo "$INSTALLED_PACKAGES")))
+UNKNOWN_PACKAGES=($(comm -13 <(echo "${PACKAGES[*]}") <(echo "${INSTALLED_PACKAGES[*]}")))
 
-if [[ ${#UNKNOWN_PACKAGES} != 0 ]]
+if [[ ${#UNKNOWN_PACKAGES[@]} != 0 ]]
 then
-	echo "Removing ${#UNKNOWN_PACKAGES} unknown packages."
-	sudo pacman --remove "$UNKNOWN_PACKAGES"
+	printf "Removing %s unknown packages.\n" ${#UNKNOWN_PACKAGES[@]}
+	sudo pacman --remove "${UNKNOWN_PACKAGES[@]}"
 fi
 
 # Missing packages (listed but not installed on current system)
 
-MISSING_PACKAGES=($(comm -23 <(echo "$PACKAGES") <(echo "$INSTALLED_PACKAGES")))
+MISSING_PACKAGES=($(comm -23 <(echo "${PACKAGES[*]}") <(echo "${INSTALLED_PACKAGES[*]}")))
 
-if [[ ${#MISSING_PACKAGES} != 0 ]]
+if [[ ${#MISSING_PACKAGES[@]} != 0 ]]
 then
-	echo "Installing ${#MISSING_PACKAGES} missing packages."
-	sudo pacman --sync --needed "$MISSING_PACKAGES"
+	printf "Installing %s missing packages.\n" ${#MISSING_PACKAGES[@]}
+	sudo pacman --sync --needed "${MISSING_PACKAGES[@]}"
 fi
 
 echo "Done."
