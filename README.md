@@ -31,7 +31,7 @@ The contracts of both commands are that after a successful invocation of either,
 
 Run `aconf-save` to transcribe the system's configuration to the `config` directory.
 
-This will create the file `config/99-unsorted.sh`, as well as other files [TODO] describing the system configuration. You should review the contents of `99-unsorted.sh`, and sort it into one or more new files (e.g.: `10-base.sh`, `20-drivers.sh`, `30-gui.sh`, `50-misc.sh` ...). The files should have a `.sh` extension, and use `zsh` syntax. I suggest adding a comment for each package describing why installing the package was needed, so it is clear when the package is no longer needed and can be removed.
+This will create the file `config/99-unsorted.sh`, as well as other files describing the system configuration. You should review the contents of `99-unsorted.sh`, and sort it into one or more new files (e.g.: `10-base.sh`, `20-drivers.sh`, `30-gui.sh`, `50-misc.sh` ...). The files should have a `.sh` extension, and use `bash` syntax. I suggest adding a comment for each package describing why installing the package was needed, so it is clear when the package is no longer needed and can be removed.
 
 During this process, you may identify packages or system changes which are no longer needed. Do not sort them into your configuration files - instead, delete the file `99-unsorted.sh`, and run `aconf-apply`. This will synchronize the system state against your configuration, thus removing the omitted packages. (`pacman` will display a prompt allowing you to review the exact list of packages being removed.)
 
@@ -50,13 +50,43 @@ To restore a system to its earlier state, or to set up a new system, simply make
 You can use the same `config` repository to manage multiple sufficiently-similar systems. One way of doing so is e.g. Git branches (having one main branch plus one branch per machine, and periodically merge in changes from the main branch into the machine-specific branches); however, it is simpler to use shell scripting:
 
 ```bash
-packages+=coreutils
+packages+=(coreutils)
 # ... more common packages ...
 
 if [[ "$HOST" == "home.example.com" ]]
 then
-	packages+=nvidia
-	packages+=nvidia-utils
+	packages+=(nvidia)
+	packages+=(nvidia-utils)
 	# ... more packages only for the home system ...
 fi
 ```
+
+### 5. Ignoring some changes
+
+#### Ignoring files
+
+Some files will inevitably neither belong to or match any installed packages, nor can be considered part of the system configuration. This can include:
+
+* Temporary / cache / auto-generated / lock / pipe / pid / timestamp / database / backup / log files
+* Files managed by third-party package managers, esp. programming languages' package managers (pip, gem, npm)
+* Virtual machine disk images
+
+Other files may not be desirable to include in the managed system configuration because they are security-sensitive (e.g. sshd private keys).
+
+To declare a group of files to be ignored by `aconfmgr`, add the path mask to the `ignore_paths` array, e.g.:
+
+```bash
+ignore_paths+=('/var/lib/pacman/local/*') # package metadata
+ignore_paths+=('/var/lib/pacman/sync/*.db') # repos
+ignore_paths+=('/var/lib/pacman/sync/*.db.sig') # repo sigs
+```
+
+#### Ignoring packages
+
+To ignore the presence of some packages on the system, add the package names to the `ignore_packages` array [TODO]:
+
+```bash
+ignore_packages+=(linux-git)
+```
+
+`aconf-save` will not update the configuration based on ignored packages' presence or absence, and `aconf-apply` will not install or uninstall them.
