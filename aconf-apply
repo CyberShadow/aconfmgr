@@ -6,22 +6,22 @@ AconfCompile
 
 # Unknown packages (installed but not listed)
 
-UNKNOWN_PACKAGES=($(comm -13 <(echo "${PACKAGES[*]}") <(echo "${INSTALLED_PACKAGES[*]}")))
+unknown_packages=($(comm -13 <(echo "${packages[*]}") <(echo "${installed_packages[*]}")))
 
-if [[ ${#UNKNOWN_PACKAGES[@]} != 0 ]]
+if [[ ${#unknown_packages[@]} != 0 ]]
 then
-	printf "Removing %s unknown packages.\n" ${#UNKNOWN_PACKAGES[@]}
-	sudo pacman --remove "${UNKNOWN_PACKAGES[@]}"
+	printf "Removing %s unknown packages.\n" ${#unknown_packages[@]}
+	sudo pacman --remove "${unknown_packages[@]}"
 fi
 
 # Missing packages (listed but not installed on current system)
 
-MISSING_PACKAGES=($(comm -23 <(echo "${PACKAGES[*]}") <(echo "${INSTALLED_PACKAGES[*]}")))
+missing_packages=($(comm -23 <(echo "${packages[*]}") <(echo "${installed_packages[*]}")))
 
-if [[ ${#MISSING_PACKAGES[@]} != 0 ]]
+if [[ ${#missing_packages[@]} != 0 ]]
 then
-	printf "Installing %s missing packages.\n" ${#MISSING_PACKAGES[@]}
-	sudo pacman --sync --needed "${MISSING_PACKAGES[@]}"
+	printf "Installing %s missing packages.\n" ${#missing_packages[@]}
+	sudo pacman --sync --needed "${missing_packages[@]}"
 fi
 
 echo "Done."

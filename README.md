@@ -50,13 +50,13 @@ To restore a system to its earlier state, or to set up a new system, simply make
 You can use the same `config` repository to manage multiple sufficiently-similar systems. One way of doing so is e.g. Git branches (having one main branch plus one branch per machine, and periodically merge in changes from the main branch into the machine-specific branches); however, it is simpler to use shell scripting:
 
 ```bash
-PACKAGES+=coreutils
+packages+=coreutils
 # ... more common packages ...
 
 if [[ "$HOST" == "home.example.com" ]]
 then
-	PACKAGES+=nvidia
-	PACKAGES+=nvidia-utils
+	packages+=nvidia
+	packages+=nvidia-utils
 	# ... more packages only for the home system ...
 fi
 ```

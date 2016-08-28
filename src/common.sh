@@ -3,14 +3,14 @@
 
 IFS=$'\n'
 
-CONFIG_DIR=config
-OUTPUT_DIR=output
-SYSTEM_DIR=system # Current system configuration, to be compared against the output directory
-TMP_DIR=tmp
+config_dir=config
+output_dir=output
+system_dir=system # Current system configuration, to be compared against the output directory
+tmp_dir=tmp
 
-CONFIG_SAVE_TARGET=$CONFIG_DIR/99-unsorted.sh
+config_save_target=$config_dir/99-unsorted.sh
 
-IGNORE_PATHS=(
+ignore_paths=(
     '/dev'
     '/home'
     '/mnt'
@@ -27,33 +27,33 @@ IGNORE_PATHS=(
     # '/var/spool'
 )
 
-mkdir -p "$CONFIG_DIR"
+mkdir -p "$config_dir"
 
 function AconfCompile() {
 
 	# Configuration
 
-	rm -rf "$OUTPUT_DIR"
-	mkdir "$OUTPUT_DIR"
-	touch "$OUTPUT_DIR"/packages.txt
-	touch "$OUTPUT_DIR"/file-props.txt
+	rm -rf "$output_dir"
+	mkdir "$output_dir"
+	touch "$output_dir"/packages.txt
+	touch "$output_dir"/file-props.txt
 
-	for FILE in "$CONFIG_DIR"/*.sh
+	for file in "$config_dir"/*.sh
 	do
-		printf "Sourcing %s...\n" "$FILE"
-		source "$FILE"
+		printf "Sourcing %s...\n" "$file"
+		source "$file"
 	done
 
 	# System
 
-	rm -rf "$SYSTEM_DIR"
-	mkdir "$SYSTEM_DIR"
+	rm -rf "$system_dir"
+	mkdir "$system_dir"
 
 	echo "Querying package list..."
-	pacman --query --quiet --explicit --native | sort > "$SYSTEM_DIR"/packages.txt
+	pacman --query --quiet --explicit --native | sort > "$system_dir"/packages.txt
 
 	# Vars
 
-	PACKAGES=($(< "$OUTPUT_DIR"/packages.txt sort --unique))
-	INSTALLED_PACKAGES=($(< "$SYSTEM_DIR"/packages.txt sort --unique))
+	packages=($(< "$output_dir"/packages.txt sort --unique))
+	installed_packages=($(< "$system_dir"/packages.txt sort --unique))
 }
