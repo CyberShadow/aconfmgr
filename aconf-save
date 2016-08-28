@@ -169,11 +169,15 @@ function aconf-read-file-props() {
 	do
 		if [[ $LINE =~ ^(.*)\	(.*)\	(.*)$ ]]
 		then
-			if [[ -z "${BASH_REMATCH[2]}" ]]
+			GROUP="${BASH_REMATCH[1]}"
+			VALUE="${BASH_REMATCH[2]}"
+			FILE="${BASH_REMATCH[3]}" # Keep it in escaped form
+
+			if [[ -z "$VALUE" ]]
 			then
-				unset "$2[${BASH_REMATCH[1]}:${BASH_REMATCH[3]}]"
+				unset "$2[$GROUP:$FILE]"
 			else
-				eval "$2[\${BASH_REMATCH[1]}:\${BASH_REMATCH[3]}]=\"\${BASH_REMATCH[2]}\""
+				eval "$2[\$GROUP:\$FILE]=\"\$VALUE\""
 			fi
 		fi
 	done < "$1"
