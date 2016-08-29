@@ -10,7 +10,7 @@ unknown_packages=($(comm -13 <(PrintArray packages) <(PrintArray installed_packa
 
 if [[ ${#unknown_packages[@]} != 0 ]]
 then
-	printf "Found %s unknown packages. Registering...\n" ${#unknown_packages}
+	printf "Found %s unknown packages. Registering...\n" ${#unknown_packages[@]}
 	printf "\n\n# %s - Unknown packages\n\n\n" "$(date)" >> "$config_save_target"
 	for package in "${unknown_packages[@]}"
 	do
@@ -38,7 +38,7 @@ unknown_foreign_packages=($(comm -13 <(PrintArray foreign_packages) <(PrintArray
 
 if [[ ${#unknown_foreign_packages[@]} != 0 ]]
 then
-	printf "Found %s unknown foreign packages. Registering...\n" ${#unknown_foreign_packages}
+	printf "Found %s unknown foreign packages. Registering...\n" ${#unknown_foreign_packages[@]}
 	printf "\n\n# %s - Unknown foreign packages\n\n\n" "$(date)" >> "$config_save_target"
 	for package in "${unknown_foreign_packages[@]}"
 	do
