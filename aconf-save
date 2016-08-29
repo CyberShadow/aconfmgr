@@ -6,7 +6,7 @@ AconfCompile
 
 # Unknown native packages (installed but not listed)
 
-unknown_packages=($(comm -13 <(echo "${packages[*]}") <(echo "${installed_packages[*]}")))
+unknown_packages=($(comm -13 <(PrintArray packages) <(PrintArray installed_packages)))
 
 if [[ ${#unknown_packages[@]} != 0 ]]
 then
@@ -20,7 +20,7 @@ fi
 
 # Missing native packages (listed but not installed on current system)
 
-missing_packages=($(comm -23 <(echo "${packages[*]}") <(echo "${installed_packages[*]}")))
+missing_packages=($(comm -23 <(PrintArray packages) <(PrintArray installed_packages)))
 
 if [[ ${#missing_packages[@]} != 0 ]]
 then
@@ -34,7 +34,7 @@ fi
 
 # Unknown foreign packages (installed but not listed)
 
-unknown_foreign_packages=($(comm -13 <(echo "${foreign_packages[*]}") <(echo "${installed_foreign_packages[*]}")))
+unknown_foreign_packages=($(comm -13 <(PrintArray foreign_packages) <(PrintArray installed_foreign_packages)))
 
 if [[ ${#unknown_foreign_packages[@]} != 0 ]]
 then
@@ -48,7 +48,7 @@ fi
 
 # Missing foreign packages (listed but not installed on current system)
 
-missing_foreign_packages=($(comm -23 <(echo "${foreign_packages[*]}") <(echo "${installed_foreign_packages[*]}")))
+missing_foreign_packages=($(comm -23 <(PrintArray foreign_packages) <(PrintArray installed_foreign_packages)))
 
 if [[ ${#missing_foreign_packages[@]} != 0 ]]
 then

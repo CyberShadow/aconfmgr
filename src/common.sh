@@ -62,3 +62,16 @@ function AconfCompile() {
 	          foreign_packages=($(< "$output_dir"/foreign-packages.txt sort --unique))
 	installed_foreign_packages=($(< "$system_dir"/foreign-packages.txt sort --unique))
 }
+
+# Print an array, one element per line (assuming IFS starts with \n).
+# Work-around for Bash considering it an error to expand an empty array.
+function PrintArray() {
+	local name="$1" # Name of the global variable containing the array
+	local size
+
+	size="$(eval "echo \${#$name""[@]}")"
+	if [[ $size != 0 ]]
+	then
+		eval "echo \"\${$name[*]}\""
+	fi
+}
