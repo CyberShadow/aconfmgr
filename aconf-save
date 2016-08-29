@@ -164,16 +164,23 @@ do
 	extra_files+=("$file")
 done < <(comm -23 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files)
 
+typeset -A created_dirs
+
 if [[ ${#new_files[@]} != 0 ]]
 then
 	printf "Found %s new files.\n" ${#new_files[@]}
 	printf "\n\n# %s - New files\n\n\n" "$(date)" >> "$config_save_target"
 	for file in "${new_files[@]}"
 	do
-		mkdir --parents "$(dirname "$config_dir"/99-unsorted/"$file")"
-		cp --no-dereference "$system_dir"/files/"$file" "$config_dir"/99-unsorted/"$file"
+		dir="$(dirname "$file")"
+		if [[ -z "${created_dirs[$dir]+x}" ]]
+		then
+			mkdir --parents "$config_dir"/99-unsorted/"$dir"
+			printf "mkdir --parents \"\$output_dir\"/files/%q\n" "$dir" >> "$config_save_target"
+			created_dirs[$dir]=y
+		fi
 
-		printf "mkdir --parents \"\$output_dir\"/files/%q\n" "$(dirname "$file")" >> "$config_save_target"
+		cp --no-dereference "$system_dir"/files/"$file" "$config_dir"/99-unsorted/"$file"
 		printf "cp --no-dereference \"\$config_dir\"/99-unsorted/%q \"\$output_dir\"/files/%q\n" "$file" "$file" >> "$config_save_target"
 	done
 fi
