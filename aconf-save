@@ -42,6 +42,7 @@ function AconfAddFile() {
 	then
 		ln -s "$(sudo readlink "$1")" "$system_dir"/files/"$1"
 	else
+		local size
 		size=$(sudo stat "$1" --format=%s)
 		if [[ $size -gt $warn_size_threshold ]]
 		then
@@ -161,29 +162,33 @@ fi
 
 # Modified file properties
 
-function aconf-read-file-props() {
-	typeset -Ag "$2"
+function AconfReadFileProps() {
+	local filename="$1" # Path to file-props.txt to be read
+	local varname="$2"  # Name of global associative array variable to read into
 
+	typeset -Ag "$varname"
+
+	local line
 	while read -r line
 	do
 		if [[ $line =~ ^(.*)\	(.*)\	(.*)$ ]]
 		then
-			kind="${BASH_REMATCH[1]}"
-			value="${BASH_REMATCH[2]}"
-			file="${BASH_REMATCH[3]}" # Keep it in escaped form
+			local kind="${BASH_REMATCH[1]}"
+			local value="${BASH_REMATCH[2]}"
+			local file="${BASH_REMATCH[3]}" # Keep it in escaped form
 
 			if [[ -z "$value" ]]
 			then
-				unset "$2[$kind:$file]"
+				unset "$varname[$kind:$file]"
 			else
-				eval "$2[\$kind:\$file]=\"\$value\""
+				eval "$varname[\$kind:\$file]=\"\$value\""
 			fi
 		fi
-	done < "$1"
+	done < "$filename"
 }
 
-aconf-read-file-props "$output_dir"/file-props.txt output_file_props
-aconf-read-file-props "$system_dir"/file-props.txt system_file_props
+AconfReadFileProps "$output_dir"/file-props.txt output_file_props
+AconfReadFileProps "$system_dir"/file-props.txt system_file_props
 
 new_file_props=()
 extra_file_props=()

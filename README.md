@@ -1,6 +1,6 @@
 # aconfmgr: A configuration manager for Arch Linux
 
-`aconfmgr` is a tool to track, manage, and restore the configuration of an Arch Linux system.
+`aconfmgr` is a package to track, manage, and restore the configuration of an Arch Linux system.
 Its goals are:
 
 - Quickly configure a new system, or restore an existing system according to a saved configuration
