@@ -4,7 +4,7 @@ source src/common.sh
 
 AconfCompile
 
-# Unknown packages (installed but not listed)
+# Unknown native packages (installed but not listed)
 
 unknown_packages=($(comm -13 <(echo "${packages[*]}") <(echo "${installed_packages[*]}")))
 
@@ -18,7 +18,7 @@ then
 	done
 fi
 
-# Missing packages (listed but not installed on current system)
+# Missing native packages (listed but not installed on current system)
 
 missing_packages=($(comm -23 <(echo "${packages[*]}") <(echo "${installed_packages[*]}")))
 
@@ -29,6 +29,34 @@ then
 	for package in "${missing_packages[@]}"
 	do
 		printf "sed -i \"\$output_dir\"/packages.txt -e '/^'%q'\$/d'\n" "$package" >> "$config_save_target"
+	done
+fi
+
+# Unknown foreign packages (installed but not listed)
+
+unknown_foreign_packages=($(comm -13 <(echo "${foreign_packages[*]}") <(echo "${installed_foreign_packages[*]}")))
+
+if [[ ${#unknown_foreign_packages[@]} != 0 ]]
+then
+	printf "Found %s unknown foreign packages. Registering...\n" ${#unknown_foreign_packages}
+	printf "\n\n# %s - Unknown foreign packages\n\n\n" "$(date)" >> "$config_save_target"
+	for package in "${unknown_foreign_packages[@]}"
+	do
+		printf ">> \"\$output_dir\"/foreign-packages.txt echo %q #%s\n" "$package" "$(pacman --query --info "$package" | grep '^Description' | cut -d ':' -f 2)" >> "$config_save_target"
+	done
+fi
+
+# Missing foreign packages (listed but not installed on current system)
+
+missing_foreign_packages=($(comm -23 <(echo "${foreign_packages[*]}") <(echo "${installed_foreign_packages[*]}")))
+
+if [[ ${#missing_foreign_packages[@]} != 0 ]]
+then
+	printf "Found %s missing foreign packages. Un-registering.\n" ${#missing_foreign_packages[@]}
+	printf "\n\n# %s - Missing foreign packages\n\n\n" "$(date)" >> "$config_save_target"
+	for package in "${missing_foreign_packages[@]}"
+	do
+		printf "sed -i \"\$output_dir\"/foreign-packages.txt -e '/^'%q'\$/d'\n" "$package" >> "$config_save_target"
 	done
 fi
 

@@ -36,6 +36,7 @@ function AconfCompile() {
 	rm -rf "$output_dir"
 	mkdir "$output_dir"
 	touch "$output_dir"/packages.txt
+	touch "$output_dir"/foreign-packages.txt
 	touch "$output_dir"/file-props.txt
 
 	for file in "$config_dir"/*.sh
@@ -50,10 +51,14 @@ function AconfCompile() {
 	mkdir "$system_dir"
 
 	echo "Querying package list..."
-	pacman --query --quiet --explicit --native | sort > "$system_dir"/packages.txt
+	pacman --query --quiet --explicit --native  | sort > "$system_dir"/packages.txt
+	pacman --query --quiet --explicit --foreign | sort > "$system_dir"/foreign-packages.txt
 
 	# Vars
 
-	packages=($(< "$output_dir"/packages.txt sort --unique))
-	installed_packages=($(< "$system_dir"/packages.txt sort --unique))
+	                  packages=($(< "$output_dir"/packages.txt sort --unique))
+	        installed_packages=($(< "$system_dir"/packages.txt sort --unique))
+
+	          foreign_packages=($(< "$output_dir"/foreign-packages.txt sort --unique))
+	installed_foreign_packages=($(< "$system_dir"/foreign-packages.txt sort --unique))
 }
