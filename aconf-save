@@ -207,9 +207,9 @@ function AconfReadFileProps() {
 
 			if [[ -z "$value" ]]
 			then
-				unset "$varname[$kind:$file]"
+				unset "$varname[$file:$kind]"
 			else
-				eval "$varname[\$kind:\$file]=\"\$value\""
+				eval "$varname[\$file:\$kind]=\"\$value\""
 			fi
 		fi
 	done < "$filename"
@@ -240,21 +240,21 @@ done
 if [[ ${#new_file_props[@]} != 0 ]]
 then
 	printf "\n\n# %s - New file properties\n\n\n" "$(date)" >> "$config_save_target"
-	for key in "${new_file_props[@]}"
+	while read -r key
 	do
-		line="${key%%:*}	${system_file_props[$key]}	${key#*:}"
+		line="${key##*:}	${system_file_props[$key]}	${key%:*}"
 		printf ">> \"\$output_dir\"/file-props.txt echo %q\n" "$line" >> "$config_save_target"
-	done
+	done < <(echo "${new_file_props[*]}" | sort)
 fi
 
 if [[ ${#extra_file_props[@]} != 0 ]]
 then
 	printf "\n\n# %s - Extra file properties\n\n\n" "$(date)" >> "$config_save_target"
-	for key in "${extra_file_props[@]}"
+	while read -r key
 	do
-		line="${key%%:*}		${key#*:}"
+		line="${key##*:}		${key%:*}"
 		printf ">> \"\$output_dir\"/file-props.txt echo %q\n" "$line" >> "$config_save_target"
-	done
+	done < <(echo "${extra_file_props[*]}" | sort)
 fi
 
 # Report
