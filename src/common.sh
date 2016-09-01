@@ -130,9 +130,27 @@ function AconfCompileSystem() {
 	do
 		if [[ $line =~ ^(.*):\ \'(.*)\'\ md5sum\ mismatch ]]
 		then
-			printf "%s: %s\n" "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}"
-			# TODO: Check ignores
-			AconfAddFile "${BASH_REMATCH[2]}"
+			local package="${BASH_REMATCH[1]}"
+			local file="${BASH_REMATCH[2]}"
+
+			printf "%s: %s\n" "$package" "$file"
+
+			local ignored=n
+			for ignore_path in "${ignore_paths[@]}"
+			do
+				# shellcheck disable=SC2053
+				if [[ "$file" == $ignore_path ]]
+				then
+					ignored=y
+					break
+				fi
+			done
+
+			if [[ $ignored == n ]]
+			then
+				AconfAddFile "$file"
+			fi
+
 		elif [[ $line =~ ^(.*):\  ]]
 		then
 			printf "%s%s\r" "${ANSI_clear_line}" "${BASH_REMATCH[1]}"
