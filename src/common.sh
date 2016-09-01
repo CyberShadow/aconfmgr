@@ -9,6 +9,7 @@ system_dir=system # Current system configuration, to be compared against the out
 tmp_dir=tmp
 
 warn_size_threshold=$((10*1024*1024))
+default_file_mode=644
 
 ignore_paths=(
     '/dev'
@@ -29,11 +30,15 @@ ignore_paths=(
 
 mkdir -p "$config_dir"
 
+umask $((666 - default_file_mode))
+
 function AconfAddFile() {
 	mkdir --parents "$(dirname "$system_dir"/files/"$1")"
+	local link=n
 	if sudo test -h "$1"
 	then
 		ln -s "$(sudo readlink "$1")" "$system_dir"/files/"$1"
+		link=y
 	else
 		local size
 		size=$(sudo stat "$1" --format=%s)
@@ -45,9 +50,15 @@ function AconfAddFile() {
 	fi
 
 	{
-		printf "mode	%s	%q\n" "$(sudo stat --format=%a "$1")" "$1"
-		printf "owner	%s	%q\n" "$(sudo stat --format=%U "$1")" "$1"
-		printf "group	%s	%q\n" "$(sudo stat --format=%G "$1")" "$1"
+		local mode owner group defmode
+		[[ $link == y ]] && defmode=777 || defmode=$default_file_mode
+		 mode="$(sudo stat --format=%a "$1")"
+		owner="$(sudo stat --format=%U "$1")"
+		group="$(sudo stat --format=%G "$1")"
+
+		[[ " $mode" == "$defmode" ]] || printf  "mode\t%s\t%q\n"  "$mode" "$1"
+		[[ "$owner" == root       ]] || printf "owner\t%s\t%q\n" "$owner" "$1"
+		[[ "$group" == root       ]] || printf "group\t%s\t%q\n" "$group" "$1"
 	} >> "$system_dir"/file-props.txt
 }
 
