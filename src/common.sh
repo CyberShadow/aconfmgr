@@ -144,13 +144,16 @@ function AconfCompileSystem() {
 
 # Prepare configuration and system state
 function AconfCompile() {
+	echo "Collecting data..."
 
 	# Configuration
 
+	echo "Compiling user configuration..."
 	AconfCompileOutput
 
 	# System
 
+	echo "Inspecting system state..."
 	AconfCompileSystem
 
 	# Vars
