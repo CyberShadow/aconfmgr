@@ -219,7 +219,7 @@ then
 	do
 		line="$(printf "%s\t%s\t%q" "${key##*:}" "${system_file_props[$key]}" "${key%:*}")"
 		printf ">> \"\$output_dir\"/file-props.txt echo %q\n" "$line" >> "$config_save_target"
-	done < <(printf "%s\0" "${new_file_props[*]}" | sort --zero-terminated)
+	done < <(Print0Array new_file_props | sort --zero-terminated)
 fi
 
 if [[ ${#extra_file_props[@]} != 0 ]]
@@ -229,7 +229,7 @@ then
 	do
 		line="$(printf "%s\t\t%q" "${key##*:}" "${key%:*}")"
 		printf ">> \"\$output_dir\"/file-props.txt echo %q\n" "$line" >> "$config_save_target"
-	done < <(printf "%s\0" "${extra_file_props[*]}" | sort --zero-terminated)
+	done < <(Print0Array extra_file_props | sort --zero-terminated)
 fi
 
 # Report

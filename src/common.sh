@@ -157,9 +157,26 @@ function PrintArray() {
 	local name="$1" # Name of the global variable containing the array
 	local size
 
-	size="$(eval "echo \${#$name""[@]}")"
+	size="$(eval "echo \${#$name""[*]}")"
 	if [[ $size != 0 ]]
 	then
 		eval "echo \"\${$name[*]}\""
 	fi
+}
+
+# Ditto, but terminate elements with a NUL.
+function Print0Array() {
+	local name="$1" # Name of the global variable containing the array
+
+	eval "$(cat <<EOF
+	if [[ \${#$name[*]} != 0 ]]
+	then
+		local item
+		for item in "\${${name}[@]}"
+		do
+			printf "%s\0" "\$item"
+		done
+	fi
+EOF
+)"
 }
