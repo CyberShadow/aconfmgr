@@ -58,7 +58,7 @@ function AconfAddFile() {
 		owner="$(sudo stat --format=%U "$file")"
 		group="$(sudo stat --format=%G "$file")"
 
-		[[ " $mode" == "$defmode" ]] || printf  "mode\t%s\t%q\n"  "$mode" "$file"
+		[[  "$mode" == "$defmode" ]] || printf  "mode\t%s\t%q\n"  "$mode" "$file"
 		[[ "$owner" == root       ]] || printf "owner\t%s\t%q\n" "$owner" "$file"
 		[[ "$group" == root       ]] || printf "group\t%s\t%q\n" "$group" "$file"
 	} >> "$system_dir"/file-props.txt
