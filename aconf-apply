@@ -6,13 +6,29 @@ AconfCompile
 
 # Unknown packages (installed but not listed)
 
-unknown_packages=($(comm -13 <(echo "${packages[*]}") <(echo "${installed_packages[*]}")))
+unknown_packages=($(comm -13																			\
+					<((PrintArray           packages ; PrintArray           foreign_packages) | sort)	\
+					<((PrintArray installed_packages ; PrintArray installed_foreign_packages) | sort)))
 
 if [[ ${#unknown_packages[@]} != 0 ]]
 then
-	printf "Removing %s unknown packages.\n" ${#unknown_packages[@]}
-	sudo pacman --remove "${unknown_packages[@]}"
+	printf "Unpinning %s unknown packages.\n" ${#unknown_packages[@]}
+	Print0Array unknown_packages | sudo xargs -0 pacman --database --asdeps
 fi
+
+# We have to loop, since pacman's dependency scanning doesn't seem to be recursive
+while true
+do
+	orphan_packages=($(pacman --query --unrequired --unrequired --deps --quiet))
+
+	if [[ ${#orphan_packages[@]} != 0 ]]
+	then
+		printf "Removing %s orphan packages.\n" ${#orphan_packages[@]}
+		sudo pacman --remove "${orphan_packages[@]}"
+	else
+		break
+	fi
+done
 
 # Missing packages (listed but not installed on current system)
 
@@ -21,7 +37,12 @@ missing_packages=($(comm -23 <(echo "${packages[*]}") <(echo "${installed_packag
 if [[ ${#missing_packages[@]} != 0 ]]
 then
 	printf "Installing %s missing packages.\n" ${#missing_packages[@]}
+	# TODO: Mark package as explicitly installed if it's already installed.
 	sudo pacman --sync --needed "${missing_packages[@]}"
 fi
+
+# TODO: install missing foreign packages
+
+# TODO: files and their properties
 
 echo "Done."
