@@ -33,32 +33,34 @@ mkdir -p "$config_dir"
 umask $((666 - default_file_mode))
 
 function AconfAddFile() {
-	mkdir --parents "$(dirname "$system_dir"/files/"$1")"
+	local file="$1" # Absolute path of file to add
+
+	mkdir --parents "$(dirname "$system_dir"/files/"$file")"
 	local link=n
-	if sudo test -h "$1"
+	if sudo test -h "$file"
 	then
-		ln -s "$(sudo readlink "$1")" "$system_dir"/files/"$1"
+		ln -s "$(sudo readlink "$file")" "$system_dir"/files/"$file"
 		link=y
 	else
 		local size
-		size=$(sudo stat "$1" --format=%s)
+		size=$(sudo stat "$file" --format=%s)
 		if [[ $size -gt $warn_size_threshold ]]
 		then
 			printf "Warning: copying large file (%s bytes). Add to ignore_paths to ignore.\n" "$size"
 		fi
-		( sudo cat "$1" ) > "$system_dir"/files/"$1"
+		( sudo cat "$file" ) > "$system_dir"/files/"$file"
 	fi
 
 	{
 		local mode owner group defmode
 		[[ $link == y ]] && defmode=777 || defmode=$default_file_mode
-		 mode="$(sudo stat --format=%a "$1")"
-		owner="$(sudo stat --format=%U "$1")"
-		group="$(sudo stat --format=%G "$1")"
+		 mode="$(sudo stat --format=%a "$file")"
+		owner="$(sudo stat --format=%U "$file")"
+		group="$(sudo stat --format=%G "$file")"
 
-		[[ " $mode" == "$defmode" ]] || printf  "mode\t%s\t%q\n"  "$mode" "$1"
-		[[ "$owner" == root       ]] || printf "owner\t%s\t%q\n" "$owner" "$1"
-		[[ "$group" == root       ]] || printf "group\t%s\t%q\n" "$group" "$1"
+		[[ " $mode" == "$defmode" ]] || printf  "mode\t%s\t%q\n"  "$mode" "$file"
+		[[ "$owner" == root       ]] || printf "owner\t%s\t%q\n" "$owner" "$file"
+		[[ "$group" == root       ]] || printf "group\t%s\t%q\n" "$group" "$file"
 	} >> "$system_dir"/file-props.txt
 }
 
