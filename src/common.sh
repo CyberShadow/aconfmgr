@@ -90,7 +90,7 @@ function AconfCompileSystem() {
 	typeset -ag found_files
 	found_files=()
 
-	# Untracked files
+	# Lost files
 
 	local ignore_args=()
 	local ignore_path
@@ -99,13 +99,23 @@ function AconfCompileSystem() {
 		ignore_args+=(-wholename "$ignore_path" -prune -o)
 	done
 
-	LogEnter "Searching for untracked files...\n"
+	LogEnter "Searching for lost files...\n"
 
+	local first=y
 	local line
 	while read -r -d $'\0' line
 	do
 		#echo "ignore_paths+='$line' # "
-		Log "Found untracked file: %s\n" "$(Color Y "$line")"
+		#Log "Found lost file: %s\n" "$(Color Y "$line")"
+
+		# The slow operation will be sorted and filtered,
+		# so most of the time will be spent waiting for the first entry.
+		if [[ $first == y ]]
+		then
+			Log "Registering...\n"
+			first=n
+		fi
+
 		AconfAddFile "$line"
 	done < <(																				\
 		comm -13 --zero-terminated															\
@@ -116,7 +126,7 @@ function AconfCompileSystem() {
 					\) -print0 |															\
 					  sort --unique --zero-terminated) )
 
-	LogLeave # Searching for untracked files
+	LogLeave # Searching for lost files
 
 	# Modified files
 

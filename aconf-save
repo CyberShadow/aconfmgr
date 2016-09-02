@@ -70,7 +70,7 @@ then
 fi
 
 #
-# Untracked/modified files - diff
+# Lost/modified files - diff
 #
 
 LogEnter "Examining files...\n"
