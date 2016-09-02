@@ -207,6 +207,7 @@ function AconfCompileSystem() {
 			( sudo cat "$file" ) > "$system_dir"/files/"$file"
 		else
 			Log "%s: Skipping file '%s' with unknown type '%s'. Add to %s to ignore.\n" "$(Color Y "Warning")" "$(Color C "$file")" "$(Color G "$type")" "$(Color Y "ignore_paths")"
+			continue
 		fi
 
 		{
