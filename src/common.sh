@@ -44,34 +44,7 @@ umask $((666 - default_file_mode))
 
 function AconfAddFile() {
 	local file="$1" # Absolute path of file to add
-
-	mkdir --parents "$(dirname "$system_dir"/files/"$file")"
-	local link=n
-	if sudo test -h "$file"
-	then
-		ln -s "$(sudo readlink "$file")" "$system_dir"/files/"$file"
-		link=y
-	else
-		local size
-		size=$(sudo stat "$file" --format=%s)
-		if [[ $size -gt $warn_size_threshold ]]
-		then
-			printf "Warning: copying large file (%s bytes). Add to ignore_paths to ignore.\n" "$size"
-		fi
-		( sudo cat "$file" ) > "$system_dir"/files/"$file"
-	fi
-
-	{
-		local mode owner group defmode
-		[[ $link == y ]] && defmode=777 || defmode=$default_file_mode
-		 mode="$(sudo stat --format=%a "$file")"
-		owner="$(sudo stat --format=%U "$file")"
-		group="$(sudo stat --format=%G "$file")"
-
-		[[  "$mode" == "$defmode" ]] || printf  "mode\t%s\t%q\n"  "$mode" "$file"
-		[[ "$owner" == root       ]] || printf "owner\t%s\t%q\n" "$owner" "$file"
-		[[ "$group" == root       ]] || printf "group\t%s\t%q\n" "$group" "$file"
-	} >> "$system_dir"/file-props.txt
+	found_files+=("$file")
 }
 
 # Run user configuration scripts, to collect desired state into #output_dir
@@ -113,6 +86,9 @@ function AconfCompileSystem() {
 	LogLeave
 
 	### Files
+
+	typeset -ag found_files
+	found_files=()
 
 	# Untracked files
 
@@ -179,6 +155,55 @@ function AconfCompileSystem() {
 	done < <(sudo sh -c "stdbuf -o0 paccheck --md5sum --files --backup --noupgrade 2>&1")
 	printf "\n"
 	LogLeave # Searching for modified files
+
+	LogEnter "Reading file attributes...\n"
+
+	local found_file_types found_file_sizes found_file_modes found_file_owners found_file_groups
+	Log "Reading file types...\n"  ;  found_file_types=($(Print0Array found_files | sudo xargs -0 stat --format=%F))
+	Log "Reading file sizes...\n"  ;  found_file_sizes=($(Print0Array found_files | sudo xargs -0 stat --format=%s))
+	Log "Reading file modes...\n"  ;  found_file_modes=($(Print0Array found_files | sudo xargs -0 stat --format=%a))
+	Log "Reading file owners...\n" ; found_file_owners=($(Print0Array found_files | sudo xargs -0 stat --format=%U))
+	Log "Reading file groups...\n" ; found_file_groups=($(Print0Array found_files | sudo xargs -0 stat --format=%G))
+
+	LogLeave # Reading file attributes
+
+	LogEnter "Processing found files...\n"
+
+	local i
+	for ((i=0; i<${#found_files[*]}; i++))
+	do
+		Log "%s/%s...\r" "$(Color G "$i")" "$(Color G "${#found_files[*]}")"
+
+		local  file="${found_files[$i]}"
+		local  type="${found_file_types[$i]}"
+		local  size="${found_file_sizes[$i]}"
+		local  mode="${found_file_modes[$i]}"
+		local owner="${found_file_owners[$i]}"
+		local group="${found_file_groups[$i]}"
+
+		mkdir --parents "$(dirname "$system_dir"/files/"$file")"
+		if [[ "$type" == "symbolic link" ]]
+		then
+			ln -s "$(sudo readlink "$file")" "$system_dir"/files/"$file"
+		else
+			if [[ $size -gt $warn_size_threshold ]]
+			then
+				printf "Warning: copying large file (%s bytes). Add to ignore_paths to ignore.\n" "$size"
+			fi
+			( sudo cat "$file" ) > "$system_dir"/files/"$file"
+		fi
+
+		{
+			local defmode
+			[[ "$type" == "symbolic link" ]] && defmode=777 || defmode=$default_file_mode
+
+			[[  "$mode" == "$defmode" ]] || printf  "mode\t%s\t%q\n"  "$mode" "$file"
+			[[ "$owner" == root       ]] || printf "owner\t%s\t%q\n" "$owner" "$file"
+			[[ "$group" == root       ]] || printf "group\t%s\t%q\n" "$group" "$file"
+		} >> "$system_dir"/file-props.txt
+	done
+
+	LogLeave # Processing found files
 
 	LogLeave # Inspecting system state
 }
