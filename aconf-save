@@ -19,6 +19,7 @@ then
 	printf "\n\n# %s - Unknown packages\n\n\n" "$(date)" >> "$config_save_target"
 	for package in "${unknown_packages[@]}"
 	do
+		Log "%s...\r" "$(Color M "$package")"
 		printf ">> \"\$output_dir\"/packages.txt echo %q #%s\n" "$package" "$(pacman --query --info "$package" | grep '^Description' | cut -d ':' -f 2)" >> "$config_save_target"
 	done
 	LogLeave
@@ -49,6 +50,7 @@ then
 	printf "\n\n# %s - Unknown foreign packages\n\n\n" "$(date)" >> "$config_save_target"
 	for package in "${unknown_foreign_packages[@]}"
 	do
+		Log "%s...\r" "$(Color M "$package")"
 		printf ">> \"\$output_dir\"/foreign-packages.txt echo %q #%s\n" "$package" "$(pacman --query --info "$package" | grep '^Description' | cut -d ':' -f 2)" >> "$config_save_target"
 	done
 	LogLeave
