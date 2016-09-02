@@ -86,7 +86,7 @@ new_files=()
 
 while read -r -d $'\0' file
 do
-	Log "New file: %s\n" "$(Color Y "$file")"
+	Log "New file: %s\n" "$(Color C "$file")"
 	new_files+=("$file")
 done < <(comm -13 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files)
 
@@ -94,7 +94,7 @@ while read -r -d $'\0' file
 do
 	if ! diff --no-dereference --brief "$output_dir"/files/"$file" "$system_dir"/files/"$file" > /dev/null
 	then
-		Log "Changed file: %s\n" "$(Color Y "$file")"
+		Log "Changed file: %s\n" "$(Color C "$file")"
 		new_files+=("$file")
 	fi
 done < <(comm -12 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files)
@@ -103,7 +103,7 @@ extra_files=()
 
 while read -r -d $'\0' file
 do
-	Log "Extra file: %s\n" "$(Color Y "$file")"
+	Log "Extra file: %s\n" "$(Color C "$file")"
 	extra_files+=("$file")
 done < <(comm -23 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files)
 

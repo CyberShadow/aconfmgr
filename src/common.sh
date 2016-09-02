@@ -33,6 +33,7 @@ ANSI_color_G="[1;32m"
 ANSI_color_Y="[1;33m"
 ANSI_color_B="[1;34m"
 ANSI_color_M="[1;35m"
+ANSI_color_C="[1;36m"
 ANSI_color_W="[1;39m"
 ANSI_reset="[0m"
 
@@ -64,7 +65,7 @@ function AconfCompileOutput() {
 
 	for file in "$config_dir"/*.sh
 	do
-		Log "Sourcing %s...\n" "$(Color Y "$file")"
+		Log "Sourcing %s...\n" "$(Color C "$file")"
 		source "$file"
 	done
 
@@ -106,7 +107,7 @@ function AconfCompileSystem() {
 	while read -r -d $'\0' line
 	do
 		#echo "ignore_paths+='$line' # "
-		#Log "Found lost file: %s\n" "$(Color Y "$line")"
+		#Log "Found lost file: %s\n" "$(Color C "$line")"
 
 		# The slow operation will be sorted and filtered,
 		# so most of the time will be spent waiting for the first entry.
@@ -138,7 +139,7 @@ function AconfCompileSystem() {
 			local package="${BASH_REMATCH[1]}"
 			local file="${BASH_REMATCH[2]}"
 
-			Log "%s: %s\n" "$(Color M "$package")" "$(Color Y "$file")" 
+			Log "%s: %s\n" "$(Color M "$package")" "$(Color C "$file")"
 
 			local ignored=n
 			for ignore_path in "${ignore_paths[@]}"
