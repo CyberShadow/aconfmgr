@@ -65,8 +65,11 @@ function AconfCompileOutput() {
 
 	for file in "$config_dir"/*.sh
 	do
-		Log "Sourcing %s...\n" "$(Color C "$file")"
-		source "$file"
+		if [[ -e "$file" ]]
+		then
+			Log "Sourcing %s...\n" "$(Color C "$file")"
+			source "$file"
+		fi
 	done
 
 	LogLeave
