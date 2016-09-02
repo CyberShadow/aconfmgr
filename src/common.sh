@@ -28,6 +28,16 @@ ignore_paths=(
     # '/var/spool'
 )
 
+ANSI_clear_line="[0K"
+ANSI_color_G="[1;32m"
+ANSI_color_Y="[1;33m"
+ANSI_color_B="[1;34m"
+ANSI_color_M="[1;35m"
+ANSI_color_W="[1;39m"
+ANSI_reset="[0m"
+
+####################################################################################################
+
 mkdir -p "$config_dir"
 
 umask $((666 - default_file_mode))
@@ -66,6 +76,8 @@ function AconfAddFile() {
 
 # Run user configuration scripts, to collect desired state into #output_dir
 function AconfCompileOutput() {
+	LogEnter "Compiling user configuration...\n"
+
 	rm -rf "$output_dir"
 	mkdir "$output_dir"
 	touch "$output_dir"/packages.txt
@@ -79,21 +91,26 @@ function AconfCompileOutput() {
 
 	for file in "$config_dir"/*.sh
 	do
-		printf "Sourcing %s...\n" "$file"
+		Log "Sourcing %s...\n" "$(Color Y "$file")"
 		source "$file"
 	done
+
+	LogLeave
 }
 
 # Collect system state into $system_dir
 function AconfCompileSystem() {
+	LogEnter "Inspecting system state...\n"
+
 	rm -rf "$system_dir"
 	mkdir "$system_dir"
 
 	### Packages
 
-	echo "Querying package list..."
+	LogEnter "Querying package list...\n"
 	pacman --query --quiet --explicit --native  | sort > "$system_dir"/packages.txt
 	pacman --query --quiet --explicit --foreign | sort > "$system_dir"/foreign-packages.txt
+	LogLeave
 
 	### Files
 
@@ -106,13 +123,13 @@ function AconfCompileSystem() {
 		ignore_args+=(-wholename "$ignore_path" -prune -o)
 	done
 
-	echo "Searching for untracked files..."
+	LogEnter "Searching for untracked files...\n"
 
 	local line
 	while read -r -d $'\0' line
 	do
 		#echo "ignore_paths+='$line' # "
-		printf "Found untracked file: %s\n" "$line"
+		Log "Found untracked file: %s\n" "$(Color Y "$line")"
 		AconfAddFile "$line"
 	done < <(																				\
 		comm -13 --zero-terminated															\
@@ -123,11 +140,11 @@ function AconfCompileSystem() {
 					\) -print0 |															\
 					  sort --unique --zero-terminated) )
 
+	LogLeave # Searching for untracked files
+
 	# Modified files
 
-	local ANSI_clear_line="[0K"
-
-	echo "Searching for modified files..."
+	LogEnter "Searching for modified files...\n"
 	while read -r line
 	do
 		if [[ $line =~ ^(.*):\ \'(.*)\'\ md5sum\ mismatch ]]
@@ -135,7 +152,7 @@ function AconfCompileSystem() {
 			local package="${BASH_REMATCH[1]}"
 			local file="${BASH_REMATCH[2]}"
 
-			printf "%s: %s\n" "$package" "$file"
+			Log "%s: %s\n" "$(Color M "$package")" "$(Color Y "$file")" 
 
 			local ignored=n
 			for ignore_path in "${ignore_paths[@]}"
@@ -155,25 +172,27 @@ function AconfCompileSystem() {
 
 		elif [[ $line =~ ^(.*):\  ]]
 		then
-			printf "%s%s\r" "${ANSI_clear_line}" "${BASH_REMATCH[1]}"
+			local package="${BASH_REMATCH[1]}"
+			Log "%s...\r" "$(Color M "$package")"
 			#echo "Now at ${BASH_REMATCH[1]}"
 		fi
 	done < <(sudo sh -c "stdbuf -o0 paccheck --md5sum --files --backup --noupgrade 2>&1")
 	printf "\n"
+	LogLeave # Searching for modified files
+
+	LogLeave # Inspecting system state
 }
 
 # Prepare configuration and system state
 function AconfCompile() {
-	echo "Collecting data..."
+	LogEnter "Collecting data...\n"
 
 	# Configuration
 
-	echo "Compiling user configuration..."
 	AconfCompileOutput
 
 	# System
 
-	echo "Inspecting system state..."
 	AconfCompileSystem
 
 	# Vars
@@ -183,6 +202,35 @@ function AconfCompile() {
 
 	          foreign_packages=($(< "$output_dir"/foreign-packages.txt sort --unique))
 	installed_foreign_packages=($(< "$system_dir"/foreign-packages.txt sort --unique))
+
+	LogLeave # Collecting data
+}
+
+log_indent=:
+
+function Log() {
+	local fmt="$1"
+	shift
+	printf "${ANSI_clear_line}${ANSI_color_B}%s ${ANSI_color_W}${fmt}${ANSI_reset}" "$log_indent" "$@"
+}
+
+function LogEnter() {
+	Log "$@"
+	log_indent=$log_indent:
+}
+
+function LogLeave() {
+	#[[ $# == 0 ]] || Log "Done.\n" && Log "$@"
+	Log "Done.\n"
+	log_indent=${log_indent::-1}
+}
+
+function Color() {
+	local var="ANSI_color_$1"
+	printf "%s" "${!var}"
+	shift
+	printf "$@"
+	printf "%s" "${ANSI_color_W}"
 }
 
 # Print an array, one element per line (assuming IFS starts with \n).

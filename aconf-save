@@ -5,6 +5,8 @@ source src/common.sh
 
 AconfCompile
 
+LogEnter "Saving configuration...\n"
+
 config_save_target=$config_dir/99-unsorted.sh
 
 # Unknown native packages (installed but not listed)
@@ -13,12 +15,13 @@ unknown_packages=($(comm -13 <(PrintArray packages) <(PrintArray installed_packa
 
 if [[ ${#unknown_packages[@]} != 0 ]]
 then
-	printf "Found %s unknown packages. Registering...\n" ${#unknown_packages[@]}
+	LogEnter "Found %s unknown packages. Registering...\n" "$(Color G ${#unknown_packages[@]})"
 	printf "\n\n# %s - Unknown packages\n\n\n" "$(date)" >> "$config_save_target"
 	for package in "${unknown_packages[@]}"
 	do
 		printf ">> \"\$output_dir\"/packages.txt echo %q #%s\n" "$package" "$(pacman --query --info "$package" | grep '^Description' | cut -d ':' -f 2)" >> "$config_save_target"
 	done
+	LogLeave
 fi
 
 # Missing native packages (listed but not installed on current system)
@@ -27,12 +30,13 @@ missing_packages=($(comm -23 <(PrintArray packages) <(PrintArray installed_packa
 
 if [[ ${#missing_packages[@]} != 0 ]]
 then
-	printf "Found %s missing packages. Un-registering.\n" ${#missing_packages[@]}
+	LogEnter "Found %s missing packages. Un-registering.\n" "$(Color G ${#missing_packages[@]})"
 	printf "\n\n# %s - Missing packages\n\n\n" "$(date)" >> "$config_save_target"
 	for package in "${missing_packages[@]}"
 	do
 		printf "sed -i \"\$output_dir\"/packages.txt -e '/^'%q'\$/d'\n" "$package" >> "$config_save_target"
 	done
+	LogLeave
 fi
 
 # Unknown foreign packages (installed but not listed)
@@ -41,12 +45,13 @@ unknown_foreign_packages=($(comm -13 <(PrintArray foreign_packages) <(PrintArray
 
 if [[ ${#unknown_foreign_packages[@]} != 0 ]]
 then
-	printf "Found %s unknown foreign packages. Registering...\n" ${#unknown_foreign_packages[@]}
+	LogEnter "Found %s unknown foreign packages. Registering...\n" "$(Color G ${#unknown_foreign_packages[@]})"
 	printf "\n\n# %s - Unknown foreign packages\n\n\n" "$(date)" >> "$config_save_target"
 	for package in "${unknown_foreign_packages[@]}"
 	do
 		printf ">> \"\$output_dir\"/foreign-packages.txt echo %q #%s\n" "$package" "$(pacman --query --info "$package" | grep '^Description' | cut -d ':' -f 2)" >> "$config_save_target"
 	done
+	LogLeave
 fi
 
 # Missing foreign packages (listed but not installed on current system)
@@ -55,15 +60,20 @@ missing_foreign_packages=($(comm -23 <(PrintArray foreign_packages) <(PrintArray
 
 if [[ ${#missing_foreign_packages[@]} != 0 ]]
 then
-	printf "Found %s missing foreign packages. Un-registering.\n" ${#missing_foreign_packages[@]}
+	LogEnter "Found %s missing foreign packages. Un-registering.\n" "$(Color G ${#missing_foreign_packages[@]})"
 	printf "\n\n# %s - Missing foreign packages\n\n\n" "$(date)" >> "$config_save_target"
 	for package in "${missing_foreign_packages[@]}"
 	do
 		printf "sed -i \"\$output_dir\"/foreign-packages.txt -e '/^'%q'\$/d'\n" "$package" >> "$config_save_target"
 	done
+	LogLeave
 fi
 
+#
 # Untracked/modified files - diff
+#
+
+LogEnter "Examining files...\n"
 
 mkdir --parents "$output_dir"/files
 mkdir --parents "$system_dir"/files
@@ -76,7 +86,7 @@ new_files=()
 
 while read -r -d $'\0' file
 do
-	printf "New file: %s\n" "$file"
+	Log "New file: %s\n" "$(Color Y "$file")"
 	new_files+=("$file")
 done < <(comm -13 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files)
 
@@ -84,7 +94,7 @@ while read -r -d $'\0' file
 do
 	if ! diff --no-dereference --brief "$output_dir"/files/"$file" "$system_dir"/files/"$file" > /dev/null
 	then
-		printf "Changed file: %s\n" "$file"
+		Log "Changed file: %s\n" "$(Color Y "$file")"
 		new_files+=("$file")
 	fi
 done < <(comm -12 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files)
@@ -93,11 +103,17 @@ extra_files=()
 
 while read -r -d $'\0' file
 do
-	printf "Extra file: %s\n" "$file"
+	Log "Extra file: %s\n" "$(Color Y "$file")"
 	extra_files+=("$file")
 done < <(comm -23 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files)
 
+LogLeave # Examining files
+
+#
 # Modified file properties
+#
+
+LogEnter "Examining file properties...\n"
 
 typeset -A file_property_kind_exists
 
@@ -132,7 +148,13 @@ typeset -A system_file_props ; AconfReadFileProps "$system_dir"/file-props.txt s
 
 all_file_property_kinds=($(echo "${!file_property_kind_exists[*]}" | sort))
 
+LogLeave
+
+#
 # Emit files
+#
+
+LogEnter "Registering files...\n"
 
 function PrintFileProps() {
 	local file="$1"
@@ -163,7 +185,7 @@ typeset -A created_dirs
 
 if [[ ${#new_files[@]} != 0 ]]
 then
-	printf "Found %s new files.\n" ${#new_files[@]}
+	LogEnter "Found %s new files.\n" "$(Color G ${#new_files[@]})"
 	printf "\n\n# %s - New files\n\n\n" "$(date)" >> "$config_save_target"
 	for file in "${new_files[@]}"
 	do
@@ -179,19 +201,27 @@ then
 		printf "cp --no-dereference \"\$config_dir\"/99-unsorted/%q \"\$output_dir\"/files/%q\n" "$file" "$file" >> "$config_save_target"
 		PrintFileProps /"$file"
 	done
+	LogLeave
 fi
 
 if [[ ${#extra_files[@]} != 0 ]]
 then
-	printf "Found %s extra files.\n" ${#extra_files[@]}
+	LogEnter "Found %s extra files.\n" "$(Color G ${#extra_files[@]})"
 	printf "\n\n# %s - Extra files\n\n\n" "$(date)" >> "$config_save_target"
 	for file in "${extra_files[@]}"
 	do
 		printf "rm \"\$output_dir\"/files/%q\n" "$file" >> "$config_save_target"
 	done
+	LogLeave
 fi
 
+LogLeave # Emit files
+
+#
 # Emit remaining file properties
+#
+
+LogEnter "Registering file properties...\n"
 
 new_file_props=()
 extra_file_props=()
@@ -232,6 +262,6 @@ then
 	done < <(Print0Array extra_file_props | sort --zero-terminated)
 fi
 
-# Report
+LogLeave # Registering file properties
 
-echo "Done."
+LogLeave # Saving configuration
