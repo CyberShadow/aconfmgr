@@ -164,7 +164,6 @@ function AconfCompileSystem() {
 			#echo "Now at ${BASH_REMATCH[1]}"
 		fi
 	done < <(sudo sh -c "stdbuf -o0 paccheck --md5sum --files --backup --noupgrade 2>&1")
-	printf "\n"
 	LogLeave # Searching for modified files
 
 	LogEnter "Reading file attributes...\n"
@@ -196,12 +195,15 @@ function AconfCompileSystem() {
 		if [[ "$type" == "symbolic link" ]]
 		then
 			ln -s "$(sudo readlink "$file")" "$system_dir"/files/"$file"
-		else
+		elif [[ "$type" == "regular file" || "$type" == "regular empty file" ]]
+		then
 			if [[ $size -gt $warn_size_threshold ]]
 			then
-				printf "Warning: copying large file (%s bytes). Add to ignore_paths to ignore.\n" "$size"
+				Log "%s: copying large file '%s' (%s bytes). Add to %s to ignore.\n" "$(Color Y "Warning")" "$(Color C "$file")" "$(Color G "$size")" "$(Color Y "ignore_paths")"
 			fi
 			( sudo cat "$file" ) > "$system_dir"/files/"$file"
+		else
+			Log "%s: Skipping file '%s' with unknown type '%s'. Add to %s to ignore.\n" "$(Color Y "Warning")" "$(Color C "$file")" "$(Color G "$type")" "$(Color Y "ignore_paths")"
 		fi
 
 		{
