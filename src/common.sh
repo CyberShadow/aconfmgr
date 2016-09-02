@@ -142,8 +142,6 @@ function AconfCompileSystem() {
 			local package="${BASH_REMATCH[1]}"
 			local file="${BASH_REMATCH[2]}"
 
-			Log "%s: %s\n" "$(Color M "$package")" "$(Color C "$file")"
-
 			local ignored=n
 			for ignore_path in "${ignore_paths[@]}"
 			do
@@ -157,6 +155,7 @@ function AconfCompileSystem() {
 
 			if [[ $ignored == n ]]
 			then
+				Log "%s: %s\n" "$(Color M "$package")" "$(Color C "$file")"
 				AconfAddFile "$file"
 			fi
 
