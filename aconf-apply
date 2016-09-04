@@ -6,8 +6,7 @@ AconfCompile
 
 LogEnter "Applying configuration...\n"
 
-# Unknown packages (installed but not listed)
-
+# Unknown packages (native and foreign packages that are explicitly installed but not listed)
 unknown_packages=($(comm -13																			\
 					<((PrintArray           packages ; PrintArray           foreign_packages) | sort)	\
 					<((PrintArray installed_packages ; PrintArray installed_foreign_packages) | sort)))
@@ -19,54 +18,83 @@ then
 	LogLeave
 fi
 
-LogEnter "Removing orphan packages...\n"
+# Missing packages (native and foreign packages that are listed in the configuration, but not marked as explicitly installed)
+missing_packages=($(comm -23																			\
+					<((PrintArray           packages ; PrintArray           foreign_packages) | sort)	\
+					<((PrintArray installed_packages ; PrintArray installed_foreign_packages) | sort)))
 
-# We have to loop, since pacman's dependency scanning doesn't seem to be recursive
+# Missing installed/unpinned packages (native and foreign packages that are implicitly installed,
+# and listed in the configuration, but not marked as explicitly installed)
+missing_unpinned_packages=($(comm -12 <(PrintArray missing_packages) <(pacman --query --quiet)))
 
-iter=1
-
-while true
-do
-	LogEnter "Iteration %s:\n" "$(Color G "$iter")"
-
-	LogEnter "Querying orphan packages...\n"
-	orphan_packages=($(pacman --query --unrequired --unrequired --deps --quiet || true))
-	LogLeave
-
-	if [[ ${#orphan_packages[@]} != 0 ]]
-	then
-		LogEnter "Removing %s orphan packages.\n" "$(Color G ${#orphan_packages[@]})"
-		sudo pacman --remove "${orphan_packages[@]}"
-		LogLeave
-	fi
-
-	iter=$((iter+1))
-
-	LogLeave # Iteration
-
-	if [[ ${#orphan_packages[@]} == 0 ]]
-	then
-		break
-	fi
-done
-
-LogLeave # Removing orphan packages
-
-# Missing packages (listed but not installed on current system)
-
-missing_packages=($(comm -23 <(echo "${packages[*]}") <(echo "${installed_packages[*]}")))
-
-if [[ ${#missing_packages[@]} != 0 ]]
+if [[ ${#missing_unpinned_packages[@]} != 0 ]]
 then
-	LogEnter "Installing %s missing packages.\n" "$(Color G ${#missing_packages[@]})"
+	LogEnter "Pinning %s unknown packages.\n" "$(Color G ${#missing_unpinned_packages[@]})"
+	Print0Array missing_unpinned_packages | sudo xargs -0 pacman --database --asexplicit
+	LogLeave
+fi
 
-	# TODO: Mark package as explicitly installed if it's already installed.
-	sudo pacman --sync --needed "${missing_packages[@]}"
+
+# Missing native packages (native packages that are listed in the configuration, but not installed)
+missing_native_packages=($(comm -23 <(PrintArray packages) <(pacman --query --quiet)))
+
+if [[ ${#missing_native_packages[@]} != 0 ]]
+then
+	LogEnter "Installing %s missing native packages.\n" "$(Color G ${#missing_native_packages[@]})"
+
+	sudo pacman --sync "${missing_native_packages[@]}"
 
 	LogLeave
 fi
 
-# TODO: install missing foreign packages
+# Missing foreign packages (foreign packages that are listed in the configuration, but not installed)
+missing_foreign_packages=($(comm -23 <(PrintArray foreign_packages) <(pacman --query --quiet)))
+
+if [[ ${#missing_foreign_packages[@]} != 0 ]]
+then
+	LogEnter "Installing %s missing foreign packages.\n" "$(Color G ${#missing_foreign_packages[@]})"
+
+	# TODO: use makepkg?
+	pacaur --sync "${missing_foreign_packages[@]}"
+
+	LogLeave
+fi
+
+# Orphan packages
+
+if pacman --query --unrequired --unrequired --deps --quiet > /dev/null
+then
+	LogEnter "Removing orphan packages...\n"
+
+	# We have to loop, since pacman's dependency scanning doesn't seem to be recursive
+	iter=1
+	while true
+	do
+		LogEnter "Iteration %s:\n" "$(Color G "$iter")"
+
+		LogEnter "Querying orphan packages...\n"
+		orphan_packages=($(pacman --query --unrequired --unrequired --deps --quiet || true))
+		LogLeave
+
+		if [[ ${#orphan_packages[@]} != 0 ]]
+		then
+			LogEnter "Removing %s orphan packages.\n" "$(Color G ${#orphan_packages[@]})"
+			sudo pacman --remove "${orphan_packages[@]}"
+			LogLeave
+		fi
+
+		iter=$((iter+1))
+
+		LogLeave # Iteration
+
+		if [[ ${#orphan_packages[@]} == 0 ]]
+		then
+			break
+		fi
+	done
+
+	LogLeave # Removing orphan packages
+fi
 
 # TODO: files and their properties
 
