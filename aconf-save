@@ -275,3 +275,5 @@ fi
 LogLeave # Registering file properties
 
 LogLeave # Saving configuration
+
+ExitSuccess

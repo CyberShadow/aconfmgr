@@ -174,3 +174,5 @@ LogLeave # Configuring packages
 # TODO: files and their properties
 
 LogLeave # Applying configuration
+
+ExitSuccess

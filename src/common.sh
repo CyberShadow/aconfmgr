@@ -254,6 +254,8 @@ function AconfCompile() {
 	LogLeave # Collecting data
 }
 
+####################################################################################################
+
 log_indent=:
 
 function Log() {
@@ -280,6 +282,33 @@ function Color() {
 	printf "$@"
 	printf "%s" "${ANSI_color_W}"
 }
+
+####################################################################################################
+
+function OnError() {
+	LogEnter "%s! Stack trace:\n" "$(Color R "Fatal error")"
+
+	local frame=0 str
+	while str=$(caller $frame)
+	do
+		if [[ $str =~ ^([^\ ]*)\ ([^\ ]*)\ (.*)$ ]]
+		then
+			Log "%s:%s [%s]\n" "$(Color C "%q" "${BASH_REMATCH[3]}")" "$(Color G "%q" "${BASH_REMATCH[1]}")" "$(Color M "%q" "${BASH_REMATCH[2]}")"
+		else
+			Log "%s\n" "$str"
+		fi
+
+		frame=$((frame+1))
+	done
+}
+trap OnError EXIT
+
+function ExitSuccess() {
+	trap '' EXIT
+	exit 0
+}
+
+####################################################################################################
 
 # Print an array, one element per line (assuming IFS starts with \n).
 # Work-around for Bash considering it an error to expand an empty array.
