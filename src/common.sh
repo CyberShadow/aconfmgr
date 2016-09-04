@@ -286,6 +286,7 @@ function Color() {
 ####################################################################################################
 
 function OnError() {
+	echo
 	LogEnter "%s! Stack trace:\n" "$(Color R "Fatal error")"
 
 	local frame=0 str
@@ -293,7 +294,7 @@ function OnError() {
 	do
 		if [[ $str =~ ^([^\ ]*)\ ([^\ ]*)\ (.*)$ ]]
 		then
-			Log "%s:%s [%s]\n" "$(Color C "%q" "${BASH_REMATCH[3]}")" "$(Color G "%q" "${BASH_REMATCH[1]}")" "$(Color M "%q" "${BASH_REMATCH[2]}")"
+			Log "%s:%s [%s]\n" "$(Color C "%q" "${BASH_REMATCH[3]}")" "$(Color G "%q" "${BASH_REMATCH[1]}")" "$(Color Y "%q" "${BASH_REMATCH[2]}")"
 		else
 			Log "%s\n" "$str"
 		fi
