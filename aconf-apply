@@ -6,6 +6,28 @@ AconfCompile
 
 LogEnter "Applying configuration...\n"
 
+LogEnter "Configuring packages...\n"
+
+#	in		in		in-
+#	config	system	stalled foreign	action
+#	----------------------------------------
+#	no		no		no		no		nothing
+#	no		no		no		yes		nothing
+#	no		no		yes		no		(prune)
+#	no		no		yes		yes		(prune)
+#	no		yes		no		no		impossible
+#	no		yes		no		yes		impossible
+#	no		yes		yes		no		unpin (and prune)
+#	no		yes		yes		yes		unpin (and prune)
+#	yes		no		no		no		install via pacman
+#	yes		no		no		yes		install via makepkg
+#	yes		no		yes		no		pin
+#	yes		no		yes		yes		pin
+#	yes		yes		no		no		impossible
+#	yes		yes		no		yes		impossible
+#	yes		yes		yes		no		nothing
+#	yes		yes		yes		yes		nothing
+
 # Unknown packages (native and foreign packages that are explicitly installed but not listed)
 unknown_packages=($(comm -13																			\
 					<((PrintArray           packages ; PrintArray           foreign_packages) | sort)	\
@@ -64,7 +86,7 @@ fi
 
 if pacman --query --unrequired --unrequired --deps --quiet > /dev/null
 then
-	LogEnter "Removing orphan packages...\n"
+	LogEnter "Pruning orphan packages...\n"
 
 	# We have to loop, since pacman's dependency scanning doesn't seem to be recursive
 	iter=1
@@ -78,7 +100,7 @@ then
 
 		if [[ ${#orphan_packages[@]} != 0 ]]
 		then
-			LogEnter "Removing %s orphan packages.\n" "$(Color G ${#orphan_packages[@]})"
+			LogEnter "Pruning %s orphan packages.\n" "$(Color G ${#orphan_packages[@]})"
 			sudo pacman --remove "${orphan_packages[@]}"
 			LogLeave
 		fi
@@ -95,6 +117,8 @@ then
 
 	LogLeave # Removing orphan packages
 fi
+
+LogLeave # Configuring packages
 
 # TODO: files and their properties
 
