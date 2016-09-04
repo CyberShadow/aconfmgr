@@ -9,6 +9,12 @@ LogEnter "Saving configuration...\n"
 
 config_save_target=$config_dir/99-unsorted.sh
 
+#
+# Packages
+#
+
+LogEnter "Examining packages...\n"
+
 # Unknown native packages (installed but not listed)
 
 unknown_packages=($(comm -13 <(PrintArray packages) <(PrintArray installed_packages)))
@@ -70,6 +76,8 @@ then
 	done
 	LogLeave
 fi
+
+LogLeave # Examining packages
 
 #
 # Lost/modified files - diff
