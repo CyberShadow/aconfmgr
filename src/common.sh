@@ -60,8 +60,8 @@ function AconfCompileOutput() {
 
 	# Configuration
 
-	typeset -Ag ignore_packages
-	typeset -Ag ignore_foreign_packages
+	typeset -ag ignore_packages=()
+	typeset -ag ignore_foreign_packages=()
 
 	for file in "$config_dir"/*.sh
 	do
@@ -86,8 +86,8 @@ function AconfCompileSystem() {
 	### Packages
 
 	LogEnter "Querying package list...\n"
-	pacman --query --quiet --explicit --native  | sort > "$system_dir"/packages.txt
-	pacman --query --quiet --explicit --foreign | sort > "$system_dir"/foreign-packages.txt
+	pacman --query --quiet --explicit --native  | sort | grep -vFxf <(PrintArray ignore_packages        ) > "$system_dir"/packages.txt
+	pacman --query --quiet --explicit --foreign | sort | grep -vFxf <(PrintArray ignore_foreign_packages) > "$system_dir"/foreign-packages.txt
 	LogLeave
 
 	### Files

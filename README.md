@@ -7,7 +7,7 @@ Its goals are:
 - Track temporary/undesired changes to the system's configuration
 - Identify obsolete packages and maintain a lean system
 
-`aconfmgr` tracks the list of installed packages (both native and external [TODO]), as well as changes to configuration files (`/etc/` [TODO]).
+`aconfmgr` tracks the list of installed packages (both native and external [TODO restore]), as well as changes to configuration files (`/etc/` [TODO restore]).
 Since the system configuration is described as shell scripts, it is trivially extensible.
 
 ## Modus operandi
@@ -85,10 +85,10 @@ ignore_paths+=('/var/lib/pacman/sync/*.db.sig') # repo sigs
 
 #### Ignoring packages
 
-To ignore the presence of some packages on the system, add the package names to the `ignore_packages` array [TODO]:
+To ignore the presence of some packages on the system, add the package names to the `ignore_packages` array:
 
 ```bash
 ignore_packages+=(linux-git)
 ```
 
-`aconf-save` will not update the configuration based on ignored packages' presence or absence, and `aconf-apply` will not install or uninstall them.
+`aconf-save` will not update the configuration based on ignored packages' presence or absence, and `aconf-apply` will not install or uninstall them. The packages should also not be present in the configuration's package list, of course. To ignore foreign packages, add their names to the `ignore_foreign_packages` array.
