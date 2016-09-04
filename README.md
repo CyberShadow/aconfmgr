@@ -35,6 +35,8 @@ This will create the file `config/99-unsorted.sh`, as well as other files descri
 
 During this process, you may identify packages or system changes which are no longer needed. Do not sort them into your configuration files - instead, delete the file `99-unsorted.sh`, and run `aconf-apply`. This will synchronize the system state against your configuration, thus removing the omitted packages. (`pacman` will display a prompt allowing you to review the exact list of packages being removed.)
 
+Note: you don't need to run `aconf-save` or `aconf-apply` via `sudo`. It will elevate as necessary by invoking `sudo` itself.
+
 ### 2. Maintenance
 
 The `config` directory should be versioned using a version control system (e.g. Git). Ideally, the file `99-unsorted.sh` should not be versioned - it will only be created when the current configuration does not reflect the current system state.
