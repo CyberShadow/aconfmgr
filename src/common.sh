@@ -29,6 +29,7 @@ ignore_paths=(
 )
 
 ANSI_clear_line="[0K"
+ANSI_color_R="[1;31m"
 ANSI_color_G="[1;32m"
 ANSI_color_Y="[1;33m"
 ANSI_color_B="[1;34m"
