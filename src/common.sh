@@ -49,12 +49,22 @@ function AconfAddFile() {
 	found_files+=("$file")
 }
 
+function LogLeaveDirStats() {
+	local dir="$1"
+	Log "Finalizing...\r"
+	LogLeave "Done (%s native packages, %s foreign packages, %s files).\n"	\
+			 "$(Color G "$(wc -l < "$dir"/packages.txt)")"					\
+			 "$(Color G "$(wc -l < "$dir"/foreign-packages.txt)")"			\
+			 "$(Color G "$(find "$dir"/files -not -type d | wc -l)")"
+}
+
 # Run user configuration scripts, to collect desired state into #output_dir
 function AconfCompileOutput() {
 	LogEnter "Compiling user configuration...\n"
 
 	rm -rf "$output_dir"
 	mkdir "$output_dir"
+	mkdir "$output_dir"/files
 	touch "$output_dir"/packages.txt
 	touch "$output_dir"/foreign-packages.txt
 	touch "$output_dir"/file-props.txt
@@ -64,16 +74,23 @@ function AconfCompileOutput() {
 	typeset -ag ignore_packages=()
 	typeset -ag ignore_foreign_packages=()
 
+	local found=n
 	for file in "$config_dir"/*.sh
 	do
 		if [[ -e "$file" ]]
 		then
 			Log "Sourcing %s...\n" "$(Color C "%q" "$file")"
 			source "$file"
+			found=y
 		fi
 	done
 
-	LogLeave
+	if [[ $found == y ]]
+	then
+		LogLeaveDirStats "$output_dir"
+	else
+		LogLeave "Done (configuration not found).\n"
+	fi
 }
 
 # Collect system state into $system_dir
@@ -82,6 +99,7 @@ function AconfCompileSystem() {
 
 	rm -rf "$system_dir"
 	mkdir "$system_dir"
+	mkdir "$system_dir"/files
 	touch "$system_dir"/file-props.txt
 
 	### Packages
@@ -227,7 +245,7 @@ function AconfCompileSystem() {
 
 	LogLeave # Processing found files
 
-	LogLeave # Inspecting system state
+	LogLeaveDirStats "$system_dir" # Inspecting system state
 }
 
 # Prepare configuration and system state
@@ -269,8 +287,13 @@ function LogEnter() {
 }
 
 function LogLeave() {
-	#[[ $# == 0 ]] || Log "Done.\n" && Log "$@"
-	Log "Done.\n"
+	if [[ $# == 0 ]]
+	then
+		Log "Done.\n"
+	else
+		Log "$@"
+	fi
+
 	log_indent=${log_indent::-1}
 }
 

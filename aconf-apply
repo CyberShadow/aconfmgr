@@ -33,6 +33,8 @@ ParanoidConfirm() {
 	: # TODO: call Confirm when --paranoid is present
 }
 
+modified=n
+
 AconfCompile
 
 LogEnter "Applying configuration...\n"
@@ -73,6 +75,7 @@ then
 
 	Print0Array unknown_packages | sudo xargs -0 pacman --database --asdeps
 
+	modified=y
 	LogLeave
 fi
 
@@ -94,6 +97,7 @@ then
 
 	Print0Array missing_unpinned_packages | sudo xargs -0 pacman --database --asexplicit
 
+	modified=y
 	LogLeave
 fi
 
@@ -110,6 +114,7 @@ then
 
 	sudo pacman --sync "${missing_native_packages[@]}"
 
+	modified=y
 	LogLeave
 fi
 
@@ -126,6 +131,7 @@ then
 	# TODO: use makepkg?
 	pacaur --sync "${missing_foreign_packages[@]}"
 
+	modified=y
 	LogLeave
 fi
 
@@ -166,6 +172,7 @@ then
 		fi
 	done
 
+	modified=y
 	LogLeave # Removing orphan packages
 fi
 
@@ -173,6 +180,11 @@ LogLeave # Configuring packages
 
 # TODO: files and their properties
 
-LogLeave # Applying configuration
+if [[ $modified == n ]]
+then
+	LogLeave "Done (%s).\n" "$(Color G "system state unchanged")"
+else
+	LogLeave "Done (%s).\n" "$(Color Y "system state changed")"
+fi
 
 ExitSuccess

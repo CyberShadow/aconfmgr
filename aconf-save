@@ -8,6 +8,7 @@ AconfCompile
 LogEnter "Saving configuration...\n"
 
 config_save_target=$config_dir/99-unsorted.sh
+modified=n
 
 #
 # Packages
@@ -28,6 +29,7 @@ then
 		Log "%s...\r" "$(Color M "%q" "$package")"
 		printf ">> \"\$output_dir\"/packages.txt echo %q #%s\n" "$package" "$(pacman --query --info "$package" | grep '^Description' | cut -d ':' -f 2)" >> "$config_save_target"
 	done
+	modified=y
 	LogLeave
 fi
 
@@ -43,6 +45,7 @@ then
 	do
 		printf "sed -i \"\$output_dir\"/packages.txt -e '/^'%q'\$/d'\n" "$package" >> "$config_save_target"
 	done
+	modified=y
 	LogLeave
 fi
 
@@ -59,6 +62,7 @@ then
 		Log "%s...\r" "$(Color M "%q" "$package")"
 		printf ">> \"\$output_dir\"/foreign-packages.txt echo %q #%s\n" "$package" "$(pacman --query --info "$package" | grep '^Description' | cut -d ':' -f 2)" >> "$config_save_target"
 	done
+	modified=y
 	LogLeave
 fi
 
@@ -74,6 +78,7 @@ then
 	do
 		printf "sed -i \"\$output_dir\"/foreign-packages.txt -e '/^'%q'\$/d'\n" "$package" >> "$config_save_target"
 	done
+	modified=y
 	LogLeave
 fi
 
@@ -211,6 +216,7 @@ then
 		printf "cp --no-dereference \"\$config_dir\"/99-unsorted/%q \"\$output_dir\"/files/%q\n" "$file" "$file" >> "$config_save_target"
 		PrintFileProps /"$file"
 	done
+	modified=y
 	LogLeave
 fi
 
@@ -222,6 +228,7 @@ then
 	do
 		printf "rm \"\$output_dir\"/files/%q\n" "$file" >> "$config_save_target"
 	done
+	modified=y
 	LogLeave
 fi
 
@@ -260,6 +267,7 @@ then
 		line="$(printf "%s\t%s\t%q" "${key##*:}" "${system_file_props[$key]}" "${key%:*}")"
 		printf ">> \"\$output_dir\"/file-props.txt echo %q\n" "$line" >> "$config_save_target"
 	done < <(Print0Array new_file_props | sort --zero-terminated)
+	modified=y
 fi
 
 if [[ ${#extra_file_props[@]} != 0 ]]
@@ -270,10 +278,16 @@ then
 		line="$(printf "%s\t\t%q" "${key##*:}" "${key%:*}")"
 		printf ">> \"\$output_dir\"/file-props.txt echo %q\n" "$line" >> "$config_save_target"
 	done < <(Print0Array extra_file_props | sort --zero-terminated)
+	modified=y
 fi
 
 LogLeave # Registering file properties
 
-LogLeave # Saving configuration
+if [[ $modified == n ]]
+then
+	LogLeave "Done (%s).\n" "$(Color G "configuration unchanged")"
+else
+	LogLeave "Done (%s).\n" "$(Color Y "configuration changed")"
+fi
 
 ExitSuccess
