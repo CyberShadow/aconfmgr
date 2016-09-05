@@ -7,7 +7,7 @@ Its goals are:
 - Track temporary/undesired changes to the system's configuration
 - Identify obsolete packages and maintain a lean system
 
-`aconfmgr` tracks the list of installed packages (both native and external), as well as changes to configuration files (`/etc/` [TODO restore]).
+`aconfmgr` tracks the list of installed packages (both native and external), as well as changes to configuration files (`/etc/`).
 Since the system configuration is described as shell scripts, it is trivially extensible.
 
 ## Modus operandi

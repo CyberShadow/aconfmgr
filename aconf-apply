@@ -39,6 +39,10 @@ AconfCompile
 
 LogEnter "Applying configuration...\n"
 
+#
+# Apply packages
+#
+
 LogEnter "Configuring packages...\n"
 
 #	in		in		in-
@@ -178,7 +182,184 @@ fi
 
 LogLeave # Configuring packages
 
-# TODO: files and their properties
+#
+# Copy files
+#
+
+LogEnter "Configuring files...\n"
+
+function PrintFileProperty() {
+	local kind="$1"
+	local value="$2"
+	local file="$3"
+
+	value="${value:-(default value)}"
+
+	Log "Setting %s of %s to %s\n"	\
+		"$(Color Y "%s" "$kind")"		\
+		"$(Color C "%q" "$file")"		\
+		"$(Color G "%s" "$value")"
+}
+
+function ApplyFileProperty() {
+	local kind="$1"
+	local value="$2"
+	local file="$3"
+
+	PrintFileProperty "$kind" "$value" "$file"
+
+	case "$kind" in
+		mode)
+			sudo chmod "${value:-$default_file_mode}" "$file"
+			;;
+		owner)
+			sudo chown "${value:-root}" "$file"
+			;;
+		group)
+			sudo chgrp "${value:-root}" "$file"
+			;;
+		*)
+			Log "Unknown property %s with value %s for file %s"	\
+				"$(Color Y "%q" "$kind")"						\
+				"$(Color G "%q" "$value")"						\
+				"$(Color C "%q" "$file")"
+			exit 1
+			;;
+	esac
+}
+
+function ApplyFileProps() {
+	local file="$1"
+	local prop
+
+	for prop in "${all_file_property_kinds[@]}"
+	do
+		local key="$file:$prop"
+		if [[ -n "${output_file_props[$key]+x}" && ( -z "${system_file_props[$key]+x}" || "${output_file_props[$key]}" != "${system_file_props[$key]}" ) ]]
+		then
+			local value="${output_file_props[$key]}"
+			ApplyFileProperty "$prop" "$value" "$file"
+			unset "output_file_props[\$key]"
+			unset "system_file_props[\$key]"
+		fi
+	done
+}
+
+if [[ ${#config_only_files[@]} != 0 || ${#changed_files[@]} != 0 ]]
+then
+	LogEnter "Installing %s new and %s changed files.\n" "$(Color G ${#config_only_files[@]})" "$(Color G ${#changed_files[@]})"
+
+	# shellcheck disable=2059
+	function Details() {
+		if [[ ${#config_only_files[@]} != 0 ]]
+		then
+			Log "Installing the following new files:\n"
+			printf "$(Color W "*") $(Color C "%s" "%s")\n" "${config_only_files[@]}"
+		fi
+		
+		if [[ ${#changed_files[@]} != 0 ]]
+		then
+			Log "Installing the following changed files:\n"
+			printf "$(Color W "*") $(Color C "%s" "%s")\n" "${changed_files[@]}"
+		fi
+	}
+	Confirm Details
+	
+	while read -r -d $'\n' file
+	do
+		sudo mkdir --parents "$(dirname /"$file")"
+		sudo install --mode=$default_file_mode --owner=root --group=root "$output_dir"/files/"$file" /"$file"
+		ApplyFileProps /"$file"
+	done < <(Print0Array config_only_files ; Print0Array changed_files)
+
+	modified=y
+	LogLeave
+fi
+
+if [[ ${#system_only_files[@]} != 0 ]]
+then
+	LogEnter "Deleting %s extra files.\n" "$(Color G ${#system_only_files[@]})"
+
+	# shellcheck disable=2059
+	function Details() {
+		Log "Deleting the following files:\n"
+		printf "$(Color W "*") $(Color C "%s" "%s")\n" "${system_only_files[@]}"
+	}
+	Confirm Details
+
+	for file in "${system_only_files[@]}"
+	do
+		sudo rm /"$file"
+	done
+
+	modified=y
+	LogLeave
+fi
+
+#
+# Apply remaining file properties
+#
+
+LogEnter "Configuring file properties...\n"
+
+AconfCompareFileProps # Update data after ApplyFileProps' unsets
+
+if [[ ${#config_only_file_props[@]} != 0 || ${#changed_file_props[@]} != 0 || ${#system_only_file_props[@]} != 0 ]]
+then
+	LogEnter "Found %s new, %s changed, and %s extra files properties.\n"	\
+			 "$(Color G ${#config_only_file_props[@]})"						\
+			 "$(Color G ${#changed_file_props[@]})" 						\
+			 "$(Color G ${#system_only_file_props[@]})"
+
+	function LogFileProps() {
+		local verb="$1"
+		local first=y
+		local key
+
+		while read -r -d $'\0' key
+		do
+			if [[ $first == y ]]
+			then
+				LogEnter "%s the following file properties:\n" "$verb"
+				first=n
+			fi
+			
+			local kind="${key##*:}"
+			local file="${key%:*}"
+			local value="${output_file_props[$key]:-}"
+			PrintFileProperty "$kind" "$value" "$file"
+		done
+
+		if [[ $first == n ]]
+		then
+			LogLeave ''
+		fi
+	}
+
+	# shellcheck disable=2059
+	function Details() {
+		Print0Array config_only_file_props | LogFileProps "Setting"
+		Print0Array changed_file_props     | LogFileProps "Updating"
+		Print0Array system_only_file_props | LogFileProps "Clearing"
+	}
+	Confirm Details
+
+	while read -r -d $'\0' key
+	do
+		kind="${key##*:}"
+		file="${key%:*}"
+		value="${output_file_props[$key]:-}"
+		# TODO: check if file exists first?
+		ApplyFileProperty "$kind" "$value" "$file"
+	done < <(Print0Array config_only_file_props ; Print0Array changed_file_props ; Print0Array system_only_file_props)
+
+	modified=y
+	LogLeave
+fi
+
+LogLeave # Configuring file properties
+
+LogLeave # Configuring files
 
 if [[ $modified == n ]]
 then

@@ -40,7 +40,8 @@ ANSI_reset="[0m"
 
 ####################################################################################################
 
-mkdir -p "$config_dir"
+mkdir --parents "$config_dir"
+mkdir --parents "$tmp_dir"
 
 umask $((666 - default_file_mode))
 
@@ -248,6 +249,142 @@ function AconfCompileSystem() {
 	LogLeaveDirStats "$system_dir" # Inspecting system state
 }
 
+####################################################################################################
+
+typeset -A file_property_kind_exists
+
+# Read a file-props.txt file into an associative array.
+function AconfReadFileProps() {
+	local filename="$1" # Path to file-props.txt to be read
+	local varname="$2"  # Name of global associative array variable to read into
+
+	local line
+	while read -r line
+	do
+		if [[ $line =~ ^(.*)\	(.*)\	(.*)$ ]]
+		then
+			local kind="${BASH_REMATCH[1]}"
+			local value="${BASH_REMATCH[2]}"
+			local file="${BASH_REMATCH[3]}"
+			file="$(eval "printf %s $file")" # Unescape
+
+			if [[ -z "$value" ]]
+			then
+				unset "$varname[\$file:\$kind]"
+			else
+				eval "$varname[\$file:\$kind]=\"\$value\""
+			fi
+
+			file_property_kind_exists[$kind]=y
+		fi
+	done < "$filename"
+}
+
+# Compare file properties.
+function AconfCompareFileProps() {
+	LogEnter "Comparing file properties...\n"
+
+	typeset -ag system_only_file_props=()
+	typeset -ag changed_file_props=()
+	typeset -ag config_only_file_props=()
+
+	for key in "${!system_file_props[@]}"
+	do
+		if [[ -z "${output_file_props[$key]+x}" ]]
+		then
+			system_only_file_props+=("$key")
+		fi
+	done
+
+	for key in "${!system_file_props[@]}"
+	do
+		if [[ -n "${output_file_props[$key]+x}" && "${system_file_props[$key]}" != "${output_file_props[$key]}" ]]
+		then
+			changed_file_props+=("$key")
+		fi
+	done
+
+	for key in "${!output_file_props[@]}"
+	do
+		if [[ -z "${system_file_props[$key]+x}" ]]
+		then
+			config_only_file_props+=("$key")
+		fi
+	done
+
+	LogLeave
+}
+
+# Compare file information in $output_dir and $system_dir.
+function AconfAnalyzeFiles() {
+
+	#
+	# Lost/modified files - diff
+	#
+
+	LogEnter "Examining files...\n"
+
+	LogEnter "Loading data...\n"
+	( cd "$output_dir"/files && find . -not -type d -print0 ) | cut --zero-terminated -c 3- | sort --zero-terminated > "$tmp_dir"/output-files
+	( cd "$system_dir"/files && find . -not -type d -print0 ) | cut --zero-terminated -c 3- | sort --zero-terminated > "$tmp_dir"/system-files
+	LogLeave
+
+	Log "Comparing file data...\n"
+
+	typeset -ag system_only_files=()
+
+	while read -r -d $'\0' file
+	do
+		Log "Only in system: %s\n" "$(Color C "%q" "$file")"
+		system_only_files+=("$file")
+	done < <(comm -13 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files)
+
+	typeset -ag changed_files=()
+
+	while read -r -d $'\0' file
+	do
+		if ! diff --no-dereference --brief "$output_dir"/files/"$file" "$system_dir"/files/"$file" > /dev/null
+		then
+			Log "Changed: %s\n" "$(Color C "%q" "$file")"
+			changed_files+=("$file")
+		fi
+	done < <(comm -12 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files)
+
+	typeset -ag config_only_files=()
+
+	while read -r -d $'\0' file
+	do
+		Log "Only in config: %s\n" "$(Color C "%q" "$file")"
+		config_only_files+=("$file")
+	done < <(comm -23 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files)
+
+	LogLeave "Done (%s only in system, %s changed, %s only in config).\n"	\
+			 "$(Color G "${#system_only_files[@]}")"						\
+			 "$(Color G "${#changed_files[@]}")"							\
+			 "$(Color G "${#config_only_files[@]}")"
+
+	#
+	# Modified file properties
+	#
+
+	LogEnter "Examining file properties...\n"
+
+	LogEnter "Loading data...\n"
+	typeset -Ag output_file_props ; AconfReadFileProps "$output_dir"/file-props.txt output_file_props
+	typeset -Ag system_file_props ; AconfReadFileProps "$system_dir"/file-props.txt system_file_props
+	LogLeave
+
+	typeset -ag all_file_property_kinds
+	all_file_property_kinds=($(echo "${!file_property_kind_exists[*]}" | sort))
+
+	AconfCompareFileProps
+
+	LogLeave "Done (%s only in system, %s changed, %s only in config).\n"	\
+			 "$(Color G "${#system_only_file_props[@]}")"					\
+			 "$(Color G "${#changed_file_props[@]}")"						\
+			 "$(Color G "${#config_only_file_props[@]}")"
+}
+
 # Prepare configuration and system state
 function AconfCompile() {
 	LogEnter "Collecting data...\n"
@@ -268,6 +405,8 @@ function AconfCompile() {
 	          foreign_packages=($(< "$output_dir"/foreign-packages.txt sort --unique))
 	installed_foreign_packages=($(< "$system_dir"/foreign-packages.txt sort --unique))
 
+	AconfAnalyzeFiles
+
 	LogLeave # Collecting data
 }
 
@@ -276,9 +415,12 @@ function AconfCompile() {
 log_indent=:
 
 function Log() {
-	local fmt="$1"
-	shift
-	printf "${ANSI_clear_line}${ANSI_color_B}%s ${ANSI_color_W}${fmt}${ANSI_reset}" "$log_indent" "$@"
+	if [[ "$#" != 0 && -n "$1" ]]
+	then
+		local fmt="$1"
+		shift
+		printf "${ANSI_clear_line}${ANSI_color_B}%s ${ANSI_color_W}${fmt}${ANSI_reset}" "$log_indent" "$@"
+	fi
 }
 
 function LogEnter() {

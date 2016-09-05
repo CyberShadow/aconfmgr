@@ -85,87 +85,6 @@ fi
 LogLeave # Examining packages
 
 #
-# Lost/modified files - diff
-#
-
-LogEnter "Examining files...\n"
-
-mkdir --parents "$output_dir"/files
-mkdir --parents "$system_dir"/files
-mkdir --parents "$tmp_dir"
-
-( cd "$output_dir"/files && find . -not -type d -print0 ) | cut --zero-terminated -c 3- | sort --zero-terminated > "$tmp_dir"/output-files
-( cd "$system_dir"/files && find . -not -type d -print0 ) | cut --zero-terminated -c 3- | sort --zero-terminated > "$tmp_dir"/system-files
-
-new_files=()
-
-while read -r -d $'\0' file
-do
-	Log "New file: %s\n" "$(Color C "%q" "$file")"
-	new_files+=("$file")
-done < <(comm -13 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files)
-
-while read -r -d $'\0' file
-do
-	if ! diff --no-dereference --brief "$output_dir"/files/"$file" "$system_dir"/files/"$file" > /dev/null
-	then
-		Log "Changed file: %s\n" "$(Color C "%q" "$file")"
-		new_files+=("$file")
-	fi
-done < <(comm -12 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files)
-
-extra_files=()
-
-while read -r -d $'\0' file
-do
-	Log "Extra file: %s\n" "$(Color C "%q" "$file")"
-	extra_files+=("$file")
-done < <(comm -23 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files)
-
-LogLeave # Examining files
-
-#
-# Modified file properties
-#
-
-LogEnter "Examining file properties...\n"
-
-typeset -A file_property_kind_exists
-
-function AconfReadFileProps() {
-	local filename="$1" # Path to file-props.txt to be read
-	local varname="$2"  # Name of global associative array variable to read into
-
-	local line
-	while read -r line
-	do
-		if [[ $line =~ ^(.*)\	(.*)\	(.*)$ ]]
-		then
-			local kind="${BASH_REMATCH[1]}"
-			local value="${BASH_REMATCH[2]}"
-			local file="${BASH_REMATCH[3]}"
-			file="$(eval "printf %s $file")" # Unescape
-
-			if [[ -z "$value" ]]
-			then
-				unset "$varname[\$file:\$kind]"
-			else
-				eval "$varname[\$file:\$kind]=\"\$value\""
-			fi
-
-			file_property_kind_exists[$kind]=y
-		fi
-	done < "$filename"
-}
-
-typeset -A output_file_props ; AconfReadFileProps "$output_dir"/file-props.txt output_file_props
-typeset -A system_file_props ; AconfReadFileProps "$system_dir"/file-props.txt system_file_props
-
-all_file_property_kinds=($(echo "${!file_property_kind_exists[*]}" | sort))
-
-LogLeave
-
-#
 # Emit files
 #
 
@@ -198,11 +117,11 @@ function PrintFileProps() {
 
 typeset -A created_dirs
 
-if [[ ${#new_files[@]} != 0 ]]
+if [[ ${#system_only_files[@]} != 0 || ${#changed_files[@]} != 0 ]]
 then
-	LogEnter "Found %s new files.\n" "$(Color G ${#new_files[@]})"
+	LogEnter "Found %s new and %s changed files.\n" "$(Color G ${#system_only_files[@]})" "$(Color G ${#changed_files[@]})"
 	printf "\n\n# %s - New files\n\n\n" "$(date)" >> "$config_save_target"
-	for file in "${new_files[@]}"
+	while read -r -d $'\n' file
 	do
 		dir="$(dirname "$file")"
 		if [[ -z "${created_dirs[$dir]+x}" ]]
@@ -215,16 +134,16 @@ then
 		cp --no-dereference "$system_dir"/files/"$file" "$config_dir"/99-unsorted/"$file"
 		printf "cp --no-dereference \"\$config_dir\"/99-unsorted/%q \"\$output_dir\"/files/%q\n" "$file" "$file" >> "$config_save_target"
 		PrintFileProps /"$file"
-	done
+	done < <(Print0Array system_only_files ; Print0Array changed_files)
 	modified=y
 	LogLeave
 fi
 
-if [[ ${#extra_files[@]} != 0 ]]
+if [[ ${#config_only_files[@]} != 0 ]]
 then
-	LogEnter "Found %s extra files.\n" "$(Color G ${#extra_files[@]})"
+	LogEnter "Found %s extra files.\n" "$(Color G ${#config_only_files[@]})"
 	printf "\n\n# %s - Extra files\n\n\n" "$(date)" >> "$config_save_target"
-	for file in "${extra_files[@]}"
+	for file in "${config_only_files[@]}"
 	do
 		printf "rm \"\$output_dir\"/files/%q\n" "$file" >> "$config_save_target"
 	done
@@ -240,44 +159,27 @@ LogLeave # Emit files
 
 LogEnter "Registering file properties...\n"
 
-new_file_props=()
-extra_file_props=()
+AconfCompareFileProps # Update data after PrintFileProps' unsets
 
-for key in "${!system_file_props[@]}"
-do
-	if [[ -z "${output_file_props[$key]+x}" || "${system_file_props[$key]}" != "${output_file_props[$key]}" ]]
-	then
-		new_file_props+=("$key")
-	fi
-done
-
-for key in "${!output_file_props[@]}"
-do
-	if [[ -z "${system_file_props[$key]+x}" ]]
-	then
-		extra_file_props+=("$key")
-	fi
-done
-
-if [[ ${#new_file_props[@]} != 0 ]]
+if [[ ${#system_only_file_props[@]} != 0 || ${#changed_file_props[@]} != 0 ]]
 then
 	printf "\n\n# %s - New file properties\n\n\n" "$(date)" >> "$config_save_target"
 	while read -r -d $'\0' key
 	do
 		line="$(printf "%s\t%s\t%q" "${key##*:}" "${system_file_props[$key]}" "${key%:*}")"
 		printf ">> \"\$output_dir\"/file-props.txt echo %q\n" "$line" >> "$config_save_target"
-	done < <(Print0Array new_file_props | sort --zero-terminated)
+	done < <(( Print0Array system_only_file_props ; Print0Array changed_file_props ) | sort --zero-terminated)
 	modified=y
 fi
 
-if [[ ${#extra_file_props[@]} != 0 ]]
+if [[ ${#config_only_file_props[@]} != 0 ]]
 then
 	printf "\n\n# %s - Extra file properties\n\n\n" "$(date)" >> "$config_save_target"
 	while read -r -d $'\0' key
 	do
 		line="$(printf "%s\t\t%q" "${key##*:}" "${key%:*}")"
 		printf ">> \"\$output_dir\"/file-props.txt echo %q\n" "$line" >> "$config_save_target"
-	done < <(Print0Array extra_file_props | sort --zero-terminated)
+	done < <(Print0Array config_only_file_props | sort --zero-terminated)
 	modified=y
 fi
 
