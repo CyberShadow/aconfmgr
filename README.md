@@ -10,6 +10,28 @@ Its goals are:
 `aconfmgr` tracks the list of installed packages (both native and external), as well as changes to configuration files (`/etc/`).
 Since the system configuration is described as shell scripts, it is trivially extensible.
 
+## Usage
+
+### First run
+
+Run `aconf-save` to transcribe the system's configuration to the `config` directory.
+
+This will create the file `config/99-unsorted.sh`, as well as other files describing the system configuration. You should review the contents of `99-unsorted.sh`, and sort it into one or more new files (e.g.: `10-base.sh`, `20-drivers.sh`, `30-gui.sh`, `50-misc.sh` ...). The files should have a `.sh` extension, and use `bash` syntax. I suggest adding a comment for each package describing why installing the package was needed, so it is clear when the package is no longer needed and can be removed.
+
+During this process, you may identify packages or system changes which are no longer needed. Do not sort them into your configuration files - instead, delete the file `99-unsorted.sh`, and run `aconf-apply`. This will synchronize the system state against your configuration, thus removing the omitted packages. (You will be given a chance to confirm all changes before they are applied.)
+
+Note: you don't need to run `aconf-save` or `aconf-apply` via `sudo`. It will elevate as necessary by invoking `sudo` itself.
+
+### Maintenance
+
+The `config` directory should be versioned using a version control system (e.g. Git). Ideally, the file `99-unsorted.sh` should not be versioned - it will only be created when the current configuration does not reflect the current system state, therefore indicating that there are system changes that have not been accounted for.
+
+Periodic maintenance consists of running `aconf-save`; if this results in uncommitted changes to the `config` directory, then there are unaccounted system changes. The changes should be reviewed, sorted, documented, committed and pushed.
+
+### Restoring
+
+To restore a system to its earlier state, or to set up a new system, simply make sure the correct configuration is in the `config` directory and run `aconf-apply`. You will be able to preview and confirm any actual system changes.
+
 ## Modus operandi
 
 This package consists of two scripts:
@@ -37,45 +59,9 @@ Background: Every installed package is installed either explicitly, or as a depe
 - `aconf-apply` removes unlisted packages by unpinning them (setting their install reason as "installed as a dependency"), after which it prunes all orphan packages. If the package is still required by another package, it will remain on the system (until it is no longer required); otherwise, it is removed.
 - Packages that are installed and explicitly listed in the configuration will have their install reason set to "explicitly installed".
 
-## Usage
+## Advanced Usage
 
-### 1. First run
-
-Run `aconf-save` to transcribe the system's configuration to the `config` directory.
-
-This will create the file `config/99-unsorted.sh`, as well as other files describing the system configuration. You should review the contents of `99-unsorted.sh`, and sort it into one or more new files (e.g.: `10-base.sh`, `20-drivers.sh`, `30-gui.sh`, `50-misc.sh` ...). The files should have a `.sh` extension, and use `bash` syntax. I suggest adding a comment for each package describing why installing the package was needed, so it is clear when the package is no longer needed and can be removed.
-
-During this process, you may identify packages or system changes which are no longer needed. Do not sort them into your configuration files - instead, delete the file `99-unsorted.sh`, and run `aconf-apply`. This will synchronize the system state against your configuration, thus removing the omitted packages. (`pacman` will display a prompt allowing you to review the exact list of packages being removed.)
-
-Note: you don't need to run `aconf-save` or `aconf-apply` via `sudo`. It will elevate as necessary by invoking `sudo` itself.
-
-### 2. Maintenance
-
-The `config` directory should be versioned using a version control system (e.g. Git). Ideally, the file `99-unsorted.sh` should not be versioned - it will only be created when the current configuration does not reflect the current system state.
-
-Periodic maintenance consists of running `aconf-save`; if this results in uncommitted changes to the `config` directory, then there are unaccounted system changes. The changes should be reviewed, sorted, documented, committed and pushed.
-
-### 3. Restoring
-
-To restore a system to its earlier state, or to set up a new system, simply make sure the correct configuration is in the `config` directory and run `aconf-apply`. You will be able to preview and confirm any actual system changes.
-
-### 4. Managing multiple systems
-
-You can use the same `config` repository to manage multiple sufficiently-similar systems. One way of doing so is e.g. Git branches (having one main branch plus one branch per machine, and periodically merge in changes from the main branch into the machine-specific branches); however, it is simpler to use shell scripting:
-
-```bash
-packages+=(coreutils)
-# ... more common packages ...
-
-if [[ "$HOST" == "home.example.com" ]]
-then
-	packages+=(nvidia)
-	packages+=(nvidia-utils)
-	# ... more packages only for the home system ...
-fi
-```
-
-### 5. Ignoring some changes
+### Ignoring some changes
 
 #### Ignoring files
 
@@ -104,3 +90,19 @@ ignore_packages+=(linux-git)
 ```
 
 `aconf-save` will not update the configuration based on ignored packages' presence or absence, and `aconf-apply` will not install or uninstall them. The packages should also not be present in the configuration's package list, of course. To ignore a foreign package (e.g. a non-AUR foreign package), add its name to the `ignore_foreign_packages` array.
+
+### Managing multiple systems
+
+You can use the same `config` repository to manage multiple sufficiently-similar systems. One way of doing so is e.g. Git branches (having one main branch plus one branch per machine, and periodically merge in changes from the main branch into the machine-specific branches); however, it is simpler to use shell scripting:
+
+```bash
+packages+=(coreutils)
+# ... more common packages ...
+
+if [[ "$HOST" == "home.example.com" ]]
+then
+	packages+=(nvidia)
+	packages+=(nvidia-utils)
+	# ... more packages only for the home system ...
+fi
+```
