@@ -107,30 +107,29 @@ function AconfCompileSystem() {
 
 	LogEnter "Searching for lost files...\n"
 
-	local first=y
 	local line
 	while read -r -d $'\0' line
 	do
 		#echo "ignore_paths+='$line' # "
-		#Log "Found lost file: %s\n" "$(Color C "$line")"
-
-		# The slow operation will be sorted and filtered,
-		# so most of the time will be spent waiting for the first entry.
-		if [[ $first == y ]]
-		then
-			Log "Registering...\n"
-			first=n
-		fi
+		#Log "%s\r" "$(Color C "%s" "$line")"
 
 		AconfAddFile "$line"
-	done < <(																				\
-		comm -13 --zero-terminated															\
-			 <(pacman --query --list --quiet | sed '/\/$/d' | sort --unique | tr '\n' '\0')	\
-			 <(sudo find / -not \(															\
-					"${ignore_args[@]}"														\
-					-type d																	\
-					\) -print0 |															\
-					  sort --unique --zero-terminated) )
+	done < <(									\
+		sudo find / -not \(						\
+			 "${ignore_args[@]}"				\
+			 -type d							\
+			 \) -print0							\
+			| grep								\
+				  --null --null-data			\
+				  --invert-match				\
+				  --fixed-strings				\
+				  --line-regexp					\
+				  --file <(						\
+				pacman --query --list --quiet	\
+					| sed '/\/$/d'				\
+					| sort --unique				\
+			)									\
+	)
 
 	LogLeave # Searching for lost files
 
