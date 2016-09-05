@@ -126,7 +126,7 @@ then
 		dir="$(dirname "$file")"
 		if [[ -z "${created_dirs[$dir]+x}" ]]
 		then
-			mkdir --parents "$config_dir"/99-unsorted/"$dir"
+			mkdir --parents "$config_dir"/files/"$dir"
 			printf "mkdir --parents \"\$output_dir\"/files/%q\n" "$dir" >> "$config_save_target"
 			created_dirs[$dir]=y
 		fi
@@ -142,8 +142,8 @@ then
 			then
 				printf "truncate --size 0 \"\$output_dir\"/files/%q\n" "$file" >> "$config_save_target"
 			else
-				cp "$system_file" "$config_dir"/99-unsorted/"$file"
-				printf "cp \"\$config_dir\"/99-unsorted/%q \"\$output_dir\"/files/%q\n" "$file" "$file" >> "$config_save_target"
+				cp "$system_file" "$config_dir"/files/"$file"
+				printf "cp \"\$config_dir\"/files/%q \"\$output_dir\"/files/%q\n" "$file" "$file" >> "$config_save_target"
 			fi
 
 		fi
