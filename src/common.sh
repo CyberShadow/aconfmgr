@@ -128,13 +128,7 @@ function AconfCompileSystem() {
 	LogEnter "Searching for lost files...\n"
 
 	local line
-	while read -r -d $'\0' line
-	do
-		#echo "ignore_paths+='$line' # "
-		#Log "%s\r" "$(Color C "%q" "$line")"
-
-		AconfAddFile "$line"
-	done < <(									\
+	(											\
 		sudo find / -not \(						\
 			 "${ignore_args[@]}"				\
 			 -type d							\
@@ -149,44 +143,52 @@ function AconfCompileSystem() {
 					| sed '/\/$/d'				\
 					| sort --unique				\
 			)									\
-	)
+	) |											\
+		while read -r -d $'\0' line
+		do
+			#echo "ignore_paths+='$line' # "
+			#Log "%s\r" "$(Color C "%q" "$line")"
+
+			AconfAddFile "$line"
+		done
 
 	LogLeave # Searching for lost files
 
 	# Modified files
 
 	LogEnter "Searching for modified files...\n"
-	while read -r line
-	do
-		if [[ $line =~ ^(.*):\ \'(.*)\'\ md5sum\ mismatch ]]
-		then
-			local package="${BASH_REMATCH[1]}"
-			local file="${BASH_REMATCH[2]}"
-
-			local ignored=n
-			for ignore_path in "${ignore_paths[@]}"
-			do
-				# shellcheck disable=SC2053
-				if [[ "$file" == $ignore_path ]]
-				then
-					ignored=y
-					break
-				fi
-			done
-
-			if [[ $ignored == n ]]
+	sudo sh -c "stdbuf -o0 paccheck --md5sum --files --backup --noupgrade 2>&1 || true" | \
+		while read -r line
+		do
+			if [[ $line =~ ^(.*):\ \'(.*)\'\ md5sum\ mismatch ]]
 			then
-				Log "%s: %s\n" "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
-				AconfAddFile "$file"
-			fi
+				local package="${BASH_REMATCH[1]}"
+				local file="${BASH_REMATCH[2]}"
 
-		elif [[ $line =~ ^(.*):\  ]]
-		then
-			local package="${BASH_REMATCH[1]}"
-			Log "%s...\r" "$(Color M "%q" "$package")"
-			#echo "Now at ${BASH_REMATCH[1]}"
-		fi
-	done < <(sudo sh -c "stdbuf -o0 paccheck --md5sum --files --backup --noupgrade 2>&1")
+				local ignored=n
+				for ignore_path in "${ignore_paths[@]}"
+				do
+					# shellcheck disable=SC2053
+					if [[ "$file" == $ignore_path ]]
+					then
+						ignored=y
+						break
+					fi
+				done
+
+				if [[ $ignored == n ]]
+				then
+					Log "%s: %s\n" "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
+					AconfAddFile "$file"
+				fi
+
+			elif [[ $line =~ ^(.*):\  ]]
+			then
+				local package="${BASH_REMATCH[1]}"
+				Log "%s...\r" "$(Color M "%q" "$package")"
+				#echo "Now at ${BASH_REMATCH[1]}"
+			fi
+		done
 	LogLeave # Searching for modified files
 
 	LogEnter "Reading file attributes...\n"
@@ -316,6 +318,9 @@ function AconfCompareFileProps() {
 	LogLeave
 }
 
+# fixed by `shopt -s lastpipe`:
+# shellcheck disable=2030
+
 # Compare file information in $output_dir and $system_dir.
 function AconfAnalyzeFiles() {
 
@@ -334,30 +339,33 @@ function AconfAnalyzeFiles() {
 
 	typeset -ag system_only_files=()
 
-	while read -r -d $'\0' file
-	do
-		Log "Only in system: %s\n" "$(Color C "%q" "$file")"
-		system_only_files+=("$file")
-	done < <(comm -13 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files)
+	( comm -13 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files ) | \
+		while read -r -d $'\0' file
+		do
+			Log "Only in system: %s\n" "$(Color C "%q" "$file")"
+			system_only_files+=("$file")
+		done
 
 	typeset -ag changed_files=()
 
-	while read -r -d $'\0' file
-	do
-		if ! diff --no-dereference --brief "$output_dir"/files/"$file" "$system_dir"/files/"$file" > /dev/null
-		then
-			Log "Changed: %s\n" "$(Color C "%q" "$file")"
-			changed_files+=("$file")
-		fi
-	done < <(comm -12 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files)
+	( comm -12 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files ) | \
+		while read -r -d $'\0' file
+		do
+			if ! diff --no-dereference --brief "$output_dir"/files/"$file" "$system_dir"/files/"$file" > /dev/null
+			then
+				Log "Changed: %s\n" "$(Color C "%q" "$file")"
+				changed_files+=("$file")
+			fi
+		done
 
 	typeset -ag config_only_files=()
 
-	while read -r -d $'\0' file
-	do
-		Log "Only in config: %s\n" "$(Color C "%q" "$file")"
-		config_only_files+=("$file")
-	done < <(comm -23 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files)
+	( comm -23 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files ) | \
+		while read -r -d $'\0' file
+		do
+			Log "Only in config: %s\n" "$(Color C "%q" "$file")"
+			config_only_files+=("$file")
+		done
 
 	LogLeave "Done (%s only in system, %s changed, %s only in config).\n"	\
 			 "$(Color G "${#system_only_files[@]}")"						\

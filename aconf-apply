@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
+shopt -s lastpipe
 source src/common.sh
 
 Confirm() {
@@ -365,13 +366,14 @@ then
 		fi
 	}
 	Confirm Details
-	
-	while read -r -d $'\n' file
-	do
-		sudo mkdir --parents "$(dirname /"$file")"
-		sudo install --mode=$default_file_mode --owner=root --group=root "$output_dir"/files/"$file" /"$file"
-		ApplyFileProps /"$file"
-	done < <(Print0Array config_only_files ; Print0Array changed_files)
+
+	( Print0Array config_only_files ; Print0Array changed_files ) | \
+		while read -r -d $'\n' file
+		do
+			sudo mkdir --parents "$(dirname /"$file")"
+			sudo install --mode=$default_file_mode --owner=root --group=root "$output_dir"/files/"$file" /"$file"
+			ApplyFileProps /"$file"
+		done
 
 	modified=y
 	LogLeave
@@ -445,14 +447,15 @@ then
 	}
 	Confirm Details
 
-	while read -r -d $'\0' key
-	do
-		kind="${key##*:}"
-		file="${key%:*}"
-		value="${output_file_props[$key]:-}"
-		# TODO: check if file exists first?
-		ApplyFileProperty "$kind" "$value" "$file"
-	done < <(Print0Array config_only_file_props ; Print0Array changed_file_props ; Print0Array system_only_file_props)
+	( Print0Array config_only_file_props ; Print0Array changed_file_props ; Print0Array system_only_file_props ) | \
+		while read -r -d $'\0' key
+		do
+			kind="${key##*:}"
+			file="${key%:*}"
+			value="${output_file_props[$key]:-}"
+			# TODO: check if file exists first?
+			ApplyFileProperty "$kind" "$value" "$file"
+		done
 
 	modified=y
 	LogLeave

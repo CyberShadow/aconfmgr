@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
+shopt -s lastpipe
 typeset config_save_target system_dir output_dir config_dir tmp_dir ignore_paths # for shellcheck
 source src/common.sh
 
@@ -121,35 +122,36 @@ if [[ ${#system_only_files[@]} != 0 || ${#changed_files[@]} != 0 ]]
 then
 	LogEnter "Found %s new and %s changed files.\n" "$(Color G ${#system_only_files[@]})" "$(Color G ${#changed_files[@]})"
 	printf "\n\n# %s - New files\n\n\n" "$(date)" >> "$config_save_target"
-	while read -r -d $'\0' file
-	do
-		dir="$(dirname "$file")"
-		if [[ -z "${created_dirs[$dir]+x}" ]]
-		then
-			mkdir --parents "$config_dir"/files/"$dir"
-			printf "mkdir --parents \"\$output_dir\"/files/%q\n" "$dir" >> "$config_save_target"
-			created_dirs[$dir]=y
-		fi
-
-		system_file="$system_dir"/files/"$file"
-		type=$(stat --format=%F "$system_file")
-		if [[ "$type" == "symbolic link" ]]
-		then
-			printf "ln --symbolic %q \"\$output_dir\"/files/%q\n" "$(readlink "$system_file")" "$file" >> "$config_save_target"
-		else
-			size=$(stat --format=%s "$system_file")
-			if [[ $size == 0 ]]
+	( Print0Array system_only_files ; Print0Array changed_files ) | \
+		while read -r -d $'\0' file
+		do
+			dir="$(dirname "$file")"
+			if [[ -z "${created_dirs[$dir]+x}" ]]
 			then
-				printf "truncate --size 0 \"\$output_dir\"/files/%q\n" "$file" >> "$config_save_target"
-			else
-				cp "$system_file" "$config_dir"/files/"$file"
-				printf "cp \"\$config_dir\"/files/%q \"\$output_dir\"/files/%q\n" "$file" "$file" >> "$config_save_target"
+				mkdir --parents "$config_dir"/files/"$dir"
+				printf "mkdir --parents \"\$output_dir\"/files/%q\n" "$dir" >> "$config_save_target"
+				created_dirs[$dir]=y
 			fi
 
-		fi
+			system_file="$system_dir"/files/"$file"
+			type=$(stat --format=%F "$system_file")
+			if [[ "$type" == "symbolic link" ]]
+			then
+				printf "ln --symbolic %q \"\$output_dir\"/files/%q\n" "$(readlink "$system_file")" "$file" >> "$config_save_target"
+			else
+				size=$(stat --format=%s "$system_file")
+				if [[ $size == 0 ]]
+				then
+					printf "truncate --size 0 \"\$output_dir\"/files/%q\n" "$file" >> "$config_save_target"
+				else
+					cp "$system_file" "$config_dir"/files/"$file"
+					printf "cp \"\$config_dir\"/files/%q \"\$output_dir\"/files/%q\n" "$file" "$file" >> "$config_save_target"
+				fi
 
-		PrintFileProps /"$file"
-	done < <(Print0Array system_only_files ; Print0Array changed_files)
+			fi
+
+			PrintFileProps /"$file"
+		done
 	modified=y
 	LogLeave
 fi
@@ -179,22 +181,24 @@ AconfCompareFileProps # Update data after PrintFileProps' unsets
 if [[ ${#system_only_file_props[@]} != 0 || ${#changed_file_props[@]} != 0 ]]
 then
 	printf "\n\n# %s - New file properties\n\n\n" "$(date)" >> "$config_save_target"
-	while read -r -d $'\0' key
-	do
-		line="$(printf "%s\t%s\t%q" "${key##*:}" "${system_file_props[$key]}" "${key%:*}")"
-		printf ">> \"\$output_dir\"/file-props.txt echo %q\n" "$line" >> "$config_save_target"
-	done < <(( Print0Array system_only_file_props ; Print0Array changed_file_props ) | sort --zero-terminated)
+	( ( Print0Array system_only_file_props ; Print0Array changed_file_props ) | sort --zero-terminated ) | \
+		while read -r -d $'\0' key
+		do
+			line="$(printf "%s\t%s\t%q" "${key##*:}" "${system_file_props[$key]}" "${key%:*}")"
+			printf ">> \"\$output_dir\"/file-props.txt echo %q\n" "$line" >> "$config_save_target"
+		done
 	modified=y
 fi
 
 if [[ ${#config_only_file_props[@]} != 0 ]]
 then
 	printf "\n\n# %s - Extra file properties\n\n\n" "$(date)" >> "$config_save_target"
-	while read -r -d $'\0' key
-	do
-		line="$(printf "%s\t\t%q" "${key##*:}" "${key%:*}")"
-		printf ">> \"\$output_dir\"/file-props.txt echo %q\n" "$line" >> "$config_save_target"
-	done < <(Print0Array config_only_file_props | sort --zero-terminated)
+	( Print0Array config_only_file_props | sort --zero-terminated ) | \
+		while read -r -d $'\0' key
+		do
+			line="$(printf "%s\t\t%q" "${key##*:}" "${key%:*}")"
+			printf ">> \"\$output_dir\"/file-props.txt echo %q\n" "$line" >> "$config_save_target"
+		done
 	modified=y
 fi
 
