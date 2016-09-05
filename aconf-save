@@ -131,8 +131,23 @@ then
 			created_dirs[$dir]=y
 		fi
 
-		cp --no-dereference "$system_dir"/files/"$file" "$config_dir"/99-unsorted/"$file"
-		printf "cp --no-dereference \"\$config_dir\"/99-unsorted/%q \"\$output_dir\"/files/%q\n" "$file" "$file" >> "$config_save_target"
+		system_file="$system_dir"/files/"$file"
+		type=$(stat --format=%F "$system_file")
+		if [[ "$type" == "symbolic link" ]]
+		then
+			printf "ln --symbolic %q \"\$output_dir\"/files/%q\n" "$(readlink "$system_file")" "$file" >> "$config_save_target"
+		else
+			size=$(stat --format=%s "$system_file")
+			if [[ $size == 0 ]]
+			then
+				printf "truncate --size 0 \"\$output_dir\"/files/%q\n" "$file" >> "$config_save_target"
+			else
+				cp "$system_file" "$config_dir"/99-unsorted/"$file"
+				printf "cp \"\$config_dir\"/99-unsorted/%q \"\$output_dir\"/files/%q\n" "$file" "$file" >> "$config_save_target"
+			fi
+
+		fi
+
 		PrintFileProps /"$file"
 	done < <(Print0Array system_only_files ; Print0Array changed_files)
 	modified=y
