@@ -2,6 +2,7 @@
 # (for shellcheck)
 
 IFS=$'\n'
+export LC_COLLATE=C
 
 config_dir=config
 output_dir=output
