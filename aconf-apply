@@ -314,10 +314,10 @@ function ApplyFileProperty() {
 			sudo chmod "${value:-$default_file_mode}" "$file"
 			;;
 		owner)
-			sudo chown "${value:-root}" "$file"
+			sudo chown --no-dereference "${value:-root}" "$file"
 			;;
 		group)
-			sudo chgrp "${value:-root}" "$file"
+			sudo chgrp --no-dereference "${value:-root}" "$file"
 			;;
 		*)
 			Log "Unknown property %s with value %s for file %s"	\
