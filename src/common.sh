@@ -68,7 +68,7 @@ function AconfCompileOutput() {
 	do
 		if [[ -e "$file" ]]
 		then
-			Log "Sourcing %s...\n" "$(Color C "$file")"
+			Log "Sourcing %s...\n" "$(Color C "%q" "$file")"
 			source "$file"
 		fi
 	done
@@ -111,7 +111,7 @@ function AconfCompileSystem() {
 	while read -r -d $'\0' line
 	do
 		#echo "ignore_paths+='$line' # "
-		#Log "%s\r" "$(Color C "%s" "$line")"
+		#Log "%s\r" "$(Color C "%q" "$line")"
 
 		AconfAddFile "$line"
 	done < <(									\
@@ -156,14 +156,14 @@ function AconfCompileSystem() {
 
 			if [[ $ignored == n ]]
 			then
-				Log "%s: %s\n" "$(Color M "$package")" "$(Color C "$file")"
+				Log "%s: %s\n" "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
 				AconfAddFile "$file"
 			fi
 
 		elif [[ $line =~ ^(.*):\  ]]
 		then
 			local package="${BASH_REMATCH[1]}"
-			Log "%s...\r" "$(Color M "$package")"
+			Log "%s...\r" "$(Color M "%q" "$package")"
 			#echo "Now at ${BASH_REMATCH[1]}"
 		fi
 	done < <(sudo sh -c "stdbuf -o0 paccheck --md5sum --files --backup --noupgrade 2>&1")
@@ -207,11 +207,11 @@ function AconfCompileSystem() {
 		then
 			if [[ $size -gt $warn_size_threshold ]]
 			then
-				Log "%s: copying large file '%s' (%s bytes). Add to %s to ignore.\n" "$(Color Y "Warning")" "$(Color C "$file")" "$(Color G "$size")" "$(Color Y "ignore_paths")"
+				Log "%s: copying large file '%s' (%s bytes). Add to %s to ignore.\n" "$(Color Y "Warning")" "$(Color C "%q" "$file")" "$(Color G "$size")" "$(Color Y "ignore_paths")"
 			fi
 			( sudo cat "$file" ) > "$system_dir"/files/"$file"
 		else
-			Log "%s: Skipping file '%s' with unknown type '%s'. Add to %s to ignore.\n" "$(Color Y "Warning")" "$(Color C "$file")" "$(Color G "$type")" "$(Color Y "ignore_paths")"
+			Log "%s: Skipping file '%s' with unknown type '%s'. Add to %s to ignore.\n" "$(Color Y "Warning")" "$(Color C "%q" "$file")" "$(Color G "$type")" "$(Color Y "ignore_paths")"
 			continue
 		fi
 

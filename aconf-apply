@@ -68,7 +68,7 @@ if [[ ${#unknown_packages[@]} != 0 ]]
 then
 	LogEnter "Unpinning %s unknown packages.\n" "$(Color G ${#unknown_packages[@]})"
 
-	function Details() { Log "Unpinning (setting install reason to 'as dependency') the following packages:%s\n" "$(Color M " %s" "${unknown_packages[@]}")" ; }
+	function Details() { Log "Unpinning (setting install reason to 'as dependency') the following packages:%s\n" "$(Color M " %q" "${unknown_packages[@]}")" ; }
 	Confirm Details
 
 	Print0Array unknown_packages | sudo xargs -0 pacman --database --asdeps
@@ -89,7 +89,7 @@ if [[ ${#missing_unpinned_packages[@]} != 0 ]]
 then
 	LogEnter "Pinning %s unknown packages.\n" "$(Color G ${#missing_unpinned_packages[@]})"
 
-	function Details() { Log "Pinning (setting install reason to 'explicitly installed') the following packages:%s\n" "$(Color M " %s" "${missing_unpinned_packages[@]}")" ; }
+	function Details() { Log "Pinning (setting install reason to 'explicitly installed') the following packages:%s\n" "$(Color M " %q" "${missing_unpinned_packages[@]}")" ; }
 	Confirm Details
 
 	Print0Array missing_unpinned_packages | sudo xargs -0 pacman --database --asexplicit
@@ -105,7 +105,7 @@ if [[ ${#missing_native_packages[@]} != 0 ]]
 then
 	LogEnter "Installing %s missing native packages.\n" "$(Color G ${#missing_native_packages[@]})"
 
-	function Details() { Log "Installing the following native packages:%s\n" "$(Color M " %s" "${missing_native_packages[@]}")" ; }
+	function Details() { Log "Installing the following native packages:%s\n" "$(Color M " %q" "${missing_native_packages[@]}")" ; }
 	ParanoidConfirm Details
 
 	sudo pacman --sync "${missing_native_packages[@]}"
@@ -120,7 +120,7 @@ if [[ ${#missing_foreign_packages[@]} != 0 ]]
 then
 	LogEnter "Installing %s missing foreign packages.\n" "$(Color G ${#missing_foreign_packages[@]})"
 
-	function Details() { Log "Installing the following foreign packages:%s\n" "$(Color M " %s" "${missing_foreign_packages[@]}")" ; }
+	function Details() { Log "Installing the following foreign packages:%s\n" "$(Color M " %q" "${missing_foreign_packages[@]}")" ; }
 	ParanoidConfirm Details
 
 	# TODO: use makepkg?
@@ -149,7 +149,7 @@ then
 		then
 			LogEnter "Pruning %s orphan packages.\n" "$(Color G ${#orphan_packages[@]})"
 
-			function Details() { Log "Removing the following orphan packages:%s\n" "$(Color M " %s" "${orphan_packages[@]}")" ; }
+			function Details() { Log "Removing the following orphan packages:%s\n" "$(Color M " %q" "${orphan_packages[@]}")" ; }
 			ParanoidConfirm Details
 
 			sudo pacman --remove "${orphan_packages[@]}"

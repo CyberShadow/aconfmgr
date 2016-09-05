@@ -25,7 +25,7 @@ then
 	printf "\n\n# %s - Unknown packages\n\n\n" "$(date)" >> "$config_save_target"
 	for package in "${unknown_packages[@]}"
 	do
-		Log "%s...\r" "$(Color M "$package")"
+		Log "%s...\r" "$(Color M "%q" "$package")"
 		printf ">> \"\$output_dir\"/packages.txt echo %q #%s\n" "$package" "$(pacman --query --info "$package" | grep '^Description' | cut -d ':' -f 2)" >> "$config_save_target"
 	done
 	LogLeave
@@ -56,7 +56,7 @@ then
 	printf "\n\n# %s - Unknown foreign packages\n\n\n" "$(date)" >> "$config_save_target"
 	for package in "${unknown_foreign_packages[@]}"
 	do
-		Log "%s...\r" "$(Color M "$package")"
+		Log "%s...\r" "$(Color M "%q" "$package")"
 		printf ">> \"\$output_dir\"/foreign-packages.txt echo %q #%s\n" "$package" "$(pacman --query --info "$package" | grep '^Description' | cut -d ':' -f 2)" >> "$config_save_target"
 	done
 	LogLeave
@@ -96,7 +96,7 @@ new_files=()
 
 while read -r -d $'\0' file
 do
-	Log "New file: %s\n" "$(Color C "$file")"
+	Log "New file: %s\n" "$(Color C "%q" "$file")"
 	new_files+=("$file")
 done < <(comm -13 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files)
 
@@ -104,7 +104,7 @@ while read -r -d $'\0' file
 do
 	if ! diff --no-dereference --brief "$output_dir"/files/"$file" "$system_dir"/files/"$file" > /dev/null
 	then
-		Log "Changed file: %s\n" "$(Color C "$file")"
+		Log "Changed file: %s\n" "$(Color C "%q" "$file")"
 		new_files+=("$file")
 	fi
 done < <(comm -12 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files)
@@ -113,7 +113,7 @@ extra_files=()
 
 while read -r -d $'\0' file
 do
-	Log "Extra file: %s\n" "$(Color C "$file")"
+	Log "Extra file: %s\n" "$(Color C "%q" "$file")"
 	extra_files+=("$file")
 done < <(comm -23 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files)
 
