@@ -39,12 +39,12 @@ ANSI_color_C="[1;36m"
 ANSI_color_W="[1;39m"
 ANSI_reset="[0m"
 
-####################################################################################################
+umask $((666 - default_file_mode))
 
 mkdir --parents "$config_dir"
 mkdir --parents "$tmp_dir"
 
-umask $((666 - default_file_mode))
+####################################################################################################
 
 function AconfAddFile() {
 	local file="$1" # Absolute path of file to add
