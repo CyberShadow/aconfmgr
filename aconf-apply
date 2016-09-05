@@ -196,8 +196,8 @@ function PrintFileProperty() {
 	value="${value:-(default value)}"
 
 	Log "Setting %s of %s to %s\n"	\
-		"$(Color Y "%s" "$kind")"		\
-		"$(Color C "%q" "$file")"		\
+		"$(Color Y "%s" "$kind")"	\
+		"$(Color C "%q" "$file")"	\
 		"$(Color G "%s" "$value")"
 }
 
