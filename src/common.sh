@@ -451,7 +451,8 @@ function Color() {
 ####################################################################################################
 
 function OnError() {
-	echo
+	trap '' EXIT ERR
+
 	LogEnter "%s! Stack trace:\n" "$(Color R "Fatal error")"
 
 	local frame=0 str
@@ -467,7 +468,7 @@ function OnError() {
 		frame=$((frame+1))
 	done
 }
-trap OnError EXIT
+trap OnError EXIT ERR
 
 function ExitSuccess() {
 	trap '' EXIT
