@@ -3,10 +3,21 @@
 IFS=$'\n'
 export LC_COLLATE=C
 
-config_dir=config
-output_dir=output
-system_dir=system # Current system configuration, to be compared against the output directory
-tmp_dir=tmp
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ $script_dir == /root/* || $script_dir == /home/* || $script_dir == $HOME/* ]]
+then
+	# Running locally - use $PWD
+	config_dir=./config
+	tmp_dir=./tmp
+else
+	# Installed system-wide - use well-defined paths
+	xdg_config_dirs="${XDG_CONFIG_DIRS:-$HOME/.config}"
+	config_dir="${xdg_config_dirs%%:*}"/aconfmgr
+	tmp_dir="${TMPDIR:-/tmp}/aconfmgr-$USER"
+fi
+
+output_dir="$tmp_dir"/output
+system_dir="$tmp_dir"/system # Current system configuration, to be compared against the output directory
 
 warn_size_threshold=$((10*1024*1024))
 default_file_mode=644
@@ -70,6 +81,8 @@ function AconfCompileOutput() {
 
 	# Configuration
 
+	Log "Using configuration in %s\n" "$(Color C "%q" "$config_dir")"
+
 	typeset -ag ignore_packages=()
 	typeset -ag ignore_foreign_packages=()
 
@@ -105,7 +118,7 @@ function AconfCompileSystem() {
 	fi
 
 	rm -rf "$system_dir"
-	mkdir "$system_dir"
+	mkdir --parents "$system_dir"
 	mkdir "$system_dir"/files
 	touch "$system_dir"/file-props.txt
 
@@ -465,6 +478,7 @@ function AconfMakePkg() {
 	local package="$1"
 
 	LogEnter "Building foreign package %s from source.\n" "$(Color M %q "$package")"
+	rm -rf "$tmp_dir"/aur/"$package"
 	mkdir --parents "$tmp_dir"/aur/"$package"
 
 	AconfNeedProgram git git n
