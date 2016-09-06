@@ -19,10 +19,11 @@ function Usage() {
 	printf "Usage:  %s [OPTIONS]... save|apply\n" "$0"
 	echo
 	printf "Supported options:\n"
-	printf "  -h, --help             Print this message\n"
-	printf "  -c, --config DIR       Set the path to your configuration directory\n"
-	printf "      --skip-inspection  Skip the system inspection step\n"
-	printf "                         (reuse previous results)\n"
+	printf "  -h, --help               Print this message\n"
+	printf "  -c, --config DIR         Set the path to your configuration directory\n"
+	printf "      --skip-inspection    Skip the system inspection step\n"
+	printf "                           (reuse previous results)\n"
+	printf "      --aur-helper HELPER  Set AUR helper to use for installing foreign packages\n"
 	echo
 	printf "For more information, please refer to the full documentation at:\n"
 	printf "https://github.com/CyberShadow/aconfmgr#readme\n"
@@ -46,6 +47,10 @@ function Main() {
 				;;
 			-c|--config)
 				config_dir="$2"
+				shift 2
+				;;
+			--aur-helper)
+				aur_helper="$2"
 				shift 2
 				;;
 			-h|--help|help)
