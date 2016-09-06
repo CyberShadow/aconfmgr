@@ -52,6 +52,7 @@ function Main() {
 				;;
 			*)
 				Usage
+				printf "\nUnrecognized option: %s\n" "$1"
 				Exit 2
 				;;
 		esac
