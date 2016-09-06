@@ -430,6 +430,11 @@ function AconfCompile() {
 
 ####################################################################################################
 
+pacman_opts=()
+pacaur_opts=()
+yaourt_opts=()
+makepkg_opts=()
+
 aur_helper=
 
 function DetectAurHelper() {
@@ -592,6 +597,17 @@ function Color() {
 	shift
 	printf "$@"
 	printf "%s" "${ANSI_color_W}"
+}
+
+function DisableColor() {
+	ANSI_color_R=
+	ANSI_color_G=
+	ANSI_color_Y=
+	ANSI_color_B=
+	ANSI_color_M=
+	ANSI_color_C=
+	ANSI_color_W=
+	ANSI_reset=
 }
 
 ####################################################################################################
