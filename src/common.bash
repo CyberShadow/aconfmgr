@@ -40,9 +40,6 @@ ANSI_reset="[0m"
 
 umask $((666 - default_file_mode))
 
-mkdir --parents "$config_dir"
-mkdir --parents "$tmp_dir"
-
 ####################################################################################################
 
 function AconfAddFile() {
@@ -64,11 +61,12 @@ function AconfCompileOutput() {
 	LogEnter "Compiling user configuration...\n"
 
 	rm -rf "$output_dir"
-	mkdir "$output_dir"
+	mkdir --parents "$output_dir"
 	mkdir "$output_dir"/files
 	touch "$output_dir"/packages.txt
 	touch "$output_dir"/foreign-packages.txt
 	touch "$output_dir"/file-props.txt
+	mkdir --parents "$config_dir"
 
 	# Configuration
 
@@ -333,6 +331,7 @@ function AconfAnalyzeFiles() {
 	LogEnter "Examining files...\n"
 
 	LogEnter "Loading data...\n"
+	mkdir --parents "$tmp_dir"
 	( cd "$output_dir"/files && find . -not -type d -print0 ) | cut --zero-terminated -c 3- | sort --zero-terminated > "$tmp_dir"/output-files
 	( cd "$system_dir"/files && find . -not -type d -print0 ) | cut --zero-terminated -c 3- | sort --zero-terminated > "$tmp_dir"/system-files
 	LogLeave
