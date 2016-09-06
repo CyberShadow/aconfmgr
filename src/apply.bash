@@ -1,7 +1,14 @@
 # apply.bash
 
+prompt_mode=normal # never / normal / paranoid
+
 function Confirm() {
 	local detail_func="$1"
+
+	if [[ $prompt_mode == never ]]
+	then
+		return
+	fi
 
 	while true
 	do
@@ -28,7 +35,10 @@ function Confirm() {
 }
 
 function ParanoidConfirm() {
-	: # TODO: call Confirm when --paranoid is present
+	if [[ $prompt_mode == paranoid ]]
+	then
+		Confirm "$@"
+	fi
 }
 
 function AconfApply() {
