@@ -1,3 +1,5 @@
+# common.bash
+
 IFS=$'\n'
 export LC_COLLATE=C
 
@@ -607,9 +609,9 @@ function OnError() {
 }
 trap OnError EXIT ERR
 
-function ExitSuccess() {
-	trap '' EXIT
-	exit 0
+function Exit() {
+	trap '' EXIT ERR
+	exit "${1:-0}"
 }
 
 ####################################################################################################
