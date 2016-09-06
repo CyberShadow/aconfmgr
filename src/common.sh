@@ -421,6 +421,110 @@ function AconfCompile() {
 
 ####################################################################################################
 
+aur_helper=
+
+function DetectAurHelper() {
+	if [[ -n $aur_helper ]]
+	then
+		return
+	fi
+
+	LogEnter "Detecting AUR helper...\n"
+
+	local helper
+	for helper in pacaur yaourt makepkg
+	do
+		if which $helper > /dev/null
+		then
+			aur_helper=$helper
+			LogLeave "%s... Yes\n" "$(Color C %s "$aur_helper")"
+			return
+		fi
+		LogLeave "%s... No\n" "$(Color C %s "$aur_helper")"
+	done
+
+	Log "Can't find even makepkg!?\n"
+	exit 1
+}
+
+function AconfMakePkg() {
+	local package="$1"
+
+	LogEnter "Building foreign package %s from source.\n" "$(Color M %q "$package")"
+	mkdir -p "$tmp_dir"/aur/"$package"
+
+	LogEnter "Cloning...\n"
+	(
+		cd "$tmp_dir"/aur
+		git clone "https://aur.archlinux.org/$package.git"
+	)
+	LogLeave
+
+	LogEnter "Checking dependencies...\n"
+	local infofile infofilename
+	for infofilename in .SRCINFO .AURINFO
+	do
+		infofile="$tmp_dir"/aur/"$package"/"$infofilename"
+		if test -f "$infofile"
+		then
+			local depends dependency
+			depends=($(grep -E $'^\t(make)?depends = ' "$infofile" | sed 's/^.* = \([a-z0-9_-]*\)\([>=].*\)\?$/\1/'))
+			for dependency in "${depends[@]}"
+			do
+				LogEnter "%s:\n" "$(Color M %q "$dependency")"
+				if pacman --query --info "$dependency" > /dev/null 2>&1
+				then
+					LogLeave "Already installed.\n"
+				elif pacman --sync --info "$dependency" > /dev/null 2>&1
+				then
+					Log "Installing from repositories...\n"
+					sudo pacman --sync "$dependency"
+					LogLeave "Installed.\n"
+				else
+					Log "Installing from AUR...\n"
+					AconfMakePkg "$dependency"
+					LogLeave "Installed.\n"
+				fi
+			done
+		fi
+	done
+
+	LogLeave
+
+	LogEnter "Building...\n"
+	(
+		cd "$tmp_dir"/aur/"$package"
+		makepkg --syncdeps --install
+	)
+	LogLeave
+
+	LogLeave
+}
+
+function AconfInstallForeign() {
+	local target_packages=("$@")
+
+	DetectAurHelper
+
+	case $aur_helper in
+		pacaur|yaourt)
+			$aur_helper --sync --aur "${target_packages[@]}"
+			;;
+		makepkg)
+			for package in "${target_packages[@]}"
+			do
+				AconfMakePkg "$package"
+			done
+			;;
+		*)
+			Log "Error: unknown AUR helper %q\n" $aur_helper
+			false
+			;;
+	esac
+}
+
+####################################################################################################
+
 log_indent=:
 
 function Log() {
