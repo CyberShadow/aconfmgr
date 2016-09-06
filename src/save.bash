@@ -25,7 +25,9 @@ function AconfSave() {
 		for package in "${unknown_packages[@]}"
 		do
 			Log "%s...\r" "$(Color M "%q" "$package")"
-			printf ">> \"\$output_dir\"/packages.txt echo %q #%s\n" "$package" "$(pacman --query --info "$package" | grep '^Description' | cut -d ':' -f 2)" >> "$config_save_target"
+			local description
+			description="$(pacman --query --info "$package" | grep '^Description' | cut -d ':' -f 2)"
+			printf ">> \"\$output_dir\"/packages.txt echo %q #%s\n" "$package" "$description" >> "$config_save_target"
 		done
 		modified=y
 		LogLeave
@@ -58,7 +60,9 @@ function AconfSave() {
 		for package in "${unknown_foreign_packages[@]}"
 		do
 			Log "%s...\r" "$(Color M "%q" "$package")"
-			printf ">> \"\$output_dir\"/foreign-packages.txt echo %q #%s\n" "$package" "$(pacman --query --info "$package" | grep '^Description' | cut -d ':' -f 2)" >> "$config_save_target"
+			local description
+			description="$(pacman --query --info "$package" | grep '^Description' | cut -d ':' -f 2)"
+			printf ">> \"\$output_dir\"/foreign-packages.txt echo %q #%s\n" "$package" "$description" >> "$config_save_target"
 		done
 		modified=y
 		LogLeave
