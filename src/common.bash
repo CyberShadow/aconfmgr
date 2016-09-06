@@ -430,10 +430,10 @@ function AconfCompile() {
 
 ####################################################################################################
 
-pacman_opts=()
-pacaur_opts=()
-yaourt_opts=()
-makepkg_opts=()
+pacman_opts=(pacman)
+pacaur_opts=(pacaur)
+yaourt_opts=(yaourt)
+makepkg_opts=(makepkg)
 
 aur_helper=
 
@@ -448,7 +448,7 @@ function DetectAurHelper() {
 	local helper
 	for helper in pacaur yaourt makepkg
 	do
-		if which $helper > /dev/null
+		if which $helper > /dev/null 2>&1
 		then
 			aur_helper=$helper
 			LogLeave "%s... Yes\n" "$(Color C %s "$aur_helper")"
@@ -465,7 +465,7 @@ function AconfMakePkg() {
 	local package="$1"
 
 	LogEnter "Building foreign package %s from source.\n" "$(Color M %q "$package")"
-	mkdir -p "$tmp_dir"/aur/"$package"
+	mkdir --parents "$tmp_dir"/aur/"$package"
 
 	AconfNeedProgram git git n
 
@@ -510,7 +510,7 @@ function AconfMakePkg() {
 	LogEnter "Building...\n"
 	(
 		cd "$tmp_dir"/aur/"$package"
-		makepkg --syncdeps --install
+		"${makepkg_opts[@]}" --syncdeps --install
 	)
 	LogLeave
 
@@ -519,7 +519,7 @@ function AconfMakePkg() {
 
 function AconfInstallNative() {
 	local target_packages=("$@")
-	sudo pacman --sync "${target_packages[@]}"
+	sudo "${pacman_opts[@]}" --sync "${target_packages[@]}"
 }
 
 function AconfInstallForeign() {
@@ -528,8 +528,11 @@ function AconfInstallForeign() {
 	DetectAurHelper
 
 	case "$aur_helper" in
-		pacaur|yaourt)
-			$aur_helper --sync --aur "${target_packages[@]}"
+		pacaur)
+			"${pacaur_opts[@]}" --sync --aur "${target_packages[@]}"
+			;;
+		yaourt)
+			"${yaourt_opts[@]}" --sync --aur "${target_packages[@]}"
 			;;
 		makepkg)
 			for package in "${target_packages[@]}"

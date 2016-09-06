@@ -84,7 +84,7 @@ function AconfApply() {
 		function Details() { Log "Installing the following native packages:%s\n" "$(Color M " %q" "${missing_native_packages[@]}")" ; }
 		ParanoidConfirm Details
 
-		sudo pacman --sync "${missing_native_packages[@]}"
+		AconfInstallNative "${missing_native_packages[@]}"
 
 		modified=y
 		LogLeave
@@ -129,7 +129,7 @@ function AconfApply() {
 				function Details() { Log "Removing the following orphan packages:%s\n" "$(Color M " %q" "${orphan_packages[@]}")" ; }
 				ParanoidConfirm Details
 
-				sudo pacman --remove "${orphan_packages[@]}"
+				sudo "${pacman_opts[@]}" --remove "${orphan_packages[@]}"
 				LogLeave
 			fi
 

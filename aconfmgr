@@ -82,6 +82,8 @@ function Main() {
 					UsageError "A prompt mode has already been specified"
 				fi
 				prompt_mode=paranoid
+				pacman_opts+=(--confirm)
+				yaourt_opts+=(--confirm)
 				shift
 				;;
 			--yes)
@@ -90,6 +92,10 @@ function Main() {
 					UsageError "A prompt mode has already been specified"
 				fi
 				prompt_mode=never
+				pacman_opts+=(--noconfirm)
+				pacaur_opts+=(--noconfirm)
+				yaourt_opts+=(--noconfirm)
+				makepkg_opts+=(--noconfirm)
 				shift
 				;;
 			*)
