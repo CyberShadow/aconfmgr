@@ -30,6 +30,14 @@ function Usage() {
 	printf "https://github.com/CyberShadow/aconfmgr#readme\n"
 }
 
+function UsageError() {
+	Usage
+	echo
+	printf "$@"
+	echo
+	Exit 2
+}
+
 function Main() {
 	local command=
 	local color=
@@ -40,37 +48,34 @@ function Main() {
 			save|apply)
 				if [[ -n "$command" ]]
 				then
-					printf "A command has already been specified\n"
-					false
+					UsageError "A command has already been specified"
 				fi
 
 				command="$1"
+				shift
+				;;
+			-h|--help|help)
+				Usage
+				Exit 0
+				;;
+			-c|--config)
+				config_dir="$2"
+				shift 2
+				;;
+			--skip-inspection)
+				skip_inspection=y
 				shift
 				;;
 			--aur-helper)
 				aur_helper="$2"
 				shift 2
 				;;
-			-c|--config)
-				config_dir="$2"
-				shift 2
-				;;
 			--color)
 				color="$2"
 				shift 2
 				;;
-			-h|--help|help)
-				Usage
-				Exit 0
-				;;
-			--skip-inspection)
-				skip_inspection=y
-				shift
-				;;
 			*)
-				Usage
-				printf "\nUnrecognized option: %s\n" "$1"
-				Exit 2
+				UsageError "Unrecognized option: %s" "$1"
 				;;
 		esac
 	done
@@ -97,9 +102,7 @@ function Main() {
 			[ -t 1 ] || DisableColor
 			;;
 		*)
-			Usage
-			printf "\nUnrecognized --color value: %s\n" "$color"
-			Exit 2
+			UsageError "Unrecognized --color value: %s" "$color"
 			;;
 	esac
 
