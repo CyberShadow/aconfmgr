@@ -92,9 +92,17 @@ function AconfCompileOutput() {
 	fi
 }
 
+skip_inspection=n
+
 # Collect system state into $system_dir
 function AconfCompileSystem() {
 	LogEnter "Inspecting system state...\n"
+
+	if [[ $skip_inspection == y ]]
+	then
+		LogLeave "Skipped.\n"
+		return
+	fi
 
 	rm -rf "$system_dir"
 	mkdir "$system_dir"
