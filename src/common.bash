@@ -438,7 +438,7 @@ makepkg_opts=()
 aur_helper=
 
 function DetectAurHelper() {
-	if [[ -n $aur_helper ]]
+	if [[ -n "$aur_helper" ]]
 	then
 		return
 	fi
@@ -527,7 +527,7 @@ function AconfInstallForeign() {
 
 	DetectAurHelper
 
-	case $aur_helper in
+	case "$aur_helper" in
 		pacaur|yaourt)
 			$aur_helper --sync --aur "${target_packages[@]}"
 			;;
@@ -538,7 +538,7 @@ function AconfInstallForeign() {
 			done
 			;;
 		*)
-			Log "Error: unknown AUR helper %q\n" $aur_helper
+			Log "Error: unknown AUR helper %q\n" "$aur_helper"
 			false
 			;;
 	esac
@@ -551,14 +551,65 @@ function AconfNeedProgram() {
 
 	if ! which "$program" > /dev/null 2>&1
 	then
-		LogEnter "Installing dependency %s:\n" "$(Color M %q "$package")"
 		if [[ $foreign == y ]]
 		then
+			LogEnter "Installing foreign dependency %s:\n" "$(Color M %q "$package")"
+			ParanoidConfirm ''
 			AconfInstallForeign "$package"
 		else
+			LogEnter "Installing native dependency %s:\n" "$(Color M %q "$package")"
+			ParanoidConfirm ''
 			AconfInstallNative "$package"
 		fi
 		LogLeave "Installed.\n"
+	fi
+}
+
+####################################################################################################
+
+prompt_mode=normal # never / normal / paranoid
+
+function Confirm() {
+	local detail_func="$1"
+
+	if [[ $prompt_mode == never ]]
+	then
+		return
+	fi
+
+	while true
+	do
+		if [[ -n "$detail_func" ]]
+		then
+			Log "Proceed? [Y/n/d] "
+		else
+			Log "Proceed? [Y/n] "
+		fi
+		read -r -n 1 answer
+		echo
+		case "$answer" in
+			Y|y|'')
+				return
+				;;
+			N|n)
+				Log "%s\n" "$(Color R "User abort")"
+				exit 1
+				;;
+			D|d)
+				$detail_func
+				continue
+				;;
+			*)
+				continue
+				;;
+		esac
+	done
+}
+
+function ParanoidConfirm() {
+	if [[ $prompt_mode == paranoid ]]
+	then
+		Confirm "$@"
 	fi
 }
 

@@ -1,46 +1,5 @@
 # apply.bash
 
-prompt_mode=normal # never / normal / paranoid
-
-function Confirm() {
-	local detail_func="$1"
-
-	if [[ $prompt_mode == never ]]
-	then
-		return
-	fi
-
-	while true
-	do
-		Log "Proceed? [Y/n/d] "
-		read -r -n 1 answer
-		echo
-		case "$answer" in
-			Y|y|'')
-				return
-				;;
-			N|n)
-				Log "%s\n" "$(Color R "User abort")"
-				exit 1
-				;;
-			D|d)
-				$detail_func
-				continue
-				;;
-			*)
-				continue
-				;;
-		esac
-	done
-}
-
-function ParanoidConfirm() {
-	if [[ $prompt_mode == paranoid ]]
-	then
-		Confirm "$@"
-	fi
-}
-
 function AconfApply() {
 	modified=n
 
