@@ -1,8 +1,10 @@
 #!/bin/bash
+# shellcheck disable=2031
+# SC2031: https://github.com/koalaman/shellcheck/issues/732
+
 set -euo pipefail
 shopt -s lastpipe
-typeset config_save_target system_dir output_dir config_dir tmp_dir ignore_paths # for shellcheck
-source src/common.sh
+source src/common.bash
 
 AconfCompile
 

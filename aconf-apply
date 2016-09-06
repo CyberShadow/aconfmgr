@@ -1,7 +1,10 @@
 #!/bin/bash
+# shellcheck disable=2031
+# SC2031: https://github.com/koalaman/shellcheck/issues/732
+
 set -euo pipefail
 shopt -s lastpipe
-source src/common.sh
+source src/common.bash
 
 Confirm() {
 	local detail_func="$1"

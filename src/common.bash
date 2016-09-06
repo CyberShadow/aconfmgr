@@ -1,6 +1,3 @@
-#!/bin/bash
-# (for shellcheck)
-
 IFS=$'\n'
 export LC_COLLATE=C
 
@@ -319,7 +316,7 @@ function AconfCompareFileProps() {
 }
 
 # fixed by `shopt -s lastpipe`:
-# shellcheck disable=2030
+# shellcheck disable=2030,2031
 
 # Compare file information in $output_dir and $system_dir.
 function AconfAnalyzeFiles() {
