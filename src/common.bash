@@ -154,6 +154,9 @@ function AconfCompileSystem() {
 	# Modified files
 
 	LogEnter "Searching for modified files...\n"
+
+	AconfNeedProgram paccheck pacutils y
+
 	sudo sh -c "stdbuf -o0 paccheck --md5sum --files --backup --noupgrade 2>&1 || true" | \
 		while read -r line
 		do
@@ -450,6 +453,8 @@ function AconfMakePkg() {
 	LogEnter "Building foreign package %s from source.\n" "$(Color M %q "$package")"
 	mkdir -p "$tmp_dir"/aur/"$package"
 
+	AconfNeedProgram git git n
+
 	LogEnter "Cloning...\n"
 	(
 		cd "$tmp_dir"/aur
@@ -475,7 +480,7 @@ function AconfMakePkg() {
 				elif pacman --sync --info "$dependency" > /dev/null 2>&1
 				then
 					Log "Installing from repositories...\n"
-					sudo pacman --sync "$dependency"
+					AconfInstallNative "$dependency"
 					LogLeave "Installed.\n"
 				else
 					Log "Installing from AUR...\n"
@@ -498,6 +503,11 @@ function AconfMakePkg() {
 	LogLeave
 }
 
+function AconfInstallNative() {
+	local target_packages=("$@")
+	sudo pacman --sync "${target_packages[@]}"
+}
+
 function AconfInstallForeign() {
 	local target_packages=("$@")
 
@@ -518,6 +528,24 @@ function AconfInstallForeign() {
 			false
 			;;
 	esac
+}
+
+function AconfNeedProgram() {
+	local program="$1" # program that needs to be in PATH
+	local package="$2" # package the program is available in
+	local foreign="$3" # whether this is a foreign package
+
+	if ! which "$program" > /dev/null 2>&1
+	then
+		LogEnter "Installing dependency %s:\n" "$(Color M %q "$package")"
+		if [[ $foreign == y ]]
+		then
+			AconfInstallForeign "$package"
+		else
+			AconfInstallNative "$package"
+		fi
+		LogLeave "Installed.\n"
+	fi
 }
 
 ####################################################################################################
