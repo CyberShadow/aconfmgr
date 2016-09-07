@@ -368,7 +368,7 @@ function AconfAnalyzeFiles() {
 	( comm -13 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files ) | \
 		while read -r -d $'\0' file
 		do
-			Log "Only in system: %s\n" "$(Color C "%q" "$file")"
+			Log "Only in system: %s\n" "$(Color C "/%q" "$file")"
 			system_only_files+=("$file")
 		done
 
@@ -379,7 +379,7 @@ function AconfAnalyzeFiles() {
 		do
 			if ! diff --no-dereference --brief "$output_dir"/files/"$file" "$system_dir"/files/"$file" > /dev/null
 			then
-				Log "Changed: %s\n" "$(Color C "%q" "$file")"
+				Log "Changed: %s\n" "$(Color C "/%q" "$file")"
 				changed_files+=("$file")
 			fi
 		done
@@ -389,7 +389,7 @@ function AconfAnalyzeFiles() {
 	( comm -23 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files ) | \
 		while read -r -d $'\0' file
 		do
-			Log "Only in config: %s\n" "$(Color C "%q" "$file")"
+			Log "Only in config: %s\n" "$(Color C "/%q" "$file")"
 			config_only_files+=("$file")
 		done
 
