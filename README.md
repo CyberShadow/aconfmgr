@@ -51,7 +51,7 @@ The contracts of both commands are that they are mutually idempotent: after a su
 
 ### Packages
 
-Background: Every installed package is installed either explicitly, or as a dependency for another package. Packages can also have mandatory (hard) or optional dependencies. You can view this information using `pacman -Qi <package>` ("Install Reason", "Depends On", "Optional Deps").
+Background: On Arch Linux, every installed package is installed either explicitly, or as a dependency for another package. Packages can also have mandatory (hard) or optional dependencies. You can view this information using `pacman -Qi <package>` ("Install Reason", "Depends On", "Optional Deps").
 
 `aconfmgr` only tracks explicitly-installed packages, ignoring their hard dependencies. Therefore:
 
