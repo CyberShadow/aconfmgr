@@ -10,6 +10,8 @@ Its goals are:
 `aconfmgr` tracks the list of installed packages (both native and external), as well as changes to configuration files (`/etc/`).
 Since the system configuration is described as shell scripts, it is trivially extensible.
 
+![screenshot](https://dump.thecybershadow.net/8172adadc91ceb38588eb22581f485d9/composed.png)
+
 ## Usage
 
 ### First run
