@@ -1,0 +1,90 @@
+.TH ACONFMGR 1
+.SH NAME
+aconfmgr \- a configuration manager for Arch Linux
+.SH SYNOPSIS
+.B aconfmgr
+[\fIOPTIONS\fR]
+.BR save " | " apply
+.SH DESCRIPTION
+.B aconfmgr
+is a package to track, manage, and restore the configuration of an Arch Linux system.
+
+For a detailed description, please see the full documentation:
+
+.I https://github.com/CyberShadow/aconfmgr#readme
+.SH OPTIONS
+
+.TP
+.BR \-h ", " \-\-help
+Output a usage message and exit.
+
+.TP
+.BR \-c ", " \-\-config " " \fIDIR\fR
+Set the path to the configuration directory.
+
+This directory will contain the configuration that
+the \fBsave\fR command will write to, and
+the \fBapply\fR command will read from, respectively.
+
+See also \fBFILES\fR below.
+
+.TP
+.B \-\-skip-inspection
+Skip the system inspection step, and reuse results from previous run.
+
+.TP
+\fB\-\-aur-helper\fR \fIHELPER\fR
+Set the AUR helper to use for installing foreign packages.
+
+Supported values are
+.BR pacaur ", " yaourt ", and " makepkg
+(for which \fBaconfmgr\fR will download, resolve dependencies, and build/install itself).
+
+.TP
+\fB\-\-color\fR \fIWHEN\fR
+When to use colors in output
+.RB ( always / auto / never ).
+
+If unset or set to \fBauto\fR, \fBaconfmgr\fR will use color when the output is determined to be a TTY.
+
+If set, it is propagated appropriately to invoked programs.
+
+.TP
+\fB\-\-paranoid\fR
+Always prompt before making any changes to the system.
+
+The default is to not prompt when executed commands would themselves show a prompt before performing changes.
+
+This option is mutually exclusive with \fB\-\-yes\fR.
+
+If set, it is propagated appropriately to invoked programs.
+
+.TP
+\fB\-\-yes\fR
+Never prompt before making any changes to the system.
+
+This option is mutually exclusive with \fB\-\-paranoid\fR.
+
+If set, it is propagated appropriately to invoked programs.
+
+.SH FILES
+.TP
+.I ~/.config/aconfmgr
+Default location of configuration directory
+(can be overridden with \fB\-c\fR).
+
+The default location is affected by the \fB$XDG_CONFIG_DIRS\fR and \fB$HOME\fR environment variables.
+
+.SH BUGS
+Please report defects and enhancement requests to the GitHub issue tracker:
+
+.I https://github.com/CyberShadow/aconfmgr/issues
+
+.SH AUTHORS
+
+.de foo
+.BR "bersh"
+ad
+..
+
+\fBaconfmgr\fR is written by Vladimir Panteleev (aconfmgr@thecy\fRbersh\fRadow.net).
