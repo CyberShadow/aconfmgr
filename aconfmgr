@@ -7,9 +7,30 @@ aconfmgr_version=0.0.0
 set -euo pipefail
 shopt -s lastpipe
 
-source src/common.bash
-source src/save.bash
-source src/apply.bash
+IFS=$'\n'
+export LC_COLLATE=C
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ $script_dir == /root/* || $script_dir == /home/* || $script_dir == $HOME/* ]]
+then
+	# Running locally - use $PWD
+	config_dir=./config
+	tmp_dir=./tmp
+	src_dir=src
+else
+	# Installed system-wide - use well-defined paths
+	xdg_config_dirs="${XDG_CONFIG_DIRS:-$HOME/.config}"
+	config_dir="${xdg_config_dirs%%:*}"/aconfmgr
+	tmp_dir="${TMPDIR:-/tmp}/aconfmgr-$USER"
+	src_dir=/usr/lib/aconfmgr
+fi
+
+# shellcheck source=src/common.bash
+source "$src_dir"/common.bash
+# shellcheck source=src/save.bash
+source "$src_dir"/save.bash
+# shellcheck source=src/apply.bash
+source "$src_dir"/apply.bash
 
 function Usage() {
 	printf "aconfmgr v%s\n" "${aconfmgr_version}"

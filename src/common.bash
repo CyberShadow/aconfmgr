@@ -1,21 +1,5 @@
 # common.bash
 
-IFS=$'\n'
-export LC_COLLATE=C
-
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [[ $script_dir == /root/* || $script_dir == /home/* || $script_dir == $HOME/* ]]
-then
-	# Running locally - use $PWD
-	config_dir=./config
-	tmp_dir=./tmp
-else
-	# Installed system-wide - use well-defined paths
-	xdg_config_dirs="${XDG_CONFIG_DIRS:-$HOME/.config}"
-	config_dir="${xdg_config_dirs%%:*}"/aconfmgr
-	tmp_dir="${TMPDIR:-/tmp}/aconfmgr-$USER"
-fi
-
 output_dir="$tmp_dir"/output
 system_dir="$tmp_dir"/system # Current system configuration, to be compared against the output directory
 
