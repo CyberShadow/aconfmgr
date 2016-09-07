@@ -14,6 +14,10 @@ Since the system configuration is described as shell scripts, it is trivially ex
 
 ## Usage
 
+### Installation
+
+Simply clone (or [download](https://github.com/CyberShadow/aconfmgr/archive/master.zip)+unzip) the GitHub repository. `aconfmgr` will install dependencies as needed during execution. [An AUR package is also available](https://aur.archlinux.org/packages/aconfmgr-git/).
+
 ### First run
 
 Run `aconfmgr save` to transcribe the system's configuration to the configuration directory.
