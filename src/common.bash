@@ -145,6 +145,7 @@ function AconfCompileSystem() {
 
 	LogEnter "Searching for lost files...\n"
 
+	local lost_file_count=0
 	local line
 	(											\
 		sudo find / -not \(						\
@@ -168,15 +169,17 @@ function AconfCompileSystem() {
 			#Log "%s\r" "$(Color C "%q" "$line")"
 
 			AconfAddFile "$line"
+			lost_file_count=$((lost_file_count+1))
 		done
 
-	LogLeave # Searching for lost files
+	LogLeave "Done (%s lost files).\n" "$(Color G %s $lost_file_count)"
 
 	# Modified files
 
 	LogEnter "Searching for modified files...\n"
 
 	AconfNeedProgram paccheck pacutils y
+	local modified_file_count=0
 
 	sudo sh -c "stdbuf -o0 paccheck --md5sum --files --backup --noupgrade 2>&1 || true" | \
 		while read -r line
@@ -201,6 +204,7 @@ function AconfCompileSystem() {
 				then
 					Log "%s: %s\n" "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
 					AconfAddFile "$file"
+					modified_file_count=$((modified_file_count+1))
 				fi
 
 			elif [[ $line =~ ^(.*):\  ]]
@@ -210,7 +214,7 @@ function AconfCompileSystem() {
 				#echo "Now at ${BASH_REMATCH[1]}"
 			fi
 		done
-	LogLeave # Searching for modified files
+	LogLeave "Done (%s modified files).\n" "$(Color G %s $modified_file_count)"
 
 	LogEnter "Reading file attributes...\n"
 
