@@ -10,8 +10,7 @@ shopt -s lastpipe
 IFS=$'\n'
 export LC_COLLATE=C
 
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [[ $script_dir == /root/* || $script_dir == /home/* || $script_dir == $HOME/* ]]
+if [[ -f ./aconfmgr && -f ./src/common.bash ]]
 then
 	# Running locally - use $PWD
 	config_dir=./config
