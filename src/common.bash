@@ -1,5 +1,7 @@
 # common.bash
 
+# This file contains aconfmgr's common code, used by all commands.
+
 output_dir="$tmp_dir"/output
 system_dir="$tmp_dir"/system # Current system configuration, to be compared against the output directory
 

@@ -1,5 +1,7 @@
 # apply.bash
 
+# This file contains the implementation of aconfmgr's 'apply' command.
+
 function AconfApply() {
 	modified=n
 

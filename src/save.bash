@@ -1,5 +1,7 @@
 # save.bash
 
+# This file contains the implementation of aconfmgr's 'save' command.
+
 function AconfSave() {
 	config_save_target=$config_dir/99-unsorted.sh
 	modified=n
