@@ -237,9 +237,9 @@ function AconfApply() {
 		( Print0Array config_only_files ; Print0Array changed_files ) | \
 			while read -r -d $'\n' file
 			do
-				sudo mkdir --parents "$(dirname /"$file")"
-				sudo install --mode=$default_file_mode --owner=root --group=root "$output_dir"/files/"$file" /"$file"
-				ApplyFileProps /"$file"
+				sudo mkdir --parents "$(dirname "$file")"
+				sudo install --mode=$default_file_mode --owner=root --group=root "$output_dir"/files/"$file" "$file"
+				ApplyFileProps "$file"
 			done
 
 		modified=y
@@ -259,7 +259,7 @@ function AconfApply() {
 
 		for file in "${system_only_files[@]}"
 		do
-			sudo rm /"$file"
+			sudo rm "$file"
 		done
 
 		modified=y

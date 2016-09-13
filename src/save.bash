@@ -153,7 +153,7 @@ function AconfSave() {
 
 				fi
 
-				PrintFileProps /"$file"
+				PrintFileProps "$file"
 			done
 		modified=y
 		LogLeave
