@@ -128,22 +128,52 @@ function AconfSave() {
 				dir="$(dirname "$file")"
 				mkdir --parents "$config_dir"/files/"$dir"
 
+				local func args props suffix=''
+
+				local system_file type
 				system_file="$system_dir"/files/"$file"
 				type=$(stat --format=%F "$system_file")
 				if [[ "$type" == "symbolic link" ]]
 				then
-					printf "CreateLink %q %q\n" "$file" "$(readlink "$system_file")" >> "$config_save_target"
+					func=CreateLink
+					args=("$file" "$(readlink "$system_file")")
+					props=(owner group)
 				else
 					size=$(stat --format=%s "$system_file")
 					if [[ $size == 0 ]]
 					then
-						printf ": \$(CreateFile %q)\n" "$file" >> "$config_save_target"
+						func=CreateFile
+						suffix=' > /dev/null'
 					else
 						cp "$system_file" "$config_dir"/files/"$file"
-						printf "CopyFile %q \n" "$file" >> "$config_save_target"
+						func=CopyFile
 					fi
-
+					args=("$file")
+					props=(mode owner group)
 				fi
+
+				# Calculate the optional function parameters
+				local prop
+				for prop in "${props[@]}"
+				do
+					local key="$file:$prop"
+					if [[ -n "${system_file_props[$key]+x}" && ( -z "${output_file_props[$key]+x}" || "${system_file_props[$key]}" != "${output_file_props[$key]}" ) ]]
+					then
+						args+=("${system_file_props[$key]}")
+						unset "output_file_props[\$key]"
+						unset "system_file_props[\$key]"
+					else
+						args+=('')
+					fi
+				done
+
+				# Trim redundant blank parameters
+				while [[ -z "${args[-1]}" ]]
+				do
+					unset args[${#args[@]}-1]
+				done
+
+				printf "%s%s%s\n" "$func" "$(printf " %q" "${args[@]}")" "$suffix" >> "$config_save_target"
 
 				PrintFileProps "$file"
 			done
