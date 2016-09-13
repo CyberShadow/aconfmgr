@@ -271,24 +271,84 @@ function AconfApply() {
 
 	if [[ ${#system_only_files[@]} != 0 ]]
 	then
-		LogEnter "Deleting %s extra files.\n" "$(Color G ${#system_only_files[@]})"
+		LogEnter "Processing system-only files...\n"
 
-		# shellcheck disable=2059
-		function Details() {
-			Log "Deleting the following files:\n"
-			printf "$(Color W "*") $(Color C "%s" "%s")\n" "${system_only_files[@]}"
-		}
-		Confirm Details
+		# Delete unknown lost files (files not present in config and belonging to no package)
 
-		for file in "${system_only_files[@]}"
-		do
-			LogEnter "Deleting %s...\n" "$(Color C "%q" "$file")"
-			ParanoidConfirm ''
-			sudo rm "$file"
-			LogLeave ''
-		done
+		LogEnter "Filtering system-only lost files...\n"
+		tr '\n' '\0' < "$tmp_dir"/managed-files > "$tmp_dir"/managed-files-0
+		local system_only_lost_files=()
+		comm -13 --zero-terminated "$tmp_dir"/managed-files-0 <(Print0Array system_only_files) | \
+			while read -r -d $'\0' file
+			do
+				system_only_lost_files+=("$file")
+			done
+		LogLeave "Done (%s system-only lost files).\n" "$(Color G %s ${#system_only_lost_files[@]})"
 
-		modified=y
+		if [[ ${#system_only_lost_files[@]} != 0 ]]
+		then
+			LogEnter "Deleting %s extra lost files.\n" "$(Color G ${#system_only_lost_files[@]})"
+
+			# shellcheck disable=2059
+			function Details() {
+				Log "Deleting the following files:\n"
+				printf "$(Color W "*") $(Color C "%s" "%s")\n" "${system_only_lost_files[@]}"
+			}
+			Confirm Details
+
+			for file in "${system_only_lost_files[@]}"
+			do
+				LogEnter "Deleting %s...\n" "$(Color C "%q" "$file")"
+				ParanoidConfirm ''
+				sudo rm "$file"
+				LogLeave ''
+			done
+
+			modified=y
+			LogLeave
+		fi
+
+		# Restore unknown managed files (files not present in config and belonging to a package)
+
+		LogEnter "Filtering system-only managed files...\n"
+		local system_only_managed_files=()
+		comm -12 --zero-terminated "$tmp_dir"/managed-files-0 <(Print0Array system_only_files) | \
+			while read -r -d $'\0' file
+			do
+				system_only_managed_files+=("$file")
+			done
+		LogLeave "Done (%s system-only managed files).\n" "$(Color G %s ${#system_only_managed_files[@]})"
+
+		if [[ ${#system_only_managed_files[@]} != 0 ]]
+		then
+			LogEnter "Restoring %s extra managed files.\n" "$(Color G ${#system_only_managed_files[@]})"
+
+			# shellcheck disable=2059
+			function Details() {
+				Log "Restoring the following files:\n"
+				printf "$(Color W "*") $(Color C "%s" "%s")\n" "${system_only_managed_files[@]}"
+			}
+			Confirm Details
+
+			for file in "${system_only_managed_files[@]}"
+			do
+				local package
+				package="$(pacman --query --owns --quiet "$file")"
+
+				LogEnter "Restoring %s file %s...\n" "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
+				function Details() {
+					AconfNeedProgram diff diffutils n
+					AconfGetPackageOriginalFile "$package" "$file" | ( "${diff_opts[@]}" --unified "$file" - || true )
+				}
+				ParanoidConfirm Details
+				AconfGetPackageOriginalFile "$package" "$file" | sudo tee "$file" > /dev/null
+				LogLeave ''
+			done
+
+			modified=y
+			LogLeave
+		fi
+
 		LogLeave
 	fi
 
