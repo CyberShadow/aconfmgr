@@ -603,10 +603,10 @@ function AconfNeedPackageFile() {
 
 # Extract the original file from a package to stdout
 function AconfGetPackageOriginalFile() {
-	local package file package_file
-	package="$1" # Package to extract the file from
-	file="$2" # Absolute path to file in package
+	local package="$1" # Package to extract the file from
+	local file="$2" # Absolute path to file in package
 
+	local package_file
 	package_file="$(AconfNeedPackageFile "$package")"
 
 	bsdtar -x --to-stdout --file "$package_file" "${file/\//}"
