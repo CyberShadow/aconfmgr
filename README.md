@@ -183,6 +183,32 @@ then
 fi
 ```
 
+## Comparisons
+
+### aconfmgr vs. Puppet/Ansible
+
+Although `aconfmgr` calls itself a configuration manager, it has a number of core distinctions from the more well-known ones. One big distinction is that `aconfmgr` manager only one system - the one it is running on. It does not depend on any background services or network agents to work.
+
+Another big distinction is the scope, and the direction of the flow of information. To clarify:
+
+- Puppet and Ansible have limited discovery abilities, whereas `aconfmgr` attempts to discover and save the system configuration in its entirety. There is no Puppet/Ansible command that can be run to save a running system's configuration to a file which, when executed, will produce a similarly-configured system; however, this is the goal of `aconfmgr save`.
+
+- Puppet and Ansible manage the system's configuration insofar as it is defined by the configuration file, whereas `aconfmgr` manages the entire system; as such, the absence of an item in the configuration file indicates its absence on the system. This is not true for [Puppet](http://www.puppetcookbook.com/posts/remove-package.html) or [Ansible](http://stackoverflow.com/questions/29914253/remove-package-ansible-playbook), where, to remove a package, one must first push a configuration file that explicitly indicates that the package is to be removed, only after which can all mentions of the package be removed from the configuration file.
+
+### aconfmgr vs. NixOS
+
+There are some similarities between the [NixOS configuration file](https://nixos.org/nixos/manual/) and `aconfmgr`: they both attempt to describe the entire system configuration from a text file, with any changes in the configuration reflecting on the system. However, while `NixOS` forbids directly editing files under its control, `aconfmgr` doesn't. As with Puppet/Ansible, `aconfmgr` differs in that it provides a mechanism to transcribe changes in system state back to the configuration, making it idempotent.
+
+Another difference is that `NixOS` provides a specialized syntax for many common configuration settings of managed software (e.g. allowing syntax such as `boot.loader.grub.device = "/dev/sda";`), which `aconfmgr` doesn't.
+
+### aconfmgr vs. lostfiles
+
+[lostfiles](https://github.com/graysky2/lostfiles) is a "simple script that identifies files not owned and not created by any Arch Linux package". `aconfmgr` provides a superset of its functionality, not least the ability to save exclusions to a configuration file.
+
+### aconfmgr vs. etckeeper
+
+[etckeeper](https://joeyh.name/code/etckeeper) allows storing `/etc` in a version control system. `aconfmgr` provides this as well, although it does not directly provide a way to automatically merge configuration files with upstream package versions. This can be done manually (by [inlining files](#inlining-files)), or by building on top of `aconfmgr`.
+
 ## License
 
 Copyright (c) 2016 aconfmgr authors.
