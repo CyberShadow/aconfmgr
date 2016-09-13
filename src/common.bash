@@ -129,26 +129,27 @@ function AconfCompileSystem() {
 		ignore_args+=(-wholename "$ignore_path" -prune -o)
 	done
 
+	LogEnter "Enumerating managed files...\n"
+	mkdir --parents "$tmp_dir"
+	pacman --query --list --quiet | sed '/\/$/d' | sort --unique > "$tmp_dir"/managed-files
+	LogLeave
+
 	LogEnter "Searching for lost files...\n"
 
 	local lost_file_count=0
 	local line
-	(											\
-		sudo find / -not \(						\
-			 "${ignore_args[@]}"				\
-			 -type d							\
-			 \) -print0							\
-			| grep								\
-				  --null --null-data			\
-				  --invert-match				\
-				  --fixed-strings				\
-				  --line-regexp					\
-				  --file <(						\
-				pacman --query --list --quiet	\
-					| sed '/\/$/d'				\
-					| sort --unique				\
-			)									\
-	) |											\
+	(												\
+		sudo find / -not \(							\
+			 "${ignore_args[@]}"					\
+			 -type d								\
+			 \) -print0								\
+			| grep									\
+				  --null --null-data				\
+				  --invert-match					\
+				  --fixed-strings					\
+				  --line-regexp						\
+				  --file "$tmp_dir"/managed-files	\
+	) |												\
 		while read -r -d $'\0' line
 		do
 			#echo "ignore_paths+='$line' # "
