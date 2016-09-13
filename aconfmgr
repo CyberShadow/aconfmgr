@@ -30,6 +30,8 @@ source "$src_dir"/common.bash
 source "$src_dir"/save.bash
 # shellcheck source=src/apply.bash
 source "$src_dir"/apply.bash
+# shellcheck source=src/helpers.bash
+source "$src_dir"/helpers.bash
 
 function Usage() {
 	printf "aconfmgr v%s\n" "${aconfmgr_version}"

@@ -29,7 +29,7 @@ function AconfSave() {
 			Log "%s...\r" "$(Color M "%q" "$package")"
 			local description
 			description="$(pacman --query --info "$package" | grep '^Description' | cut -d ':' -f 2)"
-			printf ">> \"\$output_dir\"/packages.txt echo %q #%s\n" "$package" "$description" >> "$config_save_target"
+			printf "AddPackage %q #%s\n" "$package" "$description" >> "$config_save_target"
 		done
 		modified=y
 		LogLeave
@@ -45,7 +45,7 @@ function AconfSave() {
 		printf "\n\n# %s - Missing packages\n\n\n" "$(date)" >> "$config_save_target"
 		for package in "${missing_packages[@]}"
 		do
-			printf "sed -i \"\$output_dir\"/packages.txt -e '/^'%q'\$/d'\n" "$package" >> "$config_save_target"
+			printf "RemovePackage %q\n" "$package" >> "$config_save_target"
 		done
 		modified=y
 		LogLeave
@@ -64,7 +64,7 @@ function AconfSave() {
 			Log "%s...\r" "$(Color M "%q" "$package")"
 			local description
 			description="$(pacman --query --info "$package" | grep '^Description' | cut -d ':' -f 2)"
-			printf ">> \"\$output_dir\"/foreign-packages.txt echo %q #%s\n" "$package" "$description" >> "$config_save_target"
+			printf "AddPackage --foreign %q #%s\n" "$package" "$description" >> "$config_save_target"
 		done
 		modified=y
 		LogLeave
@@ -80,7 +80,7 @@ function AconfSave() {
 		printf "\n\n# %s - Missing foreign packages\n\n\n" "$(date)" >> "$config_save_target"
 		for package in "${missing_foreign_packages[@]}"
 		do
-			printf "sed -i \"\$output_dir\"/foreign-packages.txt -e '/^'%q'\$/d'\n" "$package" >> "$config_save_target"
+			printf "RemovePackage --foreign %q\n\n" "$package" >> "$config_save_target"
 		done
 		modified=y
 		LogLeave
@@ -104,9 +104,7 @@ function AconfSave() {
 			local key="$file:$prop"
 			if [[ -n "${system_file_props[$key]+x}" && ( -z "${output_file_props[$key]+x}" || "${system_file_props[$key]}" != "${output_file_props[$key]}" ) ]]
 			then
-				local line
-				line="$(printf "%s\t%s\t%q" "$prop" "${system_file_props[$key]}" "$file")"
-				printf ">> \"\$output_dir\"/file-props.txt echo %q\n" "$line" >> "$config_save_target"
+				printf "SetFileProperty %q %q %q\n" "$file" "$prop" "${system_file_props[$key]}" >> "$config_save_target"
 				unset "output_file_props[\$key]"
 				unset "system_file_props[\$key]"
 				printed=y
@@ -119,8 +117,6 @@ function AconfSave() {
 		fi
 	}
 
-	typeset -A created_dirs
-
 	if [[ ${#system_only_files[@]} != 0 || ${#changed_files[@]} != 0 ]]
 	then
 		LogEnter "Found %s new and %s changed files.\n" "$(Color G ${#system_only_files[@]})" "$(Color G ${#changed_files[@]})"
@@ -128,27 +124,23 @@ function AconfSave() {
 		( Print0Array system_only_files ; Print0Array changed_files ) | \
 			while read -r -d $'\0' file
 			do
+				local dir
 				dir="$(dirname "$file")"
-				if [[ -z "${created_dirs[$dir]+x}" ]]
-				then
-					mkdir --parents "$config_dir"/files/"$dir"
-					printf "mkdir --parents \"\$output_dir\"/files/%q\n" "$dir" >> "$config_save_target"
-					created_dirs[$dir]=y
-				fi
+				mkdir --parents "$config_dir"/files/"$dir"
 
 				system_file="$system_dir"/files/"$file"
 				type=$(stat --format=%F "$system_file")
 				if [[ "$type" == "symbolic link" ]]
 				then
-					printf "ln --symbolic %q \"\$output_dir\"/files/%q\n" "$(readlink "$system_file")" "$file" >> "$config_save_target"
+					printf "CreateLink %q %q\n" "$file" "$(readlink "$system_file")" >> "$config_save_target"
 				else
 					size=$(stat --format=%s "$system_file")
 					if [[ $size == 0 ]]
 					then
-						printf "truncate --size 0 \"\$output_dir\"/files/%q\n" "$file" >> "$config_save_target"
+						printf ": \$(CreateFile %q)\n" "$file" >> "$config_save_target"
 					else
 						cp "$system_file" "$config_dir"/files/"$file"
-						printf "cp \"\$config_dir\"/files/%q \"\$output_dir\"/files/%q\n" "$file" "$file" >> "$config_save_target"
+						printf "CopyFile %q \n" "$file" >> "$config_save_target"
 					fi
 
 				fi
@@ -165,7 +157,7 @@ function AconfSave() {
 		printf "\n\n# %s - Extra files\n\n\n" "$(date)" >> "$config_save_target"
 		for file in "${config_only_files[@]}"
 		do
-			printf "rm \"\$output_dir\"/files/%q\n" "$file" >> "$config_save_target"
+			printf "RemoveFile %q\n" "$file" >> "$config_save_target"
 		done
 		modified=y
 		LogLeave
@@ -187,8 +179,7 @@ function AconfSave() {
 		( ( Print0Array system_only_file_props ; Print0Array changed_file_props ) | sort --zero-terminated ) | \
 			while read -r -d $'\0' key
 			do
-				line="$(printf "%s\t%s\t%q" "${key##*:}" "${system_file_props[$key]}" "${key%:*}")"
-				printf ">> \"\$output_dir\"/file-props.txt echo %q\n" "$line" >> "$config_save_target"
+				printf "SetFileProperty %q %q %q\n" "${key%:*}" "${key##*:}" "${system_file_props[$key]}" >> "$config_save_target"
 			done
 		modified=y
 	fi
@@ -199,8 +190,7 @@ function AconfSave() {
 		( Print0Array config_only_file_props | sort --zero-terminated ) | \
 			while read -r -d $'\0' key
 			do
-				line="$(printf "%s\t\t%q" "${key##*:}" "${key%:*}")"
-				printf ">> \"\$output_dir\"/file-props.txt echo %q\n" "$line" >> "$config_save_target"
+				printf "SetFileProperty %q %q %q\n" "${key%:*}" "${key##*:}" '' >> "$config_save_target"
 			done
 		modified=y
 	fi
