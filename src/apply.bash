@@ -256,7 +256,7 @@ function AconfApply() {
 			LogEnter "Overwriting %s...\n" "$(Color C "%q" "$file")"
 			function Details() {
 				AconfNeedProgram diff diffutils n
-				"${diff_opts[@]}" --unified "$file" "$output_dir"/files/"$file" || true
+				"${diff_opts[@]}" --unified <(SuperCat "$file") "$output_dir"/files/"$file" || true
 			}
 			ParanoidConfirm Details
 
@@ -338,7 +338,7 @@ function AconfApply() {
 				LogEnter "Restoring %s file %s...\n" "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
 				function Details() {
 					AconfNeedProgram diff diffutils n
-					AconfGetPackageOriginalFile "$package" "$file" | ( "${diff_opts[@]}" --unified "$file" - || true )
+					AconfGetPackageOriginalFile "$package" "$file" | ( "${diff_opts[@]}" --unified <(SuperCat "$file") - || true )
 				}
 				ParanoidConfirm Details
 				AconfGetPackageOriginalFile "$package" "$file" | sudo tee "$file" > /dev/null

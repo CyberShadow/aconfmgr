@@ -767,3 +767,15 @@ function Print0Array() {
 EOF
 )"
 }
+
+# cat a file; if it's not readable, cat via sudo.
+function SuperCat() {
+	local file="$1"
+
+	if [[ -r "$1" ]]
+	then
+		cat "$1"
+	else
+		sudo cat "$1"
+	fi
+}
