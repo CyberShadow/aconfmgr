@@ -587,16 +587,16 @@ function AconfNeedPackageFile() {
 
 	if [[ ! -f "$file" ]]
 	then
-		LogEnter "Downloading package %s to pacman's cache\n" "$(Color M %q "$package")"
+		LogEnter "Downloading package %s (%s) to pacman's cache\n" "$(Color M %q "$package")" "$(Color C %q "$(basename "$file")")"
 		ParanoidConfirm ''
-		sudo pacman --sync --download --nodeps --nodeps --noconfirm kate
+		sudo pacman --sync --download --nodeps --nodeps --noconfirm "$package" 1>&2
 		LogLeave
 	fi
 
 	if [[ ! -f "$file" ]]
 	then
 		Log "Error: Expected to find %s, but it is not present\n" "$(Color C %q "$file")"
-		false
+		Exit 1
 	fi
 
 	printf "%s" "$file"
@@ -634,7 +634,7 @@ function Confirm() {
 			Log "Proceed? [Y/n] "
 		fi
 		read -r -n 1 answer
-		echo
+		echo 1>&2
 		case "$answer" in
 			Y|y|'')
 				return
