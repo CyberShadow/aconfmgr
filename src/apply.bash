@@ -214,33 +214,56 @@ function AconfApply() {
 		done
 	}
 
-	if [[ ${#config_only_files[@]} != 0 || ${#changed_files[@]} != 0 ]]
+	if [[ ${#config_only_files[@]} != 0 ]]
 	then
-		LogEnter "Installing %s new and %s changed files.\n" "$(Color G ${#config_only_files[@]})" "$(Color G ${#changed_files[@]})"
+		LogEnter "Installing %s new files.\n" "$(Color G ${#config_only_files[@]})"
 
 		# shellcheck disable=2059
 		function Details() {
-			if [[ ${#config_only_files[@]} != 0 ]]
-			then
-				Log "Installing the following new files:\n"
-				printf "$(Color W "*") $(Color C "%s" "%s")\n" "${config_only_files[@]}"
-			fi
-			
-			if [[ ${#changed_files[@]} != 0 ]]
-			then
-				Log "Installing the following changed files:\n"
-				printf "$(Color W "*") $(Color C "%s" "%s")\n" "${changed_files[@]}"
-			fi
+			Log "Installing the following new files:\n"
+			printf "$(Color W "*") $(Color C "%s" "%s")\n" "${config_only_files[@]}"
 		}
 		Confirm Details
 
-		( Print0Array config_only_files ; Print0Array changed_files ) | \
-			while read -r -d $'\n' file
-			do
-				sudo mkdir --parents "$(dirname "$file")"
-				sudo install --mode=$default_file_mode --owner=root --group=root "$output_dir"/files/"$file" "$file"
-				ApplyFileProps "$file"
-			done
+		for file in "${config_only_files[@]}"
+		do
+			LogEnter "Installing %s...\n" "$(Color C "%q" "$file")"
+			ParanoidConfirm ''
+
+			sudo mkdir --parents "$(dirname "$file")"
+			sudo install --mode=$default_file_mode --owner=root --group=root "$output_dir"/files/"$file" "$file"
+			ApplyFileProps "$file"
+			LogLeave ''
+		done
+
+		modified=y
+		LogLeave
+	fi
+
+	if [[ ${#changed_files[@]} != 0 ]]
+	then
+		LogEnter "Overwriting %s changed files.\n" "$(Color G ${#changed_files[@]})"
+
+		# shellcheck disable=2059
+		function Details() {
+			Log "Overwriting the following changed files:\n"
+			printf "$(Color W "*") $(Color C "%s" "%s")\n" "${changed_files[@]}"
+		}
+		Confirm Details
+
+		for file in "${changed_files[@]}"
+		do
+			LogEnter "Overwriting %s...\n" "$(Color C "%q" "$file")"
+			function Details() {
+				AconfNeedProgram diff diffutils n
+				diff -u "$file" "$output_dir"/files/"$file"
+			}
+			ParanoidConfirm Details
+
+			sudo install --mode=$default_file_mode --owner=root --group=root "$output_dir"/files/"$file" "$file"
+			ApplyFileProps "$file"
+			LogLeave ''
+		done
 
 		modified=y
 		LogLeave
@@ -259,7 +282,10 @@ function AconfApply() {
 
 		for file in "${system_only_files[@]}"
 		do
+			LogEnter "Deleting %s...\n" "$(Color C "%q" "$file")"
+			ParanoidConfirm ''
 			sudo rm "$file"
+			LogLeave ''
 		done
 
 		modified=y
