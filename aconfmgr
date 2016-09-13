@@ -131,6 +131,7 @@ function Main() {
 			pacman_opts+=(--color always)
 			pacaur_opts+=(--color always)
 			yaourt_opts+=(--color)
+			diff_opts+=(--color=always)
 		;;
 		never)
 			DisableColor
@@ -138,6 +139,7 @@ function Main() {
 			pacaur_opts+=(--color never)
 			yaourt_opts+=(--nocolor)
 			makepkg_opts+=(--nocolor)
+			diff_opts+=(--color=never)
 			;;
 		auto)
 			[ -t 1 ] || DisableColor

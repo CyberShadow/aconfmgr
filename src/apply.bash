@@ -256,7 +256,7 @@ function AconfApply() {
 			LogEnter "Overwriting %s...\n" "$(Color C "%q" "$file")"
 			function Details() {
 				AconfNeedProgram diff diffutils n
-				diff -u "$file" "$output_dir"/files/"$file"
+				"${diff_opts[@]}" --unified "$file" "$output_dir"/files/"$file" || true
 			}
 			ParanoidConfirm Details
 

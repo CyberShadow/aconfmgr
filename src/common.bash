@@ -437,6 +437,7 @@ pacman_opts=(pacman)
 pacaur_opts=(pacaur)
 yaourt_opts=(yaourt)
 makepkg_opts=(makepkg)
+diff_opts=(diff --color=auto)
 
 aur_helper=
 
