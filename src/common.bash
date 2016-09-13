@@ -670,7 +670,7 @@ function Log() {
 	then
 		local fmt="$1"
 		shift
-		printf "${ANSI_clear_line}${ANSI_color_B}%s ${ANSI_color_W}${fmt}${ANSI_reset}" "$log_indent" "$@"
+		printf "${ANSI_clear_line}${ANSI_color_B}%s ${ANSI_color_W}${fmt}${ANSI_reset}" "$log_indent" "$@" 1>&2
 	fi
 }
 
