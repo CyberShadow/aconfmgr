@@ -67,6 +67,24 @@ Background: On Arch Linux, every installed package is installed either explicitl
 
 ## Advanced Usage
 
+### Configuration syntax
+
+The configuration files use `bash` syntax. The easiest way to learn the syntax is to run `aconfmgr save` and examine its output (`99-unssorted.sh`).
+
+Some simple helper functions are defined in `src/helpers.bash` (sourced automatically). You are encouraged to examine their implementation - their main goal is not so much to provide an API as simply to make the generated configuration terser and more readable. As such, their use is in no way required, and they can be substituted with their underlying implementations.
+
+The list of provided helper functions:
+
+- `AddPackage [--foreign] PACKAGE...` - Adds a package to the list of packages to be installed.
+- `RemovePackage [--foreign] PACKAGE...` - Removes an earlier-added package to the list of packages to be installed.
+- `IgnorePackage [--foreign] PACKAGE...` - Adds a package to the list of packages to be ignored.
+- `CopyFile PATH [MODE [OWNER [GROUP]]]` - Copies a file from the `files` subdirectory to the output.
+- `CreateFile PATH [MODE [OWNER [GROUP]]]` - Creates an empty file, to be included in the output. Prints its absolute path to standard output.
+- `CreateLink PATH TARGET [OWNER [GROUP]]` - Creates a symbolic link with the specified target.
+- `RemoveFile PATH` - Removes an earlier-added file.
+- `SetFileProperty PATH TYPE VALUE` - Sets a file property.
+- `IgnorePath PATH` - Adds the specified path to the list of ignored paths.
+
 ### Ignoring some changes
 
 #### Ignoring files
