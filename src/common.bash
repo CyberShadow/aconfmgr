@@ -639,7 +639,7 @@ function Confirm() {
 				;;
 			N|n)
 				Log "%s\n" "$(Color R "User abort")"
-				exit 1
+				Exit 1
 				;;
 			D|d)
 				$detail_func
