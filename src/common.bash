@@ -580,8 +580,8 @@ function AconfNeedPackageFile() {
 
 	local info
 	info="$(pacman --sync --info "$package")"
-	version="$(printf "%s" "$info" | grep '^Version' | cut -d ':' -f 2 | cut -c 2-)"
-	architecture="$(printf "%s" "$info" | grep '^Architecture' | cut -d ':' -f 2 | cut -c 2-)"
+	version="$(printf "%s" "$info" | grep '^Version' | sed 's/^.* : //g')"
+	architecture="$(printf "%s" "$info" | grep '^Architecture' | sed 's/^.* : //g')"
 
 	local file="/var/cache/pacman/pkg/$package-$version-$architecture.pkg.tar.xz"
 
