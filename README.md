@@ -80,6 +80,7 @@ The list of provided helper functions:
 - `IgnorePackage [--foreign] PACKAGE...` - Adds a package to the list of packages to be ignored.
 - `CopyFile PATH [MODE [OWNER [GROUP]]]` - Copies a file from the `files` subdirectory to the output.
 - `CreateFile PATH [MODE [OWNER [GROUP]]]` - Creates an empty file, to be included in the output. Prints its absolute path to standard output.
+- `GetPackageOriginalFile PACKAGE PATH` - Extracts the original file from a package's archive for inclusion in the output. Prints its absolute path to standard output.
 - `CreateLink PATH TARGET [OWNER [GROUP]]` - Creates a symbolic link with the specified target.
 - `RemoveFile PATH` - Removes an earlier-added file.
 - `SetFileProperty PATH TYPE VALUE` - Sets a file property.

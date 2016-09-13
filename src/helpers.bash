@@ -114,6 +114,28 @@ function CreateFile() {
 }
 
 #
+# GetPackageOriginalFile PACKAGE PATH
+#
+# Extracts the original file from a package's archive for inclusion in the output.
+# Prints its absolute path to standard output.
+#
+# As in the case of CreateFile, the file can be further modified after extraction.
+#
+
+function GetPackageOriginalFile() {
+	local package="$1" # Package to extract the file from
+	local file="$2" # Absolute path to file in package
+
+	local output_file="$output_dir"/files/"$file"
+
+	mkdir --parents "$(dirname "$output_file")"
+
+	AconfGetPackageOriginalFile	"$package" "$file" > "$output_file"
+
+	printf "%s" "$output_file"
+}
+
+#
 # CreateLink PATH TARGET [OWNER [GROUP]]
 #
 # Creates a symbolic link with the specified target.

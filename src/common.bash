@@ -572,6 +572,45 @@ function AconfNeedProgram() {
 	fi
 }
 
+# Get the path to the package file (.pkg.tar.xz) for the specified package.
+function AconfNeedPackageFile() {
+	local package="$1"
+
+	local info
+	info="$(pacman --sync --info "$package")"
+	version="$(printf "%s" "$info" | grep '^Version' | cut -d ':' -f 2 | cut -c 2-)"
+	architecture="$(printf "%s" "$info" | grep '^Architecture' | cut -d ':' -f 2 | cut -c 2-)"
+
+	local file="/var/cache/pacman/pkg/$package-$version-$architecture.pkg.tar.xz"
+
+	if [[ ! -f "$file" ]]
+	then
+		LogEnter "Downloading package %s to pacman's cache\n" "$(Color M %q "$package")"
+		ParanoidConfirm ''
+		sudo pacman --sync --download --nodeps --nodeps --noconfirm kate
+		LogLeave
+	fi
+
+	if [[ ! -f "$file" ]]
+	then
+		Log "Error: Expected to find %s, but it is not present\n" "$(Color C %q "$file")"
+		false
+	fi
+
+	printf "%s" "$file"
+}
+
+# Extract the original file from a package to stdout
+function AconfGetPackageOriginalFile() {
+	local package file package_file
+	package="$1" # Package to extract the file from
+	file="$2" # Absolute path to file in package
+
+	package_file="$(AconfNeedPackageFile "$package")"
+
+	bsdtar -x --to-stdout --file "$package_file" "${file/\//}"
+}
+
 ####################################################################################################
 
 prompt_mode=normal # never / normal / paranoid
