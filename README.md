@@ -79,36 +79,36 @@ Some files will inevitably neither belong to or match any installed packages, no
 
 Other files may not be desirable to include in the managed system configuration because they are security-sensitive (e.g. sshd private keys).
 
-To declare a group of files to be ignored by `aconfmgr`, add the path mask to the `ignore_paths` array, e.g.:
+To declare a group of files to be ignored by `aconfmgr`, you can use the provided `IgnorePath` function, e.g.:
 
 ```bash
-ignore_paths+=('/var/lib/pacman/local/*') # package metadata
-ignore_paths+=('/var/lib/pacman/sync/*.db') # repos
-ignore_paths+=('/var/lib/pacman/sync/*.db.sig') # repo sigs
+IgnorePath '/var/lib/pacman/local/*' # package metadata
+IgnorePath '/var/lib/pacman/sync/*.db' # repos
+IgnorePath '/var/lib/pacman/sync/*.db.sig' # repo sigs
 ```
 
 #### Ignoring packages
 
-To ignore the presence of some packages on the system, add the package names to the `ignore_packages` array:
+To ignore the presence of some packages on the system, you can use the `IgnorePackage` function:
 
 ```bash
-ignore_packages+=(linux-git)
+IgnorePackage linux-git
 ```
 
-`aconfmgr save` will not update the configuration based on ignored packages' presence or absence, and `aconfmgr apply` will not install or uninstall them. The packages should also not be present in the configuration's package list, of course. To ignore a foreign package (e.g. a non-AUR foreign package), add its name to the `ignore_foreign_packages` array.
+`aconfmgr save` will not update the configuration based on ignored packages' presence or absence, and `aconfmgr apply` will not install or uninstall them. The packages should also not be present in the configuration's package list, of course. To ignore a foreign package (e.g. a non-AUR foreign package), use the `--foreign` switch (e.g. `IgnorePackage --foreign my-flobulator`).
 
 ### Managing multiple systems
 
 You can use the same configuration repository to manage multiple sufficiently-similar systems. One way of doing so is e.g. Git branches (having one main branch plus one branch per machine, and periodically merge in changes from the main branch into the machine-specific branches); however, it is simpler to use shell scripting:
 
 ```bash
-packages+=(coreutils)
+AddPackage coreutils
 # ... more common packages ...
 
 if [[ "$HOST" == "home.example.com" ]]
 then
-	packages+=(nvidia)
-	packages+=(nvidia-utils)
+	AddPackage nvidia
+	AddPackage nvidia-utils
 	# ... more packages only for the home system ...
 fi
 ```
