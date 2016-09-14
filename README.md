@@ -187,7 +187,7 @@ fi
 
 ### aconfmgr vs. Puppet/Ansible
 
-Although `aconfmgr` calls itself a configuration manager, it has a number of core distinctions from the more well-known ones. One big distinction is that `aconfmgr` manager only one system - the one it is running on. It does not depend on any background services or network agents to work.
+Although `aconfmgr` calls itself a configuration manager, it has a number of core distinctions from the more well-known ones. One big distinction is that `aconfmgr` manages only one system - the one it is running on. It does not depend on any background services or network agents to work.
 
 Another big distinction is the scope, and the direction of the flow of information. To clarify:
 
