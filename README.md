@@ -199,7 +199,7 @@ Another big distinction is the scope, and the direction of the flow of informati
 
 There are some similarities between the [NixOS configuration file](https://nixos.org/nixos/manual/) and `aconfmgr`: they both attempt to describe the entire system configuration from a text file, with any changes in the configuration reflecting on the system. However, while `NixOS` forbids directly editing files under its control, `aconfmgr` doesn't. As with Puppet/Ansible, `aconfmgr` differs in that it provides a mechanism to transcribe changes in system state back to the configuration, making it idempotent.
 
-Another difference is that `NixOS` provides a specialized syntax for many common configuration settings of managed software (e.g. allowing syntax such as `boot.loader.grub.device = "/dev/sda";`), which `aconfmgr` doesn't.
+Another difference is that `NixOS` provides a specialized syntax for many common configuration settings of managed software (e.g. allowing syntax such as `boot.loader.grub.device = "/dev/sda";`). `aconfmgr` doesn't provide this directly, though this can be achieved to some extent using tools such as [Augeas](#inlining-file-edits), without also sacrificing the extent of possible configuration to only [the predefined set of available options](https://nixos.org/nixos/manual/options.html).
 
 ### aconfmgr vs. lostfiles
 
