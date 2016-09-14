@@ -207,7 +207,7 @@ Another difference is that `NixOS` provides a specialized syntax for many common
 
 ### aconfmgr vs. etckeeper
 
-[etckeeper](https://joeyh.name/code/etckeeper) allows storing `/etc` in a version control system. `aconfmgr` provides this as well, although it does not directly provide a way to automatically merge configuration files with upstream package versions. This can be done manually (by [inlining files](#inlining-files)), or by building on top of `aconfmgr`.
+[etckeeper](https://joeyh.name/code/etckeeper) allows storing `/etc` in a version control system. `aconfmgr` allows this as well, although it does not directly provide a way to automatically merge configuration files with upstream package versions. This can be done manually, by [inlining file changes](#inlining-files).
 
 ## License
 
