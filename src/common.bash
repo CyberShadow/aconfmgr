@@ -77,9 +77,10 @@ function AconfCompileOutput() {
 	do
 		if [[ -e "$file" ]]
 		then
-			Log "Sourcing %s...\n" "$(Color C "%q" "$file")"
+			LogEnter "Sourcing %s...\n" "$(Color C "%q" "$file")"
 			source "$file"
 			found=y
+			LogLeave ''
 		fi
 	done
 
