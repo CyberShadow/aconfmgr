@@ -83,19 +83,39 @@ function AconfApply() {
 	LogEnter "Applying configuration...\n"
 
 	#
+	# Priority files
+	#
+
+	LogEnter "Installing priority files...\n"
+
+	# These files must be installed before anything else,
+	# because they affect or are required for what follows.
+	local priority_files=(
+		/etc/passwd
+		/etc/group
+		/etc/pacman.conf
+		/etc/pacman.d/mirrorlist
+		/etc/makepkg.conf
+	)
+
+	local file
+	for file in "${priority_files[@]}"
+	do
+		if [[ -f "$output_dir/files/$file" ]]
+		then
+			LogEnter "Installing %s...\n" "$(Color C %q "$file")"
+			InstallFile "$file"
+			LogLeave
+		fi
+	done
+
+	LogLeave
+
+	#
 	# Apply packages
 	#
 
 	LogEnter "Configuring packages...\n"
-
-	# Short-circuit pacman configuration.
-	# Needed to set up repositories for installed packages.
-	if [[ -f "$output_dir/files/etc/pacman.conf" ]]
-	then
-		LogEnter "Configuring pacman...\n"
-		InstallFile /etc/pacman.conf
-		LogLeave
-	fi
 
 	#	in		in		in-
 	#	config	system	stalled foreign	action
