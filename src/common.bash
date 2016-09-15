@@ -457,14 +457,14 @@ function DetectAurHelper() {
 		if which $helper > /dev/null 2>&1
 		then
 			aur_helper=$helper
-			LogLeave "%s... Yes\n" "$(Color C %s "$aur_helper")"
+			LogLeave "%s... Yes\n" "$(Color C %s "$helper")"
 			return
 		fi
-		LogLeave "%s... No\n" "$(Color C %s "$aur_helper")"
+		Log "%s... No\n" "$(Color C %s "$helper")"
 	done
 
 	Log "Can't find even makepkg!?\n"
-	exit 1
+	Exit 1
 }
 
 function AconfMakePkg() {
