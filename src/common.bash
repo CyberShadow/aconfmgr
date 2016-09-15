@@ -621,7 +621,8 @@ EOF
 	LogEnter "Building...\n"
 	(
 		cd "$tmp_dir"/aur/"$package"
-		local command=("${makepkg_opts[@]}")
+		mkdir --parents home
+		local command=("HOME=$PWD/home" "${makepkg_opts[@]}")
 		if [[ $EUID == 0 ]]
 		then
 			chown -R nobody: .
