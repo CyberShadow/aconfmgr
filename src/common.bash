@@ -490,7 +490,13 @@ function AconfMakePkg() {
 	then
 		LogEnter "Making sure the %s group is installed...\n" "$(Color M base-devel)"
 		ParanoidConfirm ''
-		sudo "${pacman_opts[@]}" --sync --needed $(pacman --sync --quiet --group base-devel)
+		local base_devel_all=($(pacman --sync --quiet --group base-devel))
+		local base_devel_missing=($(pacman --deptest "${base_devel_all[@]}" || true))
+		if [[ ${#base_devel_missing[@]} != 0 ]]
+		then
+			AconfInstallNative "${base_devel_missing[@]}"
+		fi
+
 		LogLeave
 		base_devel_installed=y
 	fi
