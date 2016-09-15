@@ -517,7 +517,15 @@ function AconfMakePkg() {
 	LogEnter "Building...\n"
 	(
 		cd "$tmp_dir"/aur/"$package"
-		"${makepkg_opts[@]}" --syncdeps --install
+		local command=("${makepkg_opts[@]}")
+		if [[ $EUID == 0 ]]
+		then
+			chown -R nobody: .
+			su -s /bin/bash nobody -c "$(printf '%q ' "${command[@]}")"
+			pacman --upgrade ./*.pkg.tar.xz
+		else
+			"${command[@]}" --install
+		fi
 	)
 	LogLeave
 
