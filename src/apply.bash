@@ -5,6 +5,71 @@
 function AconfApply() {
 	modified=n
 
+	function PrintFileProperty() {
+		local kind="$1"
+		local value="$2"
+		local file="$3"
+
+		value="${value:-(default value)}"
+
+		Log "Setting %s of %s to %s\n"	\
+			"$(Color Y "%s" "$kind")"	\
+			"$(Color C "%q" "$file")"	\
+			"$(Color G "%s" "$value")"
+	}
+
+	function ApplyFileProperty() {
+		local kind="$1"
+		local value="$2"
+		local file="$3"
+
+		PrintFileProperty "$kind" "$value" "$file"
+
+		case "$kind" in
+			mode)
+				sudo chmod "${value:-$default_file_mode}" "$file"
+				;;
+			owner)
+				sudo chown --no-dereference "${value:-root}" "$file"
+				;;
+			group)
+				sudo chgrp --no-dereference "${value:-root}" "$file"
+				;;
+			*)
+				Log "Unknown property %s with value %s for file %s"	\
+					"$(Color Y "%q" "$kind")"						\
+					"$(Color G "%q" "$value")"						\
+					"$(Color C "%q" "$file")"
+				exit 1
+				;;
+		esac
+	}
+
+	function ApplyFileProps() {
+		local file="$1"
+		local prop
+
+		for prop in "${all_file_property_kinds[@]}"
+		do
+			local key="$file:$prop"
+			if [[ -n "${output_file_props[$key]+x}" && ( -z "${system_file_props[$key]+x}" || "${output_file_props[$key]}" != "${system_file_props[$key]}" ) ]]
+			then
+				local value="${output_file_props[$key]}"
+				ApplyFileProperty "$prop" "$value" "$file"
+				unset "output_file_props[\$key]"
+				unset "system_file_props[\$key]"
+			fi
+		done
+	}
+
+	function InstallFile() {
+		local file="$1"
+
+		sudo mkdir --parents "$(dirname "$file")"
+		sudo install --mode=$default_file_mode --owner=root --group=root "$output_dir"/files/"$file" "$file"
+		ApplyFileProps "$file"
+	}
+
 	AconfCompile
 
 	LogEnter "Applying configuration...\n"
@@ -14,6 +79,15 @@ function AconfApply() {
 	#
 
 	LogEnter "Configuring packages...\n"
+
+	# Short-circuit pacman configuration.
+	# Needed to set up repositories for installed packages.
+	if [[ -f "$output_dir/files/etc/pacman.conf" ]]
+	then
+		LogEnter "Configuring pacman...\n"
+		InstallFile /etc/pacman.conf
+		LogLeave
+	fi
 
 	#	in		in		in-
 	#	config	system	stalled foreign	action
@@ -157,63 +231,6 @@ function AconfApply() {
 
 	LogEnter "Configuring files...\n"
 
-	function PrintFileProperty() {
-		local kind="$1"
-		local value="$2"
-		local file="$3"
-
-		value="${value:-(default value)}"
-
-		Log "Setting %s of %s to %s\n"	\
-			"$(Color Y "%s" "$kind")"	\
-			"$(Color C "%q" "$file")"	\
-			"$(Color G "%s" "$value")"
-	}
-
-	function ApplyFileProperty() {
-		local kind="$1"
-		local value="$2"
-		local file="$3"
-
-		PrintFileProperty "$kind" "$value" "$file"
-
-		case "$kind" in
-			mode)
-				sudo chmod "${value:-$default_file_mode}" "$file"
-				;;
-			owner)
-				sudo chown --no-dereference "${value:-root}" "$file"
-				;;
-			group)
-				sudo chgrp --no-dereference "${value:-root}" "$file"
-				;;
-			*)
-				Log "Unknown property %s with value %s for file %s"	\
-					"$(Color Y "%q" "$kind")"						\
-					"$(Color G "%q" "$value")"						\
-					"$(Color C "%q" "$file")"
-				exit 1
-				;;
-		esac
-	}
-
-	function ApplyFileProps() {
-		local file="$1"
-		local prop
-
-		for prop in "${all_file_property_kinds[@]}"
-		do
-			local key="$file:$prop"
-			if [[ -n "${output_file_props[$key]+x}" && ( -z "${system_file_props[$key]+x}" || "${output_file_props[$key]}" != "${system_file_props[$key]}" ) ]]
-			then
-				local value="${output_file_props[$key]}"
-				ApplyFileProperty "$prop" "$value" "$file"
-				unset "output_file_props[\$key]"
-				unset "system_file_props[\$key]"
-			fi
-		done
-	}
-
 	if [[ ${#config_only_files[@]} != 0 ]]
 	then
 		LogEnter "Installing %s new files.\n" "$(Color G ${#config_only_files[@]})"
@@ -229,10 +246,7 @@ function AconfApply() {
 		do
 			LogEnter "Installing %s...\n" "$(Color C "%q" "$file")"
 			ParanoidConfirm ''
-
-			sudo mkdir --parents "$(dirname "$file")"
-			sudo install --mode=$default_file_mode --owner=root --group=root "$output_dir"/files/"$file" "$file"
-			ApplyFileProps "$file"
+			InstallFile "$file"
 			LogLeave ''
 		done
 
@@ -259,9 +273,7 @@ function AconfApply() {
 				"${diff_opts[@]}" --unified <(SuperCat "$file") "$output_dir"/files/"$file" || true
 			}
 			ParanoidConfirm Details
-
-			sudo install --mode=$default_file_mode --owner=root --group=root "$output_dir"/files/"$file" "$file"
-			ApplyFileProps "$file"
+			InstallFile "$file"
 			LogLeave ''
 		done
 
