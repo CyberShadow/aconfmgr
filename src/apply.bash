@@ -176,6 +176,28 @@ function AconfApply() {
 		function Details() { Log "Installing the following foreign packages:%s\n" "$(Color M " %q" "${missing_foreign_packages[@]}")" ; }
 		Confirm Details
 
+		# If an AUR helper is present in the list of packages to be installed,
+		# install it first, then use it to install the rest of the foreign packages.
+		function InstallAurHelper() {
+			local package helper
+			for package in "${missing_foreign_packages[@]}"
+			do
+				for helper in "${aur_helpers[@]}"
+				do
+					if [[ "$package" == "$helper" ]]
+					then
+						LogEnter "Installing AUR helper %s...\n" "$(Color M %q "$helper")"
+						ParanoidConfirm ''
+						AconfInstallForeign "$package"
+						aur_helper="$package"
+						LogLeave
+						return
+					fi
+				done
+			done
+		}
+		InstallAurHelper
+
 		AconfInstallForeign "${missing_foreign_packages[@]}"
 
 		modified=y
