@@ -64,9 +64,17 @@ function AconfApply() {
 
 	function InstallFile() {
 		local file="$1"
+		local source="$output_dir"/files/"$file"
 
 		sudo mkdir --parents "$(dirname "$file")"
-		sudo install --mode=$default_file_mode --owner=root --group=root "$output_dir"/files/"$file" "$file"
+		if [[ -h "$source" ]]
+		then
+			sudo cp --no-dereference "$source" "$file"
+			sudo chown --no-dereference root:root "$file"
+		else
+			sudo install --mode=$default_file_mode --owner=root --group=root "$source" "$file"
+		fi
+
 		ApplyFileProps "$file"
 	}
 
