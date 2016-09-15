@@ -242,7 +242,7 @@ function AconfCompileSystem() {
 		then
 			if [[ $size -gt $warn_size_threshold ]]
 			then
-				Log "%s: copying large file '%s' (%s bytes). Add to %s to ignore.\n" "$(Color Y "Warning")" "$(Color C "%q" "$file")" "$(Color G "$size")" "$(Color Y "ignore_paths")"
+				Log "%s: copying large file '%s' (%s bytes). Add %s to configuration to ignore.\n" "$(Color Y "Warning")" "$(Color C "%q" "$file")" "$(Color G "$size")" "$(Color Y "IgnorePath %q" "$file")"
 			fi
 			( sudo cat "$file" ) > "$system_dir"/files/"$file"
 		else
