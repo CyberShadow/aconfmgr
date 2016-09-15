@@ -112,8 +112,8 @@ function AconfCompileSystem() {
 	### Packages
 
 	LogEnter "Querying package list...\n"
-	pacman --query --quiet --explicit --native  | sort | grep -vFxf <(PrintArray ignore_packages        ) > "$system_dir"/packages.txt
-	pacman --query --quiet --explicit --foreign | sort | grep -vFxf <(PrintArray ignore_foreign_packages) > "$system_dir"/foreign-packages.txt
+	( pacman --query --quiet --explicit --native  || true ) | sort | ( grep -vFxf <(PrintArray ignore_packages        ) || true ) > "$system_dir"/packages.txt
+	( pacman --query --quiet --explicit --foreign || true ) | sort | ( grep -vFxf <(PrintArray ignore_foreign_packages) || true ) > "$system_dir"/foreign-packages.txt
 	LogLeave
 
 	### Files
