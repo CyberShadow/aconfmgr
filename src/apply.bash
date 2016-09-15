@@ -229,7 +229,10 @@ function AconfApply() {
 				done
 			done
 		}
-		InstallAurHelper
+		if [[ $EUID != 0 ]]
+		then
+			InstallAurHelper
+		fi
 
 		AconfInstallForeign "${missing_foreign_packages[@]}"
 
