@@ -488,9 +488,9 @@ function AconfMakePkg() {
 
 	if [[ $base_devel_installed == n ]]
 	then
-		LogEnter "Making sure the %s group is installed...\n" "$(Color M base_devel)"
+		LogEnter "Making sure the %s group is installed...\n" "$(Color M base-devel)"
 		ParanoidConfirm ''
-		sudo "${pacman_opts[@]}" --sync --needed $(pacman --query --quiet --group base-devel)
+		sudo "${pacman_opts[@]}" --sync --needed $(pacman --sync --quiet --group base-devel)
 		LogLeave
 		base_devel_installed=y
 	fi
