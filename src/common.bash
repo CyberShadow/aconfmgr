@@ -496,37 +496,98 @@ function AconfMakePkg() {
 	)
 	LogLeave
 
-	LogEnter "Checking dependencies...\n"
+	local gnupg_home="$tmp_dir/gnupg"
+	local makepkg_user=nobody # when running as root
+
 	local infofile infofilename
 	for infofilename in .SRCINFO .AURINFO
 	do
 		infofile="$tmp_dir"/aur/"$package"/"$infofilename"
 		if test -f "$infofile"
 		then
-			local depends dependency arch
+			LogEnter "Checking dependencies...\n"
+
+			local depends missing_depends dependency arch
 			arch="$(uname -m)"
 			depends=($( ( grep -E $'^\t(make)?depends(_'"$arch"')? = ' "$infofile" || true ) | sed 's/^.* = \([a-z0-9_-]*\)\([>=].*\)\?$/\1/' ) )
-			for dependency in "${depends[@]}"
-			do
-				LogEnter "%s:\n" "$(Color M %q "$dependency")"
-				if pacman --query --info "$dependency" > /dev/null 2>&1
+			if [[ ${#depends[@]} != 0 ]]
+			then
+				missing_depends=($(pacman --deptest "${depends[@]}" || true))
+				if [[ ${#missing_depends[@]} != 0 ]]
 				then
-					LogLeave "Already installed.\n"
-				elif pacman --sync --info "$dependency" > /dev/null 2>&1
-				then
-					Log "Installing from repositories...\n"
-					AconfInstallNative "$dependency"
-					LogLeave "Installed.\n"
-				else
-					Log "Installing from AUR...\n"
-					AconfMakePkg "$dependency"
-					LogLeave "Installed.\n"
+					for dependency in "${missing_depends[@]}"
+					do
+						LogEnter "%s:\n" "$(Color M %q "$dependency")"
+						if pacman --query --info "$dependency" > /dev/null 2>&1
+						then
+							LogLeave "Already installed.\n"
+						elif pacman --sync --info "$dependency" > /dev/null 2>&1
+						then
+							Log "Installing from repositories...\n"
+							AconfInstallNative "$dependency"
+							LogLeave "Installed.\n"
+						else
+							Log "Installing from AUR...\n"
+							AconfMakePkg "$dependency"
+							LogLeave "Installed.\n"
+						fi
+					done
 				fi
-			done
+			fi
+
+			LogLeave
+
+			local keys
+			keys=($( ( grep -E $'^\tvalidpgpkeys = ' "$infofile" || true ) | sed 's/^.* = \(.*\)$/\1/' ) )
+			if [[ ${#keys[@]} != 0 ]]
+			then
+				LogEnter "Checking PGP keys...\n"
+
+				local key
+				for key in "${keys[@]}"
+				do
+					local keyserver=pgp.mit.edu
+					#local keyserver=subkeys.pgp.net
+					
+					export GNUPGHOME="$gnupg_home"
+
+					if [[ ! -d "$GNUPGHOME" ]]
+					then
+						LogEnter "Creating %s...\n" "$(Color C %s "$GNUPGHOME")"
+						mkdir --parents "$GNUPGHOME"
+						gpg --gen-key --batch <<EOF
+Key-Type: DSA
+Key-Length: 1024
+Name-Real: aconfmgr
+%no-protection
+EOF
+						LogLeave
+					fi
+
+					LogEnter "Adding key %s...\n" "$(Color Y %q "$key")"
+					#ParanoidConfirm ''
+
+					LogEnter "Receiving key...\n"
+					gpg --keyserver "$keyserver" --recv-key "$key"
+					LogLeave
+
+					LogEnter "Signing key...\n"
+					gpg --quick-lsign-key "$key"
+					LogLeave
+
+					if [[ $EUID == 0 ]]
+					then
+						chmod 700 "$gnupg_home"
+						chown -R $makepkg_user: "$gnupg_home"
+					fi
+
+					LogLeave
+				done
+
+				LogLeave
+			fi
 		fi
 	done
-
-	LogLeave
 
 	LogEnter "Building...\n"
 	(
@@ -535,7 +596,7 @@ function AconfMakePkg() {
 		if [[ $EUID == 0 ]]
 		then
 			chown -R nobody: .
-			su -s /bin/bash nobody -c "$(printf '%q ' "${command[@]}")"
+			su -s /bin/bash nobody -c "GNUPGHOME=$(realpath ../../gnupg) $(printf ' %q' "${command[@]}")"
 			pacman --upgrade ./*.pkg.tar.xz
 		else
 			"${command[@]}" --install
