@@ -363,6 +363,13 @@ function AconfApply() {
 				LogEnter "Deleting %s...\n" "$(Color C "%q" "$file")"
 				ParanoidConfirm ''
 				sudo rm "$file"
+
+				for prop in "${all_file_property_kinds[@]}"
+				do
+					local key="$file:$prop"
+					unset "system_file_props[\$key]"
+				done
+
 				LogLeave ''
 			done
 
