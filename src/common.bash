@@ -442,6 +442,7 @@ makepkg_opts=(makepkg)
 diff_opts=(diff --color=auto)
 
 aur_helper=
+aur_helpers=(pacaur yaourt makepkg)
 
 function DetectAurHelper() {
 	if [[ -n "$aur_helper" ]]
@@ -452,7 +453,7 @@ function DetectAurHelper() {
 	LogEnter "Detecting AUR helper...\n"
 
 	local helper
-	for helper in pacaur yaourt makepkg
+	for helper in "${aur_helpers[@]}"
 	do
 		if which $helper > /dev/null 2>&1
 		then
