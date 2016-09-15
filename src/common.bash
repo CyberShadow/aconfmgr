@@ -468,6 +468,8 @@ function DetectAurHelper() {
 	Exit 1
 }
 
+base_devel_installed=n
+
 function AconfMakePkg() {
 	local package="$1"
 
@@ -478,16 +480,13 @@ function AconfMakePkg() {
 	# Needed to clone the AUR repo. Should be replaced with curl/tar.
 	AconfNeedProgram git git n
 
-	# Needed by makepkg.
-	AconfNeedProgram strip binutils n
-	AconfNeedProgram fakeroot fakeroot n
-
-	# Work around undeclared dependencies.
-	if [[ "$package" == pacutils ]]
+	if [[ $base_devel_installed == n ]]
 	then
-		AconfNeedProgram make make n
-		AconfNeedProgram cc gcc n
-		AconfNeedProgram perl perl n
+		LogEnter "Making sure the %s group is installed...\n" "$(Color M base_devel)"
+		ParanoidConfirm ''
+		sudo "${pacman_opts[@]}" --sync --needed $(pacman --query --quiet --group base-devel)
+		LogLeave
+		base_devel_installed=y
 	fi
 
 	LogEnter "Cloning...\n"
