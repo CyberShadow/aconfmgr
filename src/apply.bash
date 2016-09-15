@@ -98,18 +98,23 @@ function AconfApply() {
 		/etc/makepkg.conf
 	)
 
-	local file
-	for file in "${priority_files[@]}"
-	do
-		if [[ -f "$output_dir/files/$file" ]]
-		then
-			LogEnter "Installing %s...\n" "$(Color C %q "$file")"
-			InstallFile "$file"
-			LogLeave
-		fi
-	done
+	local file priority_file
+	( Print0Array config_only_files ; Print0Array changed_files ) | \
+		while read -r -d $'\0' file
+		do
+			for priority_file in "${priority_files[@]}"
+			do
+				if [[ "$file" == "$priority_file" ]]
+				then
+					LogEnter "Installing %s...\n" "$(Color C %q "$file")"
+					InstallFile "$file"
+					LogLeave
+					break
+				fi
+			done
+		done
 
-	LogLeave
+	LogLeave # Installing priority files
 
 	#
 	# Apply packages
