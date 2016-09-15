@@ -769,6 +769,11 @@ EOF
 )"
 }
 
+if [[ $EUID == 0 ]]
+then
+	function sudo() { "$@" ; }
+fi
+
 # cat a file; if it's not readable, cat via sudo.
 function SuperCat() {
 	local file="$1"
