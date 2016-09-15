@@ -626,7 +626,7 @@ EOF
 		then
 			chown -R nobody: .
 			su -s /bin/bash nobody -c "GNUPGHOME=$(realpath ../../gnupg) $(printf ' %q' "${command[@]}")"
-			pacman --upgrade ./*.pkg.tar.xz
+			"${pacman_opts[@]}" --upgrade ./*.pkg.tar.xz
 		else
 			"${command[@]}" --install
 		fi
