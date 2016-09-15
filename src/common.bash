@@ -503,8 +503,9 @@ function AconfMakePkg() {
 		infofile="$tmp_dir"/aur/"$package"/"$infofilename"
 		if test -f "$infofile"
 		then
-			local depends dependency
-			depends=($(grep -E $'^\t(make)?depends = ' "$infofile" | sed 's/^.* = \([a-z0-9_-]*\)\([>=].*\)\?$/\1/'))
+			local depends dependency arch
+			arch="$(uname -m)"
+			depends=($( ( grep -E $'^\t(make)?depends(_'"$arch"')? = ' "$infofile" || true ) | sed 's/^.* = \([a-z0-9_-]*\)\([>=].*\)\?$/\1/' ) )
 			for dependency in "${depends[@]}"
 			do
 				LogEnter "%s:\n" "$(Color M %q "$dependency")"
