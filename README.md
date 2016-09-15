@@ -209,6 +209,12 @@ Another difference is that `NixOS` provides a specialized syntax for many common
 
 [etckeeper](https://joeyh.name/code/etckeeper) allows storing `/etc` in a version control system. `aconfmgr` allows this as well, although it does not directly provide a way to automatically merge configuration files with upstream package versions. This can be done manually, by [inlining file changes](#inlining-files).
 
+## Limitations
+
+- Dependencies where more than one package provides something (e.g. `fcron` and `cronie` provide `cron`) are not tracked, and the desired dependency must be pinned or added to the configuration manually.
+- Changes in file attributes only (not content) are currently not detected.
+- Files owned by a package that have been deleted on the system are currently not tracked.
+
 ## License
 
 Copyright (c) 2016 aconfmgr authors.
