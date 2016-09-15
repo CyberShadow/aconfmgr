@@ -444,6 +444,12 @@ diff_opts=(diff --color=auto)
 aur_helper=
 aur_helpers=(pacaur yaourt makepkg)
 
+# Only aconfmgr can use makepkg under root
+if [[ $EUID == 0 ]]
+then
+	aur_helper=makepkg
+fi
+
 function DetectAurHelper() {
 	if [[ -n "$aur_helper" ]]
 	then
