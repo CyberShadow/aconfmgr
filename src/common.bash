@@ -639,7 +639,13 @@ EOF
 
 function AconfInstallNative() {
 	local target_packages=("$@")
-	sudo "${pacman_opts[@]}" --sync "${target_packages[@]}"
+	if [[ $prompt_mode == never ]]
+	then
+		# Some prompts default to 'no'
+		( yes || true ) | sudo "${pacman_opts[@]}" --confirm --sync "${target_packages[@]}"
+	else
+		sudo "${pacman_opts[@]}" --sync "${target_packages[@]}"
+	fi
 }
 
 function AconfInstallForeign() {
