@@ -526,17 +526,40 @@ function AconfMakePkg() {
 						LogEnter "%s:\n" "$(Color M %q "$dependency")"
 						if pacman --query --info "$dependency" > /dev/null 2>&1
 						then
-							LogLeave "Already installed.\n"
+							Log "Already installed.\n" # Shouldn't happen, actually
 						elif pacman --sync --info "$dependency" > /dev/null 2>&1
 						then
 							Log "Installing from repositories...\n"
 							AconfInstallNative "$dependency"
-							LogLeave "Installed.\n"
+							Log "Installed.\n"
 						else
 							Log "Installing from AUR...\n"
 							AconfMakePkg "$dependency"
-							LogLeave "Installed.\n"
+							Log "Installed.\n"
 						fi
+
+						# Mark as installed as dependency, unless it's
+						# already in our list of packages to install.
+
+						local iter_package explicit=n
+						( Print0Array packages ; Print0Array foreign_packages ) | \
+							while read -r -d $'\0' iter_package
+							do
+								if [[ "$iter_package" == "$dependency" ]]
+								then
+									explicit=y
+									break
+								fi
+							done
+
+						if [[ $explicit == n ]]
+						then
+							LogEnter "Marking as dependency...\n"
+							pacman --database --asdeps "$dependency"
+							LogLeave
+						fi
+
+						LogLeave ''
 					done
 				fi
 			fi
