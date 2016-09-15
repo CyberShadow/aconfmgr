@@ -474,7 +474,20 @@ function AconfMakePkg() {
 	rm -rf "$tmp_dir"/aur/"$package"
 	mkdir --parents "$tmp_dir"/aur/"$package"
 
+	# Needed to clone the AUR repo. Should be replaced with curl/tar.
 	AconfNeedProgram git git n
+
+	# Needed by makepkg.
+	AconfNeedProgram strip binutils n
+	AconfNeedProgram fakeroot fakeroot n
+
+	# Work around undeclared dependencies.
+	if [[ "$package" == pacutils ]]
+	then
+		AconfNeedProgram make make n
+		AconfNeedProgram cc gcc n
+		AconfNeedProgram perl perl n
+	fi
 
 	LogEnter "Cloning...\n"
 	(
