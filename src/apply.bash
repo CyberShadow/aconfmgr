@@ -144,7 +144,7 @@ function AconfApply() {
 	#	yes		yes		yes		yes		nothing
 
 	# Unknown packages (native and foreign packages that are explicitly installed but not listed)
-	unknown_packages=($(comm -13																			\
+	unknown_packages=($(comm -13																				\
 							 <((PrintArray           packages ; PrintArray           foreign_packages) | sort)	\
 							 <((PrintArray installed_packages ; PrintArray installed_foreign_packages) | sort)))
 
