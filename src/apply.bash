@@ -107,6 +107,7 @@ function AconfApply() {
 				if [[ "$file" == "$priority_file" ]]
 				then
 					LogEnter "Installing %s...\n" "$(Color C %q "$file")"
+					Confirm ''
 					InstallFile "$file"
 					LogLeave
 					break
