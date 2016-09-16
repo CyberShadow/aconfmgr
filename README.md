@@ -69,7 +69,7 @@ Background: On Arch Linux, every installed package is installed either explicitl
 
 ### Configuration syntax
 
-The configuration files use `bash` syntax. The easiest way to learn the syntax is to run `aconfmgr save` and examine its output (`99-unssorted.sh`).
+The configuration files use `bash` syntax. The easiest way to learn the syntax is to run `aconfmgr save` and examine its output (`99-unsorted.sh`).
 
 Some simple helper functions are defined in `src/helpers.bash` (sourced automatically). You are encouraged to examine their implementation - their main goal is not so much to provide an API as simply to make the generated configuration terser and more readable. As such, their use is in no way required, and they can be substituted with their underlying implementations.
 
