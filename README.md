@@ -20,9 +20,11 @@ Simply clone (or [download](https://github.com/CyberShadow/aconfmgr/archive/mast
 
 ### First run
 
-Run `aconfmgr save` to transcribe the system's configuration to the configuration directory.
+Run `aconfmgr save` to transcribe the system's configuration to the configuration directory. This will create the file `99-unsorted.sh` in the configuration directory, as well as other files describing the system configuration. (The configuration directory will usually be `~/.config/aconfmgr`, or `./config` if running directly from git, or it can be overridden with `-c`.)
 
-This will create the file `99-unsorted.sh` in the configuration directory, as well as other files describing the system configuration. (The configuration directory will usually be `~/.config/aconfmgr`, or `./config` if running directly from git, or it can be overridden with `-c`.) You should review the contents of `99-unsorted.sh`, and sort it into one or more new files (e.g.: `10-base.sh`, `20-drivers.sh`, `30-gui.sh`, `50-misc.sh` ...). The files should have a `.sh` extension, and use `bash` syntax. I suggest adding a comment for each package describing why installing the package was needed, so it is clear when the package is no longer needed and can be removed.
+On the first run, `aconfmgr` will likely include some files which you may not want to include in your system configuration. These can be temporary or auto-generated files which are not directly owned by a package. To prevent `aconfmgr` from including these files in the configuration, create e.g. `10-ignores.sh` in the configuration directory, with the lines e.g. `IgnorePath /path/to/file.ext` or `IgnorePath /path/to/dir/*`. (See [ignoring files](#ignoring-files) for details.) Delete everything from the configuration directory except that file and re-run `aconfmgr save` to regenerate a configuration minding these ignore rules.
+
+Once `aconfmgr save` finishes, you should review the contents of `99-unsorted.sh`, and sort it into one or more new files (e.g.: `10-base.sh`, `20-drivers.sh`, `30-gui.sh`, `50-misc.sh` ...). The files should have a `.sh` extension, and use `bash` syntax. I suggest adding a comment for each package describing why installing the package was needed, so it is clear when the package is no longer needed and can be removed.
 
 During this process, you may identify packages or system changes which are no longer needed. Do not sort them into your configuration files - instead, delete the file `99-unsorted.sh`, and run `aconfmgr apply`. This will synchronize the system state against your configuration, thus removing the omitted packages. (You will be given a chance to confirm all changes before they are applied.)
 
