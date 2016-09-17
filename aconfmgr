@@ -49,6 +49,7 @@ function Usage() {
 	printf "      --color WHEN         When to use colors in output (always/auto/never)\n"
 	printf "      --paranoid           Always prompt before making any changes to the system\n"
 	printf "      --yes                Never prompt before making any changes to the system\n"
+	printf "  -v, --verbose            Show progress with additional detail\n"
 	echo
 	printf "For more information, please refer to the full documentation at:\n"
 	printf "https://github.com/CyberShadow/aconfmgr#readme\n"
@@ -118,6 +119,10 @@ function Main() {
 				pacaur_opts+=(--noconfirm)
 				yaourt_opts+=(--noconfirm)
 				makepkg_opts+=(--noconfirm)
+				shift
+				;;
+			-v|--verbose)
+				verbose=$((verbose+1))
 				shift
 				;;
 			*)

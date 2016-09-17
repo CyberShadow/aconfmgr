@@ -36,6 +36,8 @@ ANSI_color_C="[1;36m"
 ANSI_color_W="[1;39m"
 ANSI_reset="[0m"
 
+verbose=0
+
 umask $((666 - default_file_mode))
 
 ####################################################################################################
@@ -155,7 +157,10 @@ function AconfCompileSystem() {
 		while read -r -d $'\0' line
 		do
 			#echo "ignore_paths+='$line' # "
-			#Log "%s\r" "$(Color C "%q" "$line")"
+			if ((verbose))
+			then
+				Log "%s\r" "$(Color C "%q" "$line")"
+			fi
 
 			AconfAddFile "$line"
 			lost_file_count=$((lost_file_count+1))
