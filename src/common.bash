@@ -17,6 +17,7 @@ ignore_paths=(
     '/run'
     '/sys'
     '/tmp'
+    '/media'
     # '/var/.updated'
     '/var/cache'
     # '/var/lib'
