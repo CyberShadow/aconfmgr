@@ -52,6 +52,7 @@ ignore_paths=(
 # Some limits for common-sense warnings.
 # Feel free to override these in your configuration.
 warn_size_threshold=$((10*1024*1024)) # Warn on copying files bigger than this
+warn_file_count_threshold=1000        # Warn on finding this many lost files
 
 ####################################################################################################
 
@@ -167,16 +168,25 @@ function AconfCompileSystem() {
 				  --line-regexp						\
 				  --file "$tmp_dir"/managed-files	\
 	) |												\
-		while read -r -d $'\0' line
+		while read -r -d $'\0' file
 		do
-			#echo "ignore_paths+='$line' # "
+			#echo "ignore_paths+='$file' # "
 			if ((verbose))
 			then
-				Log "%s\r" "$(Color C "%q" "$line")"
+				Log "%s\r" "$(Color C "%q" "$file")"
 			fi
 
-			AconfAddFile "$line"
+			AconfAddFile "$file"
 			lost_file_count=$((lost_file_count+1))
+
+			if [[ $lost_file_count == $warn_file_count_threshold ]]
+			then
+				Log "%s: reached %s lost files while in directory %s. Perhaps add %s to configuration to ignore it.\n" \
+					"$(Color Y "Warning")" \
+					"$(Color G "$lost_file_count")" \
+					"$(Color C "%q" "$(dirname "$file")")" \
+					"$(Color Y "IgnorePath %q" "$(dirname "$file")")"
+			fi
 		done
 
 	LogLeave "Done (%s lost files).\n" "$(Color G %s $lost_file_count)"
