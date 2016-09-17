@@ -145,8 +145,8 @@ EOF
 It is also possible to generate an output file that is a modification of the original. For this purpose, the helper function `GetPackageOriginalFile` is provided. The function will extract the indicated file from the archive in pacman's package cache, downloading it first if necessary.
 
 ```bash
-# system.conf
-cat > "$(GetPackageOriginalFile systemd /etc/systemd/system.conf)" <<EOF
+# Append some options to systemd's system.conf
+cat >> "$(GetPackageOriginalFile systemd /etc/systemd/system.conf)" <<EOF
 RuntimeWatchdogSec=10min
 ShutdownWatchdogSec=10min
 DefaultTimeoutStartSec=30s
