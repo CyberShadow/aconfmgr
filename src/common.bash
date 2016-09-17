@@ -2,12 +2,35 @@
 
 # This file contains aconfmgr's common code, used by all commands.
 
+####################################################################################################
+
+# Globals
+
 output_dir="$tmp_dir"/output
 system_dir="$tmp_dir"/system # Current system configuration, to be compared against the output directory
 
-warn_size_threshold=$((10*1024*1024))
 default_file_mode=644
 
+ANSI_clear_line="[0K"
+ANSI_color_R="[1;31m"
+ANSI_color_G="[1;32m"
+ANSI_color_Y="[1;33m"
+ANSI_color_B="[1;34m"
+ANSI_color_M="[1;35m"
+ANSI_color_C="[1;36m"
+ANSI_color_W="[1;39m"
+ANSI_reset="[0m"
+
+verbose=0
+
+umask $((666 - default_file_mode))
+
+####################################################################################################
+
+# Defaults
+
+# Initial ignore path list.
+# Can be appended to using the IgnorePath helper.
 ignore_paths=(
     '/dev'
     '/home'
@@ -26,19 +49,9 @@ ignore_paths=(
     # '/var/spool'
 )
 
-ANSI_clear_line="[0K"
-ANSI_color_R="[1;31m"
-ANSI_color_G="[1;32m"
-ANSI_color_Y="[1;33m"
-ANSI_color_B="[1;34m"
-ANSI_color_M="[1;35m"
-ANSI_color_C="[1;36m"
-ANSI_color_W="[1;39m"
-ANSI_reset="[0m"
-
-verbose=0
-
-umask $((666 - default_file_mode))
+# Some limits for common-sense warnings.
+# Feel free to override these in your configuration.
+warn_size_threshold=$((10*1024*1024)) # Warn on copying files bigger than this
 
 ####################################################################################################
 
