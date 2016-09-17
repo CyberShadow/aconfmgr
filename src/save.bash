@@ -132,14 +132,14 @@ function AconfSave() {
 
 				local system_file type
 				system_file="$system_dir"/files/"$file"
-				type=$(stat --format=%F "$system_file")
+				type=$(LC_ALL=C stat --format=%F "$system_file")
 				if [[ "$type" == "symbolic link" ]]
 				then
 					func=CreateLink
 					args=("$file" "$(readlink "$system_file")")
 					props=(owner group)
 				else
-					size=$(stat --format=%s "$system_file")
+					size=$(LC_ALL=C stat --format=%s "$system_file")
 					if [[ $size == 0 ]]
 					then
 						func=CreateFile
