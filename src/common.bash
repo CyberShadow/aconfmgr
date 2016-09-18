@@ -240,11 +240,11 @@ function AconfCompileSystem() {
 	then
 		Log "No files found, skipping.\n"
 	else
-		Log "Reading file types...\n"  ;  found_file_types=($(Print0Array found_files | sudo LC_ALL=C xargs -0 stat --format=%F))
-		Log "Reading file sizes...\n"  ;  found_file_sizes=($(Print0Array found_files | sudo LC_ALL=C xargs -0 stat --format=%s))
-		Log "Reading file modes...\n"  ;  found_file_modes=($(Print0Array found_files | sudo LC_ALL=C xargs -0 stat --format=%a))
-		Log "Reading file owners...\n" ; found_file_owners=($(Print0Array found_files | sudo LC_ALL=C xargs -0 stat --format=%U))
-		Log "Reading file groups...\n" ; found_file_groups=($(Print0Array found_files | sudo LC_ALL=C xargs -0 stat --format=%G))
+		Log "Reading file types...\n"  ;  found_file_types=($(Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%F))
+		Log "Reading file sizes...\n"  ;  found_file_sizes=($(Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%s))
+		Log "Reading file modes...\n"  ;  found_file_modes=($(Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%a))
+		Log "Reading file owners...\n" ; found_file_owners=($(Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%U))
+		Log "Reading file groups...\n" ; found_file_groups=($(Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%G))
 	fi
 
 	LogLeave # Reading file attributes
