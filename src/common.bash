@@ -181,11 +181,12 @@ function AconfCompileSystem() {
 
 			if [[ $lost_file_count == $warn_file_count_threshold ]]
 			then
-				Log "%s: reached %s lost files while in directory %s. Perhaps add %s to configuration to ignore it.\n" \
+				LogEnter "%s: reached %s lost files while in directory %s.\n" \
 					"$(Color Y "Warning")" \
 					"$(Color G "$lost_file_count")" \
-					"$(Color C "%q" "$(dirname "$file")")" \
-					"$(Color Y "IgnorePath %q" "$(dirname "$file")")"
+					"$(Color C "%q" "$(dirname "$file")")"
+				LogLeave "Perhaps add %s (or a parent directory) to configuration to ignore it.\n" \
+					"$(Color Y "IgnorePath %q" "$(dirname "$file")"/'*')"
 			fi
 		done
 
