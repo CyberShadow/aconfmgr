@@ -86,7 +86,7 @@ The list of provided helper functions:
 - `CreateLink PATH TARGET [OWNER [GROUP]]` - Creates a symbolic link with the specified target.
 - `RemoveFile PATH` - Removes an earlier-added file.
 - `SetFileProperty PATH TYPE VALUE` - Sets a file property.
-- `IgnorePath PATH` - Adds the specified path to the list of ignored paths.
+- `IgnorePath PATTERN` - Adds the specified pattern to the list of ignored paths.
 
 ### Ignoring some changes
 
