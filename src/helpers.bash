@@ -192,6 +192,8 @@ function SetFileProperty() {
 #
 # Adds the specified path to the list of ignored paths.
 #
+# The argument should be a shell pattern, e.g. '/etc/foo/*'.
+#
 
 function IgnorePath() {
 	ignore_paths+=("$@")
