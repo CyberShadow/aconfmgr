@@ -18,8 +18,8 @@ then
 	src_dir=src
 else
 	# Installed system-wide - use well-defined paths
-	xdg_config_dirs="${XDG_CONFIG_DIRS:-$HOME/.config}"
-	config_dir="${xdg_config_dirs%%:*}"/aconfmgr
+	xdg_config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+	config_dir="$xdg_config_home"/aconfmgr
 	tmp_dir="${TMPDIR:-/tmp}/aconfmgr-$USER"
 	src_dir=/usr/lib/aconfmgr
 fi
