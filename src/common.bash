@@ -789,7 +789,7 @@ function Confirm() {
 		else
 			Log "Proceed? [Y/n] "
 		fi
-		read -r -n 1 answer
+		read -r -n 1 answer < /dev/tty
 		echo 1>&2
 		case "$answer" in
 			Y|y|'')
