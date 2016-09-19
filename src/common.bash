@@ -658,7 +658,7 @@ EOF
 	(
 		cd "$tmp_dir"/aur/"$package"
 		mkdir --parents home
-		local command=("HOME=$PWD/home" "${makepkg_opts[@]}")
+		local command=(env "HOME=$PWD/home" "${makepkg_opts[@]}")
 		if [[ $EUID == 0 ]]
 		then
 			chown -R nobody: .
