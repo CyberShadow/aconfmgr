@@ -53,6 +53,7 @@ ignore_paths=(
 # Feel free to override these in your configuration.
 warn_size_threshold=$((10*1024*1024)) # Warn on copying files bigger than this
 warn_file_count_threshold=1000        # Warn on finding this many lost files
+warn_tmp_df_threshold=$((1024*1024))  # Warn on error if free space in $tmp_dir is below this
 
 ####################################################################################################
 
@@ -884,6 +885,23 @@ function OnError() {
 
 		frame=$((frame+1))
 	done
+
+	LogLeave ''
+
+	if [[ -d "$tmp_dir" ]]
+	then
+		local df dir
+		df=$(($(stat -f --format="%a*%S" "$tmp_dir")))
+		dir="$(realpath "$(dirname "$tmp_dir")")"
+		if [[ $df -lt $warn_tmp_df_threshold ]]
+		then
+			LogEnter "Probable cause: low disk space (%s bytes) in %s. Suggestions:\n" "$(Color G %s "$df")" "$(Color C %q "$dir")"
+			Log "- Ignore more files and directories using %s directives;\n" "$(Color Y IgnorePath)"
+			Log "- Free up more space in %s;\n" "$(Color C %q "$dir")"
+			Log "- Set %s to another location before invoking %s.\n" "$(Color Y \$TMPDIR)" "$(Color Y aconfmgr)"
+			LogLeave ''
+		fi
+	fi
 }
 trap OnError EXIT ERR
 
