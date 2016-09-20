@@ -80,7 +80,7 @@ function CopyFile() {
 
 	mkdir --parents "$(dirname "$output_dir"/files/"$file")"
 
-	cp --no-dereference \
+	cp --dereference \
 	   "$config_dir"/files/"$file" \
 	   "$output_dir"/files/"$file"
 
