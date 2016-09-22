@@ -80,6 +80,35 @@ function CopyFile() {
 
 	mkdir --parents "$(dirname "$output_dir"/files/"$file")"
 
+	cp --no-dereference \
+	   "$config_dir"/files/"$file" \
+	   "$output_dir"/files/"$file"
+
+	SetFileProperty "$file" mode  "$mode"
+	SetFileProperty "$file" owner "$owner"
+	SetFileProperty "$file" group "$group"
+}
+
+#
+# CopyFileDeref PATH [MODE [OWNER [GROUP]]]
+#
+# Copies a file from the "files" subdirectory to the output, with dereferencing
+# if the file is a symlink.
+#
+# The specified path should be relative to the root of the "files" subdirectory.
+#
+# If MODE, OWNER and GROUP are unspecified, they default to
+# "644", "root" and "root" respectively for new files.
+#
+
+function CopyFileDeref() {
+	local file="$1"
+	local mode="${2:-}"
+	local owner="${3:-}"
+	local group="${4:-}"
+
+	mkdir --parents "$(dirname "$output_dir"/files/"$file")"
+
 	cp --dereference \
 	   "$config_dir"/files/"$file" \
 	   "$output_dir"/files/"$file"
