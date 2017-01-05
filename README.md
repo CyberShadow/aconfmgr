@@ -132,11 +132,6 @@ Instead of copying, the file's can be inlined using a `bash` heredoc, or even an
 # Enable Magic SysRq
 echo "kernel.sysrq = 1" > "$(CreateFile /etc/sysctl.d/99-sysrq.conf)"
 
-# Specify locales
-f="$(GetPackageOriginalFile glibc /etc/locale.gen)"
-sed -i 's/^#\(en_US.UTF-8\)/\1/g' "$f"
-sed -i 's/^#\(en_DK.UTF-8\)/\1/g' "$f" # for ISO timestamps
-
 # https://wiki.archlinux.org/index.php/Getty#Have_boot_messages_stay_on_tty1
 cat > "$(CreateFile /etc/systemd/system/getty@tty1.service.d/noclear.conf)" <<EOF
 [Service]
@@ -149,6 +144,11 @@ EOF
 It is also possible to generate an output file that is a modification of the original. For this purpose, the helper function `GetPackageOriginalFile` is provided. The function will extract the indicated file from the archive in pacman's package cache, downloading it first if necessary.
 
 ```bash
+# Specify locales
+f="$(GetPackageOriginalFile glibc /etc/locale.gen)"
+sed -i 's/^#\(en_US.UTF-8\)/\1/g' "$f"
+sed -i 's/^#\(en_DK.UTF-8\)/\1/g' "$f" # for ISO timestamps
+
 # Append some options to systemd's system.conf
 cat >> "$(GetPackageOriginalFile systemd /etc/systemd/system.conf)" <<EOF
 RuntimeWatchdogSec=10min
