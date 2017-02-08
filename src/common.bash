@@ -864,6 +864,7 @@ function DisableColor() {
 	ANSI_color_C=
 	ANSI_color_W=
 	ANSI_reset=
+	ANSI_clear_line=
 }
 
 ####################################################################################################
