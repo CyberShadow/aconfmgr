@@ -827,6 +827,18 @@ function Log() {
 	then
 		local fmt="$1"
 		shift
+
+		if [[ -z $ANSI_clear_line ]]
+		then
+			# Replace carriage returns in format string with newline
+			# when colors are disabled. This avoids systemd's journal
+			# from showing such lines as [# blob data].
+
+			fmt=${fmt//\\r/\\n} # Replace the '\r' sequence
+			                    # (backslash-r) , not actual carriage
+			                    # returns.
+		fi
+
 		printf "${ANSI_clear_line}${ANSI_color_B}%s ${ANSI_color_W}${fmt}${ANSI_reset}" "$log_indent" "$@" 1>&2
 	fi
 }
