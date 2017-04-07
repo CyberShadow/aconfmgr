@@ -12,6 +12,32 @@ Since the system configuration is described as shell scripts, it is trivially ex
 
 ![screenshot](https://dump.thecybershadow.net/8172adadc91ceb38588eb22581f485d9/composed.png)
 
+## Table of Contents
+
+* [Usage](#usage)
+  * [Installation](#installation)
+  * [First run](#first-run)
+  * [Maintenance](#maintenance)
+  * [Restoring](#restoring)
+* [Modus operandi](#modus-operandi)
+  * [Packages](#packages)
+* [Advanced Usage](#advanced-usage)
+  * [Configuration syntax](#configuration-syntax)
+  * [Ignoring some changes](#ignoring-some-changes)
+    * [Ignoring files](#ignoring-files)
+    * [Ignoring packages](#ignoring-packages)
+  * [Inlining files](#inlining-files)
+    * [Inlining file content entirely](#inlining-file-content-entirely)
+    * [Inlining file edits](#inlining-file-edits)
+  * [Managing multiple systems](#managing-multiple-systems)
+* [Comparisons](#comparisons)
+  * [aconfmgr vs. Puppet/Ansible](#aconfmgr-vs-puppetansible)
+  * [aconfmgr vs. NixOS](#aconfmgr-vs-nixos)
+  * [aconfmgr vs. lostfiles](#aconfmgr-vs-lostfiles)
+  * [aconfmgr vs. etckeeper](#aconfmgr-vs-etckeeper)
+* [Limitations](#limitations)
+* [License](#license)
+
 ## Usage
 
 ### Installation
