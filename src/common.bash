@@ -592,7 +592,7 @@ function AconfMakePkg() {
 						if [[ $explicit == n ]]
 						then
 							LogEnter "Marking as dependency...\n"
-							pacman --database --asdeps "$dependency"
+							sudo pacman --database --asdeps "$dependency"
 							LogLeave
 						fi
 
