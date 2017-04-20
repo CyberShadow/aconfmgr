@@ -539,7 +539,7 @@ function AconfMakePkg() {
 	)
 	LogLeave
 
-	local gnupg_home="$tmp_dir/gnupg"
+	local gnupg_home="$(realpath -m "$tmp_dir/gnupg")"
 	local makepkg_user=nobody # when running as root
 
 	local infofile infofilename
@@ -659,7 +659,7 @@ EOF
 	(
 		cd "$tmp_dir"/aur/"$package"
 		mkdir --parents home
-		local command=(env "HOME=$PWD/home" "${makepkg_opts[@]}")
+		local command=(env "HOME=$PWD/home" "GNUPGHOME=$gnupg_home" "${makepkg_opts[@]}")
 		if [[ $EUID == 0 ]]
 		then
 			chown -R nobody: .
