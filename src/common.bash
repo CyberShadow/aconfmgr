@@ -155,6 +155,32 @@ function AconfCompileSystem() {
 
 	LogEnter "Searching for lost files...\n"
 
+	# Progress display - only show file names once per second
+	exec {progress_fd}> \
+		 >( awk '
+BEGIN {
+    RS = "\0";
+    t = systime();
+};
+{
+    u = systime();
+    if (t != u) {
+        t = u;
+        printf "%s\0", $0;
+        system(""); # https://unix.stackexchange.com/a/83853/4830
+	}
+}' | \
+				while read -r -d $'\0' path
+				do
+					path=${path%/*} # Never show files, only directories
+					while [[ ${#path} -gt 40 ]]
+					do
+						path=${path%/*}
+					done
+					Log "Scanning %s...\r" "$(Color M "%q" "$path")"
+				done
+		  )
+
 	local lost_file_count=0
 	local line
 	(												\
@@ -162,6 +188,7 @@ function AconfCompileSystem() {
 			 "${ignore_args[@]}"					\
 			 -type d								\
 			 \) -print0								\
+			| tee /dev/fd/$progress_fd				\
 			| grep									\
 				  --null --null-data				\
 				  --invert-match					\
@@ -192,6 +219,8 @@ function AconfCompileSystem() {
 		done
 
 	LogLeave "Done (%s lost files).\n" "$(Color G %s $lost_file_count)"
+
+	exec {progress_fd}<&-
 
 	# Modified files
 
