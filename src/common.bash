@@ -180,7 +180,7 @@ function AconfCompileSystem() {
 			AconfAddFile "$file"
 			lost_file_count=$((lost_file_count+1))
 
-			if [[ $lost_file_count == $warn_file_count_threshold ]]
+			if [[ $lost_file_count -eq $warn_file_count_threshold ]]
 			then
 				LogEnter "%s: reached %s lost files while in directory %s.\n" \
 					"$(Color Y "Warning")" \
