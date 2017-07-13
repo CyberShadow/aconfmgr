@@ -214,6 +214,27 @@ then
 fi
 ```
 
+To manage different versions of a file for different systems, you can [inline the file](#inlining-files), or copy a different version depending on the hostname.
+
+An example for inlining `/etc/hosts`:
+
+```bash
+f="$(GetPackageOriginalFile filesystem /etc/hosts)"
+echo '1.2.3.4 home.example.net' >> "$f"
+if [[ "$HOSTNAME" == laptop.example.net ]]
+then
+	echo '127.0.1.1 laptop.example.net laptop >> "$f"
+fi
+```
+
+If the file is binary, or too large to make inlining practical, `CopyFileTo` can be used:
+
+```bash
+CopyFileTo "/etc/hosts-$HOSTNAME" "/etc/hosts"
+```
+
+This will use `files/etc/hosts-home.example.net` for the `home.example.net` machine, and so on.
+
 ## Comparisons
 
 ### aconfmgr vs. Puppet/Ansible
