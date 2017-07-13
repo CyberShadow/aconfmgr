@@ -115,6 +115,8 @@ The list of provided helper functions:
 - `SetFileProperty PATH TYPE VALUE` - Sets a file property.
 - `IgnorePath PATTERN` - Adds the specified pattern to the list of ignored paths.
 
+You are free to define your own custom helper functions as part of your configuration, e.g. by placing them in a `00-helpers.sh` file.
+
 ### Ignoring some changes
 
 #### Ignoring files
