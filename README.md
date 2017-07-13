@@ -205,7 +205,7 @@ You can use the same configuration repository to manage multiple sufficiently-si
 AddPackage coreutils
 # ... more common packages ...
 
-if [[ "$HOST" == "home.example.com" ]]
+if [[ "$HOSTNAME" == "home.example.com" ]]
 then
 	AddPackage nvidia
 	AddPackage nvidia-utils
