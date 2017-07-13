@@ -96,6 +96,7 @@ function AconfCompileOutput() {
 		if [[ -e "$file" ]]
 		then
 			LogEnter "Sourcing %s...\n" "$(Color C "%q" "$file")"
+			# shellcheck source=/dev/null
 			source "$file"
 			found=y
 			LogLeave ''
@@ -182,7 +183,7 @@ BEGIN {
 		  )
 
 	local lost_file_count=0
-	local line
+	local file line
 	(												\
 		sudo find / -not \(							\
 			 "${ignore_args[@]}"					\
@@ -688,14 +689,14 @@ EOF
 	(
 		cd "$tmp_dir"/aur/"$package"
 		mkdir --parents home
-		local command=(env "HOME=$PWD/home" "GNUPGHOME=$gnupg_home" "${makepkg_opts[@]}")
+		local args=(env "HOME=$PWD/home" "GNUPGHOME=$gnupg_home" "${makepkg_opts[@]}")
 		if [[ $EUID == 0 ]]
 		then
 			chown -R nobody: .
-			su -s /bin/bash nobody -c "GNUPGHOME=$(realpath ../../gnupg) $(printf ' %q' "${command[@]}")"
+			su -s /bin/bash nobody -c "GNUPGHOME=$(realpath ../../gnupg) $(printf ' %q' "${args[@]}")"
 			"${pacman_opts[@]}" --upgrade ./*.pkg.tar.xz
 		else
-			"${command[@]}" --install
+			"${args[@]}" --install
 		fi
 	)
 	LogLeave

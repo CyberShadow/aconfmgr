@@ -38,6 +38,7 @@ function Usage() {
 function UsageError() {
 	Usage
 	echo
+	# shellcheck disable=SC2059
 	printf "$@"
 	echo
 	Exit 2
@@ -116,7 +117,7 @@ function Main() {
 			pacman_opts+=(--color always)
 			pacaur_opts+=(--color always)
 			yaourt_opts+=(--color)
-			diff_opts+=(--color=always)
+			diff_opts+=('--color=always')
 		;;
 		never)
 			DisableColor
@@ -124,7 +125,7 @@ function Main() {
 			pacaur_opts+=(--color never)
 			yaourt_opts+=(--nocolor)
 			makepkg_opts+=(--nocolor)
-			diff_opts+=(--color=never)
+			diff_opts+=('--color=never')
 			;;
 		auto)
 			[ -t 1 ] || DisableColor
