@@ -469,6 +469,10 @@ function AconfAnalyzeFiles() {
 			 "$(Color G "${#config_only_file_props[@]}")"
 }
 
+# The *_packages arrays are passed by name,
+# so ShellCheck thinks the variables are unused:
+# shellcheck disable=2034
+
 # Prepare configuration and system state
 function AconfCompile() {
 	LogEnter "Collecting data...\n"
@@ -500,7 +504,7 @@ pacman_opts=(pacman)
 pacaur_opts=(pacaur)
 yaourt_opts=(yaourt)
 makepkg_opts=(makepkg)
-diff_opts=(diff --color=auto)
+diff_opts=(diff '--color=auto')
 
 aur_helper=
 aur_helpers=(pacaur yaourt makepkg)
@@ -522,7 +526,7 @@ function DetectAurHelper() {
 	local helper
 	for helper in "${aur_helpers[@]}"
 	do
-		if which $helper > /dev/null 2>&1
+		if which "$helper" > /dev/null 2>&1
 		then
 			aur_helper=$helper
 			LogLeave "%s... Yes\n" "$(Color C %s "$helper")"
@@ -569,7 +573,8 @@ function AconfMakePkg() {
 	)
 	LogLeave
 
-	local gnupg_home="$(realpath -m "$tmp_dir/gnupg")"
+	local gnupg_home
+	gnupg_home="$(realpath -m "$tmp_dir/gnupg")"
 	local makepkg_user=nobody # when running as root
 
 	local infofile infofilename
@@ -893,10 +898,13 @@ function Color() {
 	local var="ANSI_color_$1"
 	printf "%s" "${!var}"
 	shift
+	# shellcheck disable=2059
 	printf "$@"
 	printf "%s" "${ANSI_color_W}"
 }
 
+# The ANSI_color_* variables are looked up by name:
+# shellcheck disable=2034
 function DisableColor() {
 	ANSI_color_R=
 	ANSI_color_G=

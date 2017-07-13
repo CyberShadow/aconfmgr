@@ -1,6 +1,6 @@
 #!/bin/bash
-# shellcheck disable=2031
-# SC2031: https://github.com/koalaman/shellcheck/issues/732
+# shellcheck disable=2030,2031
+# SC2030/2031: https://github.com/koalaman/shellcheck/issues/732
 
 set -euo pipefail
 shopt -s lastpipe

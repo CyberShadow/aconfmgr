@@ -9,11 +9,11 @@
 #
 
 function AddPackage() {
-	local fn=packages.txt
+	local fn='packages.txt'
 	if [[ "$1" == "--foreign" ]]
 	then
 		shift
-		fn=foreign-packages.txt
+		fn='foreign-packages.txt'
 	fi
 
 	printf "%q\n" "$@" >> "$output_dir"/"$fn"
@@ -31,11 +31,11 @@ function AddPackage() {
 #
 
 function RemovePackage() {
-	local fn=packages.txt
+	local fn='packages.txt'
 	if [[ "$1" == "--foreign" ]]
 	then
 		shift
-		fn=foreign-packages.txt
+		fn='foreign-packages.txt'
 	fi
 
 	local package
