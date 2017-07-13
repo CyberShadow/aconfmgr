@@ -78,15 +78,35 @@ function CopyFile() {
 	local owner="${3:-}"
 	local group="${4:-}"
 
-	mkdir --parents "$(dirname "$output_dir"/files/"$file")"
+	CopyFileTo "$file" "$file" "$mode" "$owner" "$group"
+}
 
-	cp --no-dereference \
-	   "$config_dir"/files/"$file" \
-	   "$output_dir"/files/"$file"
+#
+# CopyFileTo SRC-PATH DST-PATH [MODE [OWNER [GROUP]]]
+#
+# Copies a file from the "files" subdirectory to the output,
+# under a different name or path.
+#
+# The source path should be relative to the root of the "files" subdirectory.
+# The destination path is relative to the root of the output directory.
+#
 
-	SetFileProperty "$file" mode  "$mode"
-	SetFileProperty "$file" owner "$owner"
-	SetFileProperty "$file" group "$group"
+function CopyFileTo() {
+  local src_file="$1"
+  local dst_file="$2"
+  local mode="${3:-}"
+  local owner="${4:-}"
+  local group="${5:-}"
+
+  mkdir --parents "$(dirname "$output_dir"/files/"$dst_file")"
+
+  cp --no-dereference\
+    "$config_dir"/files/"$src_file"\
+    "$output_dir"/files/"$dst_file"
+
+  SetFileProperty "$dst_file" mode  "$mode"
+  SetFileProperty "$dst_file" owner "$owner"
+  SetFileProperty "$dst_file" group "$group"
 }
 
 #
