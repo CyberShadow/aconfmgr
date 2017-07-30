@@ -98,6 +98,20 @@ function CopyFileTo() {
   local owner="${4:-}"
   local group="${5:-}"
 
+  if [[ "$src_file" != /* ]]
+  then
+	  Log "%s: Source file path %s is not absolute.\n" \
+		  "$(Color Y "Warning")" \
+		  "$(Color C "%q" "$src_file")"
+  fi
+
+  if [[ "$dst_file" != /* && "$dst_file" != "$src_file" ]]
+  then
+	  Log "%s: Target file path %s is not absolute.\n" \
+		  "$(Color Y "Warning")" \
+		  "$(Color C "%q" "$dst_file")"
+  fi
+
   mkdir --parents "$(dirname "$output_dir"/files/"$dst_file")"
 
   cp --no-dereference\
