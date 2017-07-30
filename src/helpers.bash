@@ -218,6 +218,24 @@ function SetFileProperty() {
 	local type="$2"
 	local value="$3"
 
+	local def
+
+	if [[ "$type" == mode ]]
+	then
+		def=$default_file_mode
+	elif [[ "$type" == owner || "$type" == group ]]
+	then
+		def=root
+	else
+		Log "Unknown file property type: %s\n" "$(Color Y %q "$type")"
+		Exit 1
+	fi
+
+	if [[ "$value" == "$def" ]]
+	then
+		value=
+	fi
+
 	printf "%s\t%s\t%q\n" "$type" "$value" "$file" >> "$output_dir"/file-props.txt
 }
 
