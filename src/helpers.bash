@@ -92,35 +92,35 @@ function CopyFile() {
 #
 
 function CopyFileTo() {
-  local src_file="$1"
-  local dst_file="$2"
-  local mode="${3:-}"
-  local owner="${4:-}"
-  local group="${5:-}"
+	local src_file="$1"
+	local dst_file="$2"
+	local mode="${3:-}"
+	local owner="${4:-}"
+	local group="${5:-}"
 
-  if [[ "$src_file" != /* ]]
-  then
-	  Log "%s: Source file path %s is not absolute.\n" \
-		  "$(Color Y "Warning")" \
-		  "$(Color C "%q" "$src_file")"
-  fi
+	if [[ "$src_file" != /* ]]
+	then
+		Log "%s: Source file path %s is not absolute.\n" \
+			"$(Color Y "Warning")" \
+			"$(Color C "%q" "$src_file")"
+	fi
 
-  if [[ "$dst_file" != /* && "$dst_file" != "$src_file" ]]
-  then
-	  Log "%s: Target file path %s is not absolute.\n" \
-		  "$(Color Y "Warning")" \
-		  "$(Color C "%q" "$dst_file")"
-  fi
+	if [[ "$dst_file" != /* && "$dst_file" != "$src_file" ]]
+	then
+		Log "%s: Target file path %s is not absolute.\n" \
+			"$(Color Y "Warning")" \
+			"$(Color C "%q" "$dst_file")"
+	fi
 
-  mkdir --parents "$(dirname "$output_dir"/files/"$dst_file")"
+	mkdir --parents "$(dirname "$output_dir"/files/"$dst_file")"
 
-  cp --no-dereference\
-    "$config_dir"/files/"$src_file"\
-    "$output_dir"/files/"$dst_file"
+	cp --no-dereference\
+	   "$config_dir"/files/"$src_file"\
+	   "$output_dir"/files/"$dst_file"
 
-  SetFileProperty "$dst_file" mode  "$mode"
-  SetFileProperty "$dst_file" owner "$owner"
-  SetFileProperty "$dst_file" group "$group"
+	SetFileProperty "$dst_file" mode  "$mode"
+	SetFileProperty "$dst_file" owner "$owner"
+	SetFileProperty "$dst_file" group "$group"
 }
 
 #
