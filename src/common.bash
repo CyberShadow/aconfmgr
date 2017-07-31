@@ -57,11 +57,6 @@ warn_tmp_df_threshold=$((1024*1024))  # Warn on error if free space in $tmp_dir 
 
 ####################################################################################################
 
-function AconfAddFile() {
-	local file="$1" # Absolute path of file to add
-	found_files+=("$file")
-}
-
 function LogLeaveDirStats() {
 	local dir="$1"
 	Log "Finalizing...\r"
@@ -137,7 +132,7 @@ function AconfCompileSystem() {
 
 	### Files
 
-	typeset -ag found_files
+	local -a found_files
 	found_files=()
 
 	# Lost files
@@ -205,7 +200,7 @@ BEGIN {
 				Log "%s\r" "$(Color C "%q" "$file")"
 			fi
 
-			AconfAddFile "$file"
+			found_files+=("$file")
 			lost_file_count=$((lost_file_count+1))
 
 			if [[ $lost_file_count -eq $warn_file_count_threshold ]]
@@ -257,7 +252,7 @@ BEGIN {
 					if [[ $ignored == n ]]
 					then
 						Log "%s: %s\n" "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
-						AconfAddFile "$file"
+						found_files+=("$file")
 						modified_file_count=$((modified_file_count+1))
 					fi
 				fi
