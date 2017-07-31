@@ -308,6 +308,9 @@ BEGIN {
 				Log "%s: copying large file '%s' (%s bytes). Add %s to configuration to ignore.\n" "$(Color Y "Warning")" "$(Color C "%q" "$file")" "$(Color G "$size")" "$(Color Y "IgnorePath %q" "$file")"
 			fi
 			( sudo cat "$file" ) > "$system_dir"/files/"$file"
+		elif [[ "$type" == "directory" ]]
+		then
+			mkdir --parents "$system_dir"/files/"$file"
 		else
 			Log "%s: Skipping file '%s' with unknown type '%s'. Add to %s to ignore.\n" "$(Color Y "Warning")" "$(Color C "%q" "$file")" "$(Color G "$type")" "$(Color Y "ignore_paths")"
 			continue
@@ -315,7 +318,16 @@ BEGIN {
 
 		{
 			local defmode
-			[[ "$type" == "symbolic link" ]] && defmode=777 || defmode=$default_file_mode
+			if [[ "$type" == "symbolic link" ]]
+			then
+				defmode=777
+			elif [[ "$type" == "directory" ]]
+			then
+				defmode=755
+			else
+				defmode=$default_file_mode
+			fi
+
 
 			[[  "$mode" == "$defmode" ]] || printf  "mode\t%s\t%q\n"  "$mode" "$file"
 			[[ "$owner" == root       ]] || printf "owner\t%s\t%q\n" "$owner" "$file"
