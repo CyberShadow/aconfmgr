@@ -229,38 +229,45 @@ BEGIN {
 
 	AconfNeedProgram paccheck pacutils y
 	local modified_file_count=0
+	local -A saw_file
 
 	sudo sh -c "stdbuf -o0 paccheck --md5sum --files --backup --noupgrade 2>&1 || true" | \
 		while read -r line
 		do
-			if [[ $line =~ ^(.*):\ \'(.*)\'\ md5sum\ mismatch ]]
+			if [[ $line =~ ^(.*):\ \'(.*)\'\ (type|size|modification\ time|md5sum)\ mismatch ]]
 			then
 				local package="${BASH_REMATCH[1]}"
 				local file="${BASH_REMATCH[2]}"
 
-				local ignored=n
-				for ignore_path in "${ignore_paths[@]}"
-				do
-					# shellcheck disable=SC2053
-					if [[ "$file" == $ignore_path ]]
-					then
-						ignored=y
-						break
-					fi
-				done
-
-				if [[ $ignored == n ]]
+				if [[ -z "${saw_file[$file]+x}" ]]
 				then
-					Log "%s: %s\n" "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
-					AconfAddFile "$file"
-					modified_file_count=$((modified_file_count+1))
-				fi
+					saw_file[$file]=y
 
-			elif [[ $line =~ ^(.*):\  ]]
+					local ignored=n
+					for ignore_path in "${ignore_paths[@]}"
+					do
+						# shellcheck disable=SC2053
+						if [[ "$file" == $ignore_path ]]
+						then
+							ignored=y
+							break
+						fi
+					done
+
+					if [[ $ignored == n ]]
+					then
+						Log "%s: %s\n" "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
+						AconfAddFile "$file"
+						modified_file_count=$((modified_file_count+1))
+					fi
+				fi
+			elif [[ $line =~ ^(.*):\ all\ files\ match\ (database|mtree|mtree\ md5sums)$ ]]
 			then
 				local package="${BASH_REMATCH[1]}"
 				Log "%s...\r" "$(Color M "%q" "$package")"
 				#echo "Now at ${BASH_REMATCH[1]}"
+			else
+				Log "Unknown paccheck output line: %s\n" "$(Color Y "%q" "$line")"
 			fi
 		done
 	LogLeave "Done (%s modified files).\n" "$(Color G %s $modified_file_count)"
