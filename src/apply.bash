@@ -353,6 +353,9 @@ function AconfApply() {
 		LogLeave
 	fi
 
+	local -a files_to_delete=()
+	local -a files_to_restore=()
+
 	if [[ ${#system_only_files[@]} != 0 ]]
 	then
 		LogEnter "Processing system-only files...\n"
@@ -361,95 +364,97 @@ function AconfApply() {
 
 		LogEnter "Filtering system-only lost files...\n"
 		tr '\n' '\0' < "$tmp_dir"/managed-files > "$tmp_dir"/managed-files-0
-		local system_only_lost_files=()
+		local system_only_lost_files=0
 		comm -13 --zero-terminated "$tmp_dir"/managed-files-0 <(Print0Array system_only_files) | \
 			while read -r -d $'\0' file
 			do
-				system_only_lost_files+=("$file")
+				files_to_delete+=("$file")
+				system_only_lost_files=$((system_only_lost_files+1))
 			done
-		LogLeave "Done (%s system-only lost files).\n" "$(Color G %s ${#system_only_lost_files[@]})"
-
-		if [[ ${#system_only_lost_files[@]} != 0 ]]
-		then
-			LogEnter "Deleting %s extra lost files.\n" "$(Color G ${#system_only_lost_files[@]})"
-
-			# shellcheck disable=2059
-			function Details() {
-				Log "Deleting the following files:\n"
-				printf "$(Color W "*") $(Color C "%s" "%s")\n" "${system_only_lost_files[@]}"
-			}
-			Confirm Details
-
-			for file in "${system_only_lost_files[@]}"
-			do
-				LogEnter "Deleting %s...\n" "$(Color C "%q" "$file")"
-				ParanoidConfirm ''
-				sudo rm "$file"
-
-				for prop in "${all_file_property_kinds[@]}"
-				do
-					local key="$file:$prop"
-					unset "system_file_props[\$key]"
-				done
-
-				LogLeave ''
-			done
-
-			modified=y
-			LogLeave
-		fi
+		LogLeave "Done (%s system-only lost files).\n" "$(Color G %s $system_only_lost_files)"
 
 		# Restore unknown managed files (files not present in config and belonging to a package)
 
 		LogEnter "Filtering system-only managed files...\n"
-		local system_only_managed_files=()
+		local system_only_managed_files=0
 		comm -12 --zero-terminated "$tmp_dir"/managed-files-0 <(Print0Array system_only_files) | \
 			while read -r -d $'\0' file
 			do
-				system_only_managed_files+=("$file")
+				files_to_restore+=("$file")
+				system_only_managed_files=$((system_only_managed_files+1))
 			done
-		LogLeave "Done (%s system-only managed files).\n" "$(Color G %s ${#system_only_managed_files[@]})"
+		LogLeave "Done (%s system-only managed files).\n" "$(Color G %s $system_only_managed_files)"
 
-		if [[ ${#system_only_managed_files[@]} != 0 ]]
-		then
-			LogEnter "Restoring %s extra managed files.\n" "$(Color G ${#system_only_managed_files[@]})"
+		LogLeave # Processing system-only files
+	fi
 
-			# shellcheck disable=2059
-			function Details() {
-				Log "Restoring the following files:\n"
-				printf "$(Color W "*") $(Color C "%s" "%s")\n" "${system_only_managed_files[@]}"
-			}
-			Confirm Details
+	if [[ ${#files_to_delete[@]} != 0 ]]
+	then
+		LogEnter "Deleting %s files.\n" "$(Color G ${#files_to_delete[@]})"
 
-			for file in "${system_only_managed_files[@]}"
+		# shellcheck disable=2059
+		function Details() {
+			Log "Deleting the following files:\n"
+			printf "$(Color W "*") $(Color C "%s" "%s")\n" "${files_to_delete[@]}"
+		}
+		Confirm Details
+
+		for file in "${files_to_delete[@]}"
+		do
+			LogEnter "Deleting %s...\n" "$(Color C "%q" "$file")"
+			ParanoidConfirm ''
+			sudo rm "$file"
+
+			for prop in "${all_file_property_kinds[@]}"
 			do
-				local package
-				package="$(pacman --query --owns --quiet "$file")"
-
-				LogEnter "Restoring %s file %s...\n" "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
-				function Details() {
-					AconfNeedProgram diff diffutils n
-					AconfGetPackageOriginalFile "$package" "$file" | ( "${diff_opts[@]}" --unified <(SuperCat "$file") - || true )
-				}
-				ParanoidConfirm Details
-
-				# Remove existing file, in case it is the wrong type (e.g. symlink)
-				sudo rm --force --dir "$file"
-
-				# Unpack directly over /, so that attributes such as
-				# modification time are automatically applied
-				local package_file
-				package_file="$(AconfNeedPackageFile "$package")"
-				# --no-fflags necessary due to https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=699499
-				sudo bsdtar -x --directory / --fast-read --no-fflags --file "$package_file" "${file/\//}"
-
-				LogLeave ''
+				local key="$file:$prop"
+				unset "system_file_props[\$key]"
 			done
 
-			modified=y
-			LogLeave
-		fi
+			LogLeave ''
+		done
 
+		modified=y
+		LogLeave
+	fi
+
+	if [[ ${#files_to_restore[@]} != 0 ]]
+	then
+		LogEnter "Restoring %s files.\n" "$(Color G ${#files_to_restore[@]})"
+
+		# shellcheck disable=2059
+		function Details() {
+			Log "Restoring the following files:\n"
+			printf "$(Color W "*") $(Color C "%s" "%s")\n" "${files_to_restore[@]}"
+		}
+		Confirm Details
+
+		for file in "${files_to_restore[@]}"
+		do
+			local package
+			package="$(pacman --query --owns --quiet "$file")"
+
+			LogEnter "Restoring %s file %s...\n" "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
+			function Details() {
+				AconfNeedProgram diff diffutils n
+				AconfGetPackageOriginalFile "$package" "$file" | ( "${diff_opts[@]}" --unified <(SuperCat "$file") - || true )
+			}
+			ParanoidConfirm Details
+
+			# Remove existing file, in case it is the wrong type (e.g. symlink)
+			sudo rm --force --dir "$file"
+
+			# Unpack directly over /, so that attributes such as
+			# modification time are automatically applied
+			local package_file
+			package_file="$(AconfNeedPackageFile "$package")"
+			# --no-fflags necessary due to https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=699499
+			sudo bsdtar -x --directory / --fast-read --no-fflags --file "$package_file" "${file/\//}"
+
+			LogLeave ''
+		done
+
+		modified=y
 		LogLeave
 	fi
 
