@@ -419,7 +419,17 @@ function AconfApply() {
 					AconfGetPackageOriginalFile "$package" "$file" | ( "${diff_opts[@]}" --unified <(SuperCat "$file") - || true )
 				}
 				ParanoidConfirm Details
-				AconfGetPackageOriginalFile "$package" "$file" | sudo tee "$file" > /dev/null
+
+				# Remove existing file, in case it is the wrong type (e.g. symlink)
+				sudo rm --force --dir "$file"
+
+				# Unpack directly over /, so that attributes such as
+				# modification time are automatically applied
+				local package_file
+				package_file="$(AconfNeedPackageFile "$package")"
+				# --no-fflags necessary due to https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=699499
+				sudo bsdtar -x --directory / --fast-read --no-fflags --file "$package_file" "${file/\//}"
+
 				LogLeave ''
 			done
 
