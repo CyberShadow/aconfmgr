@@ -10,12 +10,20 @@ function AconfApply() {
 		local value="$2"
 		local file="$3"
 
-		value="${value:-(default value)}"
+		local value_text
+		if [[ -z "$value" ]]
+		then
+			local default_value
+			default_value="$(AconfDefaultFileProp "$file" "$kind")"
+			value_text="$(printf "%s (default value)" "$(Color G "%s" "$default_value")")"
+		else
+			value_text="$(Color G "%s" "$value")"
+		fi
 
 		Log "Setting %s of %s to %s\n"	\
 			"$(Color Y "%s" "$kind")"	\
 			"$(Color C "%q" "$file")"	\
-			"$(Color G "%s" "$value")"
+			"$value_text"
 	}
 
 	function ApplyFileProperty() {
@@ -25,15 +33,20 @@ function AconfApply() {
 
 		PrintFileProperty "$kind" "$value" "$file"
 
+		if [[ -z "$value" ]]
+		then
+			value="$(AconfDefaultFileProp "$file" "$kind")"
+		fi
+
 		case "$kind" in
 			mode)
-				sudo chmod "${value:-$default_file_mode}" "$file"
+				sudo chmod "$value" "$file"
 				;;
 			owner)
-				sudo chown --no-dereference "${value:-root}" "$file"
+				sudo chown --no-dereference "$value" "$file"
 				;;
 			group)
-				sudo chgrp --no-dereference "${value:-root}" "$file"
+				sudo chgrp --no-dereference "$value" "$file"
 				;;
 			*)
 				Log "Unknown property %s with value %s for file %s"	\

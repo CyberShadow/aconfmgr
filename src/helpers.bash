@@ -68,8 +68,10 @@ function IgnorePackage() {
 #
 # The specified path should be relative to the root of the "files" subdirectory.
 #
-# If MODE, OWNER and GROUP are unspecified, they default to
+# If MODE, OWNER and GROUP are blank or unspecified, they default to
 # "644", "root" and "root" respectively for new files.
+# Values corresponding to the above defaults must be specified
+# as an empty string ('').
 #
 
 function CopyFile() {
@@ -212,29 +214,14 @@ function RemoveFile() {
 # Sets a file property.
 # TYPE can be "owner", "group" or "mode".
 #
+# To reset a file property to its default value,
+# specify an empty string ('') for the VALUE parameter.
+#
 
 function SetFileProperty() {
 	local file="$1"
 	local type="$2"
 	local value="$3"
-
-	local def
-
-	if [[ "$type" == mode ]]
-	then
-		def=$default_file_mode
-	elif [[ "$type" == owner || "$type" == group ]]
-	then
-		def=root
-	else
-		Log "Unknown file property type: %s\n" "$(Color Y %q "$type")"
-		Exit 1
-	fi
-
-	if [[ "$value" == "$def" ]]
-	then
-		value=
-	fi
 
 	printf "%s\t%s\t%q\n" "$type" "$value" "$file" >> "$output_dir"/file-props.txt
 }

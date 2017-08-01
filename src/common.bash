@@ -122,6 +122,7 @@ function AconfCompileSystem() {
 	mkdir --parents "$system_dir"
 	mkdir "$system_dir"/files
 	touch "$system_dir"/file-props.txt
+	touch "$system_dir"/orig-file-props.txt
 
 	### Packages
 
@@ -134,6 +135,10 @@ function AconfCompileSystem() {
 
 	local -a found_files
 	found_files=()
+
+	# whether the contents is different from the original
+	local -A found_file_edited
+	found_file_edited=()
 
 	# Lost files
 
@@ -201,6 +206,7 @@ BEGIN {
 			fi
 
 			found_files+=("$file")
+			found_file_edited[$file]=y
 			lost_file_count=$((lost_file_count+1))
 
 			if [[ $lost_file_count -eq $warn_file_count_threshold ]]
@@ -226,34 +232,69 @@ BEGIN {
 	local modified_file_count=0
 	local -A saw_file
 
-	sudo sh -c "stdbuf -o0 paccheck --md5sum --files --backup --noupgrade 2>&1 || true" | \
+	# Tentative tracking of original file properties.
+	# The canonical version is read from orig-file-props.txt in AconfAnalyzeFiles
+	unset orig_file_props ; typeset -Ag orig_file_props
+
+	sudo sh -c "stdbuf -o0 paccheck --md5sum --files --file-properties --backup --noupgrade 2>&1 || true" | \
 		while read -r line
 		do
-			if [[ $line =~ ^(.*):\ \'(.*)\'\ (type|size|modification\ time|md5sum)\ mismatch ]]
+			if [[ $line =~ ^(.*):\ \'(.*)\'\ (type|size|modification\ time|md5sum|UID|GID|permission|symlink\ target)\ mismatch\ \(expected\ (.*)\)$ ]]
 			then
 				local package="${BASH_REMATCH[1]}"
 				local file="${BASH_REMATCH[2]}"
+				local kind="${BASH_REMATCH[3]}"
+				local value="${BASH_REMATCH[4]}"
 
-				if [[ -z "${saw_file[$file]+x}" ]]
-				then
-					saw_file[$file]=y
-
-					local ignored=n
-					for ignore_path in "${ignore_paths[@]}"
-					do
-						# shellcheck disable=SC2053
-						if [[ "$file" == $ignore_path ]]
-						then
-							ignored=y
-							break
-						fi
-					done
-
-					if [[ $ignored == n ]]
+				local ignored=n
+				for ignore_path in "${ignore_paths[@]}"
+				do
+					# shellcheck disable=SC2053
+					if [[ "$file" == $ignore_path ]]
 					then
+						ignored=y
+						break
+					fi
+				done
+
+				if [[ $ignored == n ]]
+				then
+					if [[ -z "${saw_file[$file]+x}" ]]
+					then
+						saw_file[$file]=y
 						Log "%s: %s\n" "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
 						found_files+=("$file")
 						modified_file_count=$((modified_file_count+1))
+					fi
+
+					local prop
+					case "$kind" in
+						UID)
+							prop=owner
+							value=${value#*/}
+							;;
+						GID)
+							prop=group
+							value=${value#*/}
+							;;
+						permission)
+							prop=mode
+							;;
+						type|size|modification\ time|md5sum|symlink\ target)
+							prop=
+							found_file_edited[$file]=y
+							;;
+						*)
+							prop=
+							;;
+					esac
+
+					if [[ -n "$prop" ]]
+					then
+						local key="$file:$prop"
+						orig_file_props[$key]=$value
+
+						printf "%s\t%s\t%q\n" "$prop" "$value" "$file" >> "$system_dir"/orig-file-props.txt
 					fi
 				fi
 			elif [[ $line =~ ^(.*):\ all\ files\ match\ (database|mtree|mtree\ md5sums)$ ]]
@@ -297,41 +338,56 @@ BEGIN {
 		local owner="${found_file_owners[$i]}"
 		local group="${found_file_groups[$i]}"
 
-		mkdir --parents "$(dirname "$system_dir"/files/"$file")"
-		if [[ "$type" == "symbolic link" ]]
+		if [[ -n "${found_file_edited[$file]+x}" ]]
 		then
-			ln -s "$(sudo readlink "$file")" "$system_dir"/files/"$file"
-		elif [[ "$type" == "regular file" || "$type" == "regular empty file" ]]
-		then
-			if [[ $size -gt $warn_size_threshold ]]
+			mkdir --parents "$(dirname "$system_dir"/files/"$file")"
+			if [[ "$type" == "symbolic link" ]]
 			then
-				Log "%s: copying large file '%s' (%s bytes). Add %s to configuration to ignore.\n" "$(Color Y "Warning")" "$(Color C "%q" "$file")" "$(Color G "$size")" "$(Color Y "IgnorePath %q" "$file")"
+				ln -s "$(sudo readlink "$file")" "$system_dir"/files/"$file"
+			elif [[ "$type" == "regular file" || "$type" == "regular empty file" ]]
+			then
+				if [[ $size -gt $warn_size_threshold ]]
+				then
+					Log "%s: copying large file '%s' (%s bytes). Add %s to configuration to ignore.\n" "$(Color Y "Warning")" "$(Color C "%q" "$file")" "$(Color G "$size")" "$(Color Y "IgnorePath %q" "$file")"
+				fi
+				( sudo cat "$file" ) > "$system_dir"/files/"$file"
+			elif [[ "$type" == "directory" ]]
+			then
+				mkdir --parents "$system_dir"/files/"$file"
+			else
+				Log "%s: Skipping file '%s' with unknown type '%s'. Add to %s to ignore.\n" "$(Color Y "Warning")" "$(Color C "%q" "$file")" "$(Color G "$type")" "$(Color Y "ignore_paths")"
+				continue
 			fi
-			( sudo cat "$file" ) > "$system_dir"/files/"$file"
-		elif [[ "$type" == "directory" ]]
-		then
-			mkdir --parents "$system_dir"/files/"$file"
-		else
-			Log "%s: Skipping file '%s' with unknown type '%s'. Add to %s to ignore.\n" "$(Color Y "Warning")" "$(Color C "%q" "$file")" "$(Color G "$type")" "$(Color Y "ignore_paths")"
-			continue
 		fi
 
 		{
-			local defmode
-			if [[ "$type" == "symbolic link" ]]
-			then
-				defmode=777
-			elif [[ "$type" == "directory" ]]
-			then
-				defmode=755
-			else
-				defmode=$default_file_mode
-			fi
+			for prop in mode owner group
+			do
+				local value
+				eval "value=\$$prop"
 
+				local default_value
 
-			[[  "$mode" == "$defmode" ]] || printf  "mode\t%s\t%q\n"  "$mode" "$file"
-			[[ "$owner" == root       ]] || printf "owner\t%s\t%q\n" "$owner" "$file"
-			[[ "$group" == root       ]] || printf "group\t%s\t%q\n" "$group" "$file"
+				if [[ $i -lt $lost_file_count ]]
+				then
+					# For lost files, the default owner/group is root/root,
+					# and the default mode depends on the type.
+					# Let AconfDefaultFileProp get the correct default value for us.
+
+					default_value=
+				else
+					# For owned files, we assume that the defaults are the
+					# files' current properties, unless paccheck said
+					# otherwise.
+
+					default_value=$value
+				fi
+
+				local orig_value
+				orig_value=$(AconfDefaultFileProp "$file" "$prop" "$type" "$default_value")
+
+				[[ "$value" == "$orig_value" ]] || printf "%s\t%s\t%q\n" "$prop" "$value" "$file"
+			done
 		} >> "$system_dir"/file-props.txt
 	done
 
@@ -343,6 +399,51 @@ BEGIN {
 ####################################################################################################
 
 typeset -A file_property_kind_exists
+
+# Print to stdout the original/default value of the given file property.
+# Uses orig_file_props entry if present.
+function AconfDefaultFileProp() {
+	local file=$1 # Absolute path to the file
+	local prop=$2 # Name of the property (owner, group, or mode)
+	local type="${3:-}" # Type of the file, as identified by `stat --format=%F`
+	local default="${4:-}" # Default value, returned if we don't know the original file property.
+
+	local key="$file:$prop"
+
+	if [[ -n "${orig_file_props[$key]+x}" ]]
+	then
+		printf "%s" "${orig_file_props[$key]}"
+		return
+	fi
+
+	if [[ -n "$default" ]]
+	then
+		printf "%s" "$default"
+		return
+	fi
+
+	case "$prop" in
+		mode)
+			if [[ -z "$type" ]]
+			then
+				type=$(sudo env LC_ALL=C stat --format=%F "$file")
+			fi
+
+			if [[ "$type" == "symbolic link" ]]
+			then
+				printf 777
+			elif [[ "$type" == "directory" ]]
+			then
+				printf 755
+			else
+				printf "%s" "$default_file_mode"
+			fi
+			;;
+		owner|group)
+			printf "root"
+			;;
+	esac
+}
 
 # Read a file-props.txt file into an associative array.
 function AconfReadFileProps() {
@@ -468,8 +569,10 @@ function AconfAnalyzeFiles() {
 	LogEnter "Examining file properties...\n"
 
 	LogEnter "Loading data...\n"
+	unset orig_file_props # Also populated by AconfCompileSystem, so that it can be used by AconfDefaultFileProp
 	typeset -Ag output_file_props ; AconfReadFileProps "$output_dir"/file-props.txt output_file_props
 	typeset -Ag system_file_props ; AconfReadFileProps "$system_dir"/file-props.txt system_file_props
+	typeset -Ag   orig_file_props ; AconfReadFileProps "$system_dir"/orig-file-props.txt orig_file_props
 	LogLeave
 
 	typeset -ag all_file_property_kinds
