@@ -518,9 +518,6 @@ function AconfCompareFileProps() {
 	LogLeave
 }
 
-# fixed by `shopt -s lastpipe`:
-# shellcheck disable=2030,2031
-
 # Compare file information in $output_dir and $system_dir.
 function AconfAnalyzeFiles() {
 
