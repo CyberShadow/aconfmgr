@@ -197,7 +197,7 @@ function CreateLink() {
 # Removes an earlier-added file.
 #
 # Emitted by `aconfmgr save` when a file is present in the configuration,
-# but absent on the system.
+# but absent (or, in case of files owned by packages, unmodified) on the system.
 #
 # You should refactor out any occurrences of this function from your configuration.
 #
