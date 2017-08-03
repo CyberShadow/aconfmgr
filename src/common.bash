@@ -236,7 +236,7 @@ BEGIN {
 	# The canonical version is read from orig-file-props.txt in AconfAnalyzeFiles
 	unset orig_file_props ; typeset -Ag orig_file_props
 
-	sudo sh -c "stdbuf -o0 paccheck --md5sum --files --file-properties --backup --noupgrade 2>&1 || true" | \
+	sudo sh -c "LC_ALL=C stdbuf -o0 paccheck --md5sum --files --file-properties --backup --noupgrade 2>&1 || true" | \
 		while read -r line
 		do
 			if [[ $line =~ ^(.*):\ \'(.*)\'\ (type|size|modification\ time|md5sum|UID|GID|permission|symlink\ target)\ mismatch\ \(expected\ (.*)\)$ ]]
