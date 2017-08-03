@@ -53,7 +53,7 @@ function AconfApply() {
 					"$(Color Y "%q" "$kind")"						\
 					"$(Color G "%q" "$value")"						\
 					"$(Color C "%q" "$file")"
-				exit 1
+				Exit 1
 				;;
 		esac
 	}
@@ -463,7 +463,30 @@ function AconfApply() {
 		for file in "${files_to_restore[@]}"
 		do
 			local package
-			package="$(pacman --query --owns --quiet "$file")"
+
+			# Ensure file exists, to work around pacman's inability to
+			# query ownership of non-existing files. See:
+			# https://lists.archlinux.org/pipermail/pacman-dev/2017-August/022107.html
+			local absent=false
+			if ! sudo stat "$file" > /dev/null
+			then
+				Log "Temporarily creating file %s for package query...\n" "$(Color C "%q" "$file")"
+				sudo touch "$file"
+				absent=true
+			fi
+
+			package="$(pacman --query --owns --quiet "$file" || true)"
+
+			if $absent
+			then
+				sudo rm "$file"
+			fi
+
+			if [[ -z "$package" ]]
+			then
+				Log "Can't find owner of file %s\n" "$(Color C "%q" "$file")"
+				Exit 1
+			fi
 
 			LogEnter "Restoring %s file %s...\n" "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
 			function Details() {
