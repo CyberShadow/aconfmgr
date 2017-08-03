@@ -297,6 +297,17 @@ BEGIN {
 						printf "%s\t%s\t%q\n" "$prop" "$value" "$file" >> "$system_dir"/orig-file-props.txt
 					fi
 				fi
+			elif [[ $line =~ ^(.*):\ \'(.*)\'\ missing\ file$ ]]
+			then
+				local package="${BASH_REMATCH[1]}"
+				local file="${BASH_REMATCH[2]}"
+				Log "%s (missing)...\r" "$(Color M "%q" "$package")"
+				printf "%s\t%s\t%q\n" "deleted" "y" "$file" >> "$system_dir"/file-props.txt
+			elif [[ $line =~ ^warning:\ (.*):\ \'(.*)\'\ read\ error\ \(No\ such\ file\ or\ directory\)$ ]]
+			then
+				local package="${BASH_REMATCH[1]}"
+				local file="${BASH_REMATCH[2]}"
+				printf "%s\t%s\t%q\n" "deleted" "y" "$file" >> "$system_dir"/file-props.txt
 			elif [[ $line =~ ^(.*):\ all\ files\ match\ (database|mtree|mtree\ md5sums)$ ]]
 			then
 				local package="${BASH_REMATCH[1]}"

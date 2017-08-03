@@ -388,6 +388,37 @@ function AconfApply() {
 		LogLeave # Processing system-only files
 	fi
 
+	LogEnter "Processing deleted files...\n"
+
+	if [[ ${#config_only_file_props[@]} != 0 ]]
+	then
+
+		for key in "${config_only_file_props[@]}"
+		do
+			if [[ "$key" == *:deleted ]]
+			then
+				local file="${key%:*}"
+				files_to_delete+=("$file")
+				unset "output_file_props[\$key]"
+			fi
+		done
+	fi
+
+	if [[ ${#system_only_file_props[@]} != 0 ]]
+	then
+		for key in "${system_only_file_props[@]}"
+		do
+			if [[ "$key" == *:deleted ]]
+			then
+				local file="${key%:*}"
+				files_to_restore+=("$file")
+				unset "system_file_props[\$key]"
+			fi
+		done
+	fi
+
+	LogLeave # Processing deleted files
+
 	if [[ ${#files_to_delete[@]} != 0 ]]
 	then
 		LogEnter "Deleting %s files.\n" "$(Color G ${#files_to_delete[@]})"

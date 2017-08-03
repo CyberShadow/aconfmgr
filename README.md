@@ -267,7 +267,6 @@ Another difference is that `NixOS` provides a specialized syntax for many common
 
 - Dependencies where more than one package provides something (e.g. `fcron` and `cronie` provide `cron`) are not tracked, and the desired dependency must be pinned or added to the configuration manually.
 - Installing AUR packages that depend on virtual packages (such as `java-environment`) is not currently implemented. The desired dependency can be manually specified in the configuration, or a supported AUR helper can be used instead.
-- Files owned by a package that have been deleted on the system are currently not tracked.
 - Empty directories and directory attributes are not tracked.
 
 ## License

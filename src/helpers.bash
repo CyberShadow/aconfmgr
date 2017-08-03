@@ -212,7 +212,9 @@ function RemoveFile() {
 # SetFileProperty PATH TYPE VALUE
 #
 # Sets a file property.
-# TYPE can be "owner", "group" or "mode".
+# TYPE can be "owner", "group" "mode", or "deleted".
+#
+# Set "deleted" to "y" to mark a file owned by some package for deletion.
 #
 # To reset a file property to its default value,
 # specify an empty string ('') for the VALUE parameter.
