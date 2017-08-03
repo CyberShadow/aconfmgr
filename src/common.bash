@@ -146,15 +146,18 @@ function AconfCompileSystem() {
 	local ignore_path
 	for ignore_path in "${ignore_paths[@]}"
 	do
-		ignore_args+=(-wholename "$ignore_path" -prune -o)
+		ignore_args+=(-wholename "$ignore_path" -o)
 	done
 
 	LogEnter "Enumerating managed files...\n"
 	mkdir --parents "$tmp_dir"
-	pacman --query --list --quiet | sed '/\/$/d' | sort --unique > "$tmp_dir"/managed-files
+	pacman --query --list --quiet | sed 's#\/$##' | sort --unique > "$tmp_dir"/managed-files
 	LogLeave
 
 	LogEnter "Searching for lost files...\n"
+
+	local line
+	local -Ag ignored_dirs
 
 	# Progress display - only show file names once per second
 	exec {progress_fd}> \
@@ -171,8 +174,9 @@ BEGIN {
         system(""); # https://unix.stackexchange.com/a/83853/4830
 	}
 }' | \
-				while read -r -d $'\0' path
+				while read -r -d $'\0' line
 				do
+					local path=${line:1}
 					path=${path%/*} # Never show files, only directories
 					while [[ ${#path} -gt 40 ]]
 					do
@@ -183,46 +187,107 @@ BEGIN {
 		  )
 
 	local lost_file_count=0
-	local file line
-	(												\
-		sudo find / -not \(							\
-			 "${ignore_args[@]}"					\
-			 -type d								\
-			 \) -print0								\
+	(
+		sudo find /									\
+			 -not									\
+			 \(										\
+			 	\(									\
+					"${ignore_args[@]}"				\
+					-false							\
+				\)									\
+				-printf 'I' -print0 -prune			\
+			\)										\
+			-printf 'O' -print0						\
 			| tee /dev/fd/$progress_fd				\
 			| grep									\
 				  --null --null-data				\
 				  --invert-match					\
 				  --fixed-strings					\
 				  --line-regexp						\
-				  --file "$tmp_dir"/managed-files	\
+				  --file							\
+				  <( < "$tmp_dir"/managed-files		\
+					   sed -e 's#^#O#'				\
+				   )								\
 	) |												\
-		while read -r -d $'\0' file
+		while read -r -d $'\0' line
 		do
-			#echo "ignore_paths+='$file' # "
-			if ((verbose))
-			then
-				Log "%s\r" "$(Color C "%q" "$file")"
-			fi
+			local file
+			file=${line:1}
+			action=${line:0:1}
 
-			found_files+=("$file")
-			found_file_edited[$file]=y
-			lost_file_count=$((lost_file_count+1))
+			case "$action" in
+				O) # Lost file
+					#echo "ignore_paths+='$file' # "
+					if ((verbose))
+					then
+						Log "%s\r" "$(Color C "%q" "$file")"
+					fi
 
-			if [[ $lost_file_count -eq $warn_file_count_threshold ]]
-			then
-				LogEnter "%s: reached %s lost files while in directory %s.\n" \
-					"$(Color Y "Warning")" \
-					"$(Color G "$lost_file_count")" \
-					"$(Color C "%q" "$(dirname "$file")")"
-				LogLeave "Perhaps add %s (or a parent directory) to configuration to ignore it.\n" \
-					"$(Color Y "IgnorePath %q" "$(dirname "$file")"/'*')"
-			fi
+					found_files+=("$file")
+					found_file_edited[$file]=y
+					lost_file_count=$((lost_file_count+1))
+
+					if [[ $lost_file_count -eq $warn_file_count_threshold ]]
+					then
+						LogEnter "%s: reached %s lost files while in directory %s.\n" \
+							"$(Color Y "Warning")" \
+							"$(Color G "$lost_file_count")" \
+							"$(Color C "%q" "$(dirname "$file")")"
+						LogLeave "Perhaps add %s (or a parent directory) to configuration to ignore it.\n" \
+							"$(Color Y "IgnorePath %q" "$(dirname "$file")"/'*')"
+					fi
+					;;
+				I) # Ignored
+
+					# For convenience, we want to also ignore
+					# directories which contain only ignored files.
+					#
+					# This is so that a rule such as:
+					#
+					# IgnorePath '/foo/bar/baz/*.log'
+					#
+					# does not cause `aconfmgr save` to still emit lines like
+					#
+					# CreateDir /foo/bar
+					# CreateDir /foo/bar/baz
+					#
+					# However, we can't simply exclude parent dirs of
+					# excluded files from the file list, as then they
+					# will show up as missing in the diff against the
+					# compiled configuration. So, later we remove
+					# parent directories of any found un-ignored
+					# files.
+
+					local path="$file"
+					while [[ -n "$path" ]]
+					do
+						ignored_dirs[$path]=y
+						path=${path%/*}
+					done
+					;;
+			esac
 		done
 
 	LogLeave "Done (%s lost files).\n" "$(Color G %s $lost_file_count)"
 
 	exec {progress_fd}<&-
+
+	LogEnter "Cleaning up ignored files' directories...\n"
+
+	for file in "${found_files[@]}"
+	do
+		if [[ -z "${ignored_dirs[$file]+x}" ]]
+		then
+			local path="$file"
+			while [[ -n "$path" ]]
+			do
+				unset "ignored_dirs[\$path]"
+				path=${path%/*}
+			done
+		fi
+	done
+
+	LogLeave
 
 	# Modified files
 
@@ -348,6 +413,11 @@ BEGIN {
 		local  mode="${found_file_modes[$i]}"
 		local owner="${found_file_owners[$i]}"
 		local group="${found_file_groups[$i]}"
+
+		if [[ "${ignored_dirs[$file]-n}" == y ]]
+		then
+			continue
+		fi
 
 		if [[ -n "${found_file_edited[$file]+x}" ]]
 		then
@@ -529,8 +599,8 @@ function AconfAnalyzeFiles() {
 
 	LogEnter "Loading data...\n"
 	mkdir --parents "$tmp_dir"
-	( cd "$output_dir"/files && find . -not -type d -print0 ) | cut --zero-terminated -c 2- | sort --zero-terminated > "$tmp_dir"/output-files
-	( cd "$system_dir"/files && find . -not -type d -print0 ) | cut --zero-terminated -c 2- | sort --zero-terminated > "$tmp_dir"/system-files
+	( cd "$output_dir"/files && find . -mindepth 1 -print0 ) | cut --zero-terminated -c 2- | sort --zero-terminated > "$tmp_dir"/output-files
+	( cd "$system_dir"/files && find . -mindepth 1 -print0 ) | cut --zero-terminated -c 2- | sort --zero-terminated > "$tmp_dir"/system-files
 	LogLeave
 
 	Log "Comparing file data...\n"
@@ -549,6 +619,13 @@ function AconfAnalyzeFiles() {
 	( comm -12 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files ) | \
 		while read -r -d $'\0' file
 		do
+			local type
+			type=$(sudo env LC_ALL=C stat --format=%F "$file")
+			if [[ "$type" == "directory" ]]
+			then
+				continue
+			fi
+
 			if ! diff --no-dereference --brief "$output_dir"/files/"$file" "$system_dir"/files/"$file" > /dev/null
 			then
 				Log "Changed: %s\n" "$(Color C "%q" "$file")"

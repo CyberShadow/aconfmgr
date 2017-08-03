@@ -430,11 +430,16 @@ function AconfApply() {
 		}
 		Confirm Details
 
-		for file in "${files_to_delete[@]}"
+		# Iterate backwards, so that inner files/directories are
+		# deleted before their parent ones.
+		local i
+		for (( i=${#files_to_delete[@]}-1 ; i >= 0 ; i-- ))
 		do
+			local file="${files_to_delete[$i]}"
+
 			LogEnter "Deleting %s...\n" "$(Color C "%q" "$file")"
 			ParanoidConfirm ''
-			sudo rm "$file"
+			sudo rm --dir "$file"
 
 			for prop in "${all_file_property_kinds[@]}"
 			do
@@ -502,8 +507,7 @@ function AconfApply() {
 			# modification time are automatically applied
 			local package_file
 			package_file="$(AconfNeedPackageFile "$package")"
-			# --no-fflags necessary due to https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=699499
-			sudo bsdtar -x --directory / --fast-read --no-fflags --file "$package_file" "${file/\//}"
+			sudo tar x --directory / --file "$package_file" --no-recursion  "${file/\//}"
 
 			LogLeave ''
 		done

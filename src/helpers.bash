@@ -192,6 +192,30 @@ function CreateLink() {
 }
 
 #
+# CreateDir PATH [MODE [OWNER [GROUP]]]
+#
+# Creates an empty directory at the specified path.
+#
+# Normally calling this function is not necessary, as creating files
+# will implicitly create all parent directories. Use this function
+# only when you need to create an empty directory without any files in
+# it.
+#
+
+function CreateDir() {
+	local file="$1"
+	local mode="${2:-}"
+	local owner="${3:-}"
+	local group="${4:-}"
+
+	mkdir --parents "$output_dir"/files/"$file"
+
+	SetFileProperty "$file" mode  "$mode"
+	SetFileProperty "$file" owner "$owner"
+	SetFileProperty "$file" group "$group"
+}
+
+#
 # RemoveFile PATH
 #
 # Removes an earlier-added file.

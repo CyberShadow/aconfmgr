@@ -138,6 +138,11 @@ function AconfSave() {
 					func=CreateLink
 					args=("$file" "$(readlink "$system_file")")
 					props=(owner group)
+				elif [[ "$type" == "directory" ]]
+				then
+					func=CreateDir
+					args=("$file")
+					props=(mode owner group)
 				else
 					size=$(LC_ALL=C stat --format=%s "$system_file")
 					if [[ $size == 0 ]]
