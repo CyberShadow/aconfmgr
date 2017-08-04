@@ -84,6 +84,9 @@ function AconfApply() {
 		then
 			sudo cp --no-dereference "$source" "$file"
 			sudo chown --no-dereference root:root "$file"
+		elif [[ -d "$source" ]]
+		then
+			sudo install --mode=755 --owner=root --group=root -d "$file"
 		else
 			sudo install --mode=$default_file_mode --owner=root --group=root "$source" "$file"
 		fi
