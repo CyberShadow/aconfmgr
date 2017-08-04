@@ -117,6 +117,19 @@ function AconfSave() {
 		fi
 	}
 
+	# Don't emit redundant CreateDir lines
+	local -A skip_dirs
+	( Print0Array system_only_files ; Print0Array changed_files ) | \
+		while read -r -d $'\0' file
+		do
+			local path=${file%/*}
+			while [[ -n "$path" ]]
+			do
+				skip_dirs[$path]=y
+				path=${path%/*}
+			done
+		done
+
 	if [[ ${#system_only_files[@]} != 0 || ${#changed_files[@]} != 0 ]]
 	then
 		LogEnter "Found %s new and %s changed files.\n" "$(Color G ${#system_only_files[@]})" "$(Color G ${#changed_files[@]})"
@@ -124,6 +137,11 @@ function AconfSave() {
 		( Print0Array system_only_files ; Print0Array changed_files ) | \
 			while read -r -d $'\0' file
 			do
+				if [[ -n ${skip_dirs[$file]+x} ]]
+				then
+					continue
+				fi
+
 				local dir
 				dir="$(dirname "$file")"
 				mkdir --parents "$config_dir"/files/"$dir"
