@@ -80,7 +80,7 @@ function AconfSave() {
 		printf "\n\n# %s - Missing foreign packages\n\n\n" "$(date)" >> "$config_save_target"
 		for package in "${missing_foreign_packages[@]}"
 		do
-			printf "RemovePackage --foreign %q\n\n" "$package" >> "$config_save_target"
+			printf "RemovePackage --foreign %q\n" "$package" >> "$config_save_target"
 		done
 		modified=y
 		LogLeave
