@@ -1007,6 +1007,32 @@ function AconfGetPackageOriginalFile() {
 	bsdtar -x --to-stdout --file "$package_file" "${file/\//}"
 }
 
+# Move filesystem object at $1 to $2, replacing any existing one.
+# Attempt to do so atomically, when possible.
+# Do the right thing when filesystem objects differ, but never
+# recursively remove directories (copy their attributes instead).
+function AconfReplace() {
+	local src=$1
+	local dst=$2
+
+	# Try direct mv first
+	if ! sudo mv --no-target-directory "$src" "$dst" 2>/dev/null
+	then
+		# Direct mv failed - directory or object type mismatch
+		if sudo rm --force --dir "$dst" 2>/dev/null
+		then
+			# Deleted target successfully, now overwrite it
+			sudo mv --no-target-directory "$src" "$dst"
+		else
+			# rm failed - likely a non-empty directory; copy
+			# attributes only
+			sudo chmod --reference="$src" "$dst"
+			sudo chown --reference="$src" "$dst"
+			sudo touch --reference="$src" "$dst"
+		fi
+	fi
+}
+
 ####################################################################################################
 
 prompt_mode=normal # never / normal / paranoid

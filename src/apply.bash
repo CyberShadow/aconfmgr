@@ -503,14 +503,20 @@ function AconfApply() {
 			}
 			ParanoidConfirm Details
 
-			# Remove existing file, in case it is the wrong type (e.g. symlink)
-			sudo rm --force --dir "$file"
-
-			# Unpack directly over /, so that attributes such as
-			# modification time are automatically applied
 			local package_file
 			package_file="$(AconfNeedPackageFile "$package")"
-			sudo tar x --directory / --file "$package_file" --no-recursion  "${file/\//}"
+
+			# If we are restoring a directory, it may be non-empty.
+			# Extract the object to a temporary location first.
+			local tmp_base=${tmp_dir:?}/dir-props
+			sudo rm -rf "$tmp_base"
+
+			mkdir -p "$tmp_base"
+			local tmp_file="$tmp_base""$file"
+			sudo tar x --directory "$tmp_base" --file "$package_file" --no-recursion "${file/\//}"
+
+			AconfReplace "$tmp_file" "$file"
+			sudo rm -rf "$tmp_base"
 
 			LogLeave ''
 		done
