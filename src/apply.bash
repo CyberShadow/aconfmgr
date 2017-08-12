@@ -483,7 +483,7 @@ function AconfApply() {
 				absent=true
 			fi
 
-			package="$(pacman --query --owns --quiet "$file" || true)"
+			package="$(pacman --query --owns --quiet "$file" | head -n 1 || true)"
 
 			if $absent
 			then
