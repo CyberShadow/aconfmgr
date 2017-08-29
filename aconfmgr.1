@@ -85,6 +85,26 @@ Temporary directory, used for intermediary system state and configuration output
 
 The location is affected by the \fB$TMPDIR\fR environment variable.
 
+.SH "ENVIRONMENT VARIABLES"
+.TP
+.B $HOME
+Affects the default location of the configuration directory.
+
+.TP
+.B $PACMAN
+The command that will be used to check for missing dependencies and to install
+and remove packages. \fBpacman\fR's
+.IR -Qq ", " -Rns ", " -S ", " -T ", and " -U
+operations must be supported by this command. If the variable is not set or empty, \fBaconfmgr\fR will fall back to ‘pacman’.
+
+.TP
+.B $TMPDIR
+Affects the default location of the temporary directory.
+
+.TP
+.B $XDG_CONFIG_HOME
+Affects the default location of the configuration directory.
+
 .SH BUGS
 Please report defects and enhancement requests to the GitHub issue tracker:
 

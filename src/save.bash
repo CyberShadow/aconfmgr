@@ -28,7 +28,7 @@ function AconfSave() {
 		do
 			Log "%s...\r" "$(Color M "%q" "$package")"
 			local description
-			description="$(LC_ALL=C pacman --query --info "$package" | grep '^Description' | cut -d ':' -f 2)"
+			description="$(LC_ALL=C "$PACMAN" --query --info "$package" | grep '^Description' | cut -d ':' -f 2)"
 			printf "AddPackage %q #%s\n" "$package" "$description" >> "$config_save_target"
 		done
 		modified=y
@@ -63,7 +63,7 @@ function AconfSave() {
 		do
 			Log "%s...\r" "$(Color M "%q" "$package")"
 			local description
-			description="$(LC_ALL=C pacman --query --info "$package" | grep '^Description' | cut -d ':' -f 2)"
+			description="$(LC_ALL=C "$PACMAN" --query --info "$package" | grep '^Description' | cut -d ':' -f 2)"
 			printf "AddPackage --foreign %q #%s\n" "$package" "$description" >> "$config_save_target"
 		done
 		modified=y
