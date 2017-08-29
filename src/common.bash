@@ -6,6 +6,8 @@
 
 # Globals
 
+PACMAN=${PACMAN:-pacman}
+
 output_dir="$tmp_dir"/output
 system_dir="$tmp_dir"/system # Current system configuration, to be compared against the output directory
 
@@ -127,8 +129,8 @@ function AconfCompileSystem() {
 	### Packages
 
 	LogEnter "Querying package list...\n"
-	( pacman --query --quiet --explicit --native  || true ) | sort | ( grep -vFxf <(PrintArray ignore_packages        ) || true ) > "$system_dir"/packages.txt
-	( pacman --query --quiet --explicit --foreign || true ) | sort | ( grep -vFxf <(PrintArray ignore_foreign_packages) || true ) > "$system_dir"/foreign-packages.txt
+	( "$PACMAN" --query --quiet --explicit --native  || true ) | sort | ( grep -vFxf <(PrintArray ignore_packages        ) || true ) > "$system_dir"/packages.txt
+	( "$PACMAN" --query --quiet --explicit --foreign || true ) | sort | ( grep -vFxf <(PrintArray ignore_foreign_packages) || true ) > "$system_dir"/foreign-packages.txt
 	LogLeave
 
 	### Files
@@ -151,7 +153,7 @@ function AconfCompileSystem() {
 
 	LogEnter "Enumerating managed files...\n"
 	mkdir --parents "$tmp_dir"
-	pacman --query --list --quiet | sed 's#\/$##' | sort --unique > "$tmp_dir"/managed-files
+	"$PACMAN" --query --list --quiet | sed 's#\/$##' | sort --unique > "$tmp_dir"/managed-files
 	LogLeave
 
 	LogEnter "Searching for lost files...\n"
@@ -702,7 +704,7 @@ function AconfCompile() {
 
 ####################################################################################################
 
-pacman_opts=(pacman)
+pacman_opts=("$PACMAN")
 pacaur_opts=(pacaur)
 yaourt_opts=(yaourt)
 makepkg_opts=(makepkg)
@@ -757,8 +759,8 @@ function AconfMakePkg() {
 	then
 		LogEnter "Making sure the %s group is installed...\n" "$(Color M base-devel)"
 		ParanoidConfirm ''
-		local base_devel_all=($(pacman --sync --quiet --group base-devel))
-		local base_devel_missing=($(pacman --deptest "${base_devel_all[@]}" || true))
+		local base_devel_all=($("$PACMAN" --sync --quiet --group base-devel))
+		local base_devel_missing=($("$PACMAN" --deptest "${base_devel_all[@]}" || true))
 		if [[ ${#base_devel_missing[@]} != 0 ]]
 		then
 			AconfInstallNative "${base_devel_missing[@]}"
@@ -792,16 +794,16 @@ function AconfMakePkg() {
 			depends=($( ( grep -E $'^\t(make)?depends(_'"$arch"')? = ' "$infofile" || true ) | sed 's/^.* = \([^<>=]*\)\([<>=].*\)\?$/\1/g' ) )
 			if [[ ${#depends[@]} != 0 ]]
 			then
-				missing_depends=($(pacman --deptest "${depends[@]}" || true))
+				missing_depends=($("$PACMAN" --deptest "${depends[@]}" || true))
 				if [[ ${#missing_depends[@]} != 0 ]]
 				then
 					for dependency in "${missing_depends[@]}"
 					do
 						LogEnter "%s:\n" "$(Color M %q "$dependency")"
-						if pacman --query --info "$dependency" > /dev/null 2>&1
+						if "$PACMAN" --query --info "$dependency" > /dev/null 2>&1
 						then
 							Log "Already installed.\n" # Shouldn't happen, actually
-						elif pacman --sync --info "$dependency" > /dev/null 2>&1
+						elif "$PACMAN" --sync --info "$dependency" > /dev/null 2>&1
 						then
 							Log "Installing from repositories...\n"
 							AconfInstallNative "$dependency"
@@ -829,7 +831,7 @@ function AconfMakePkg() {
 						if [[ $explicit == n ]]
 						then
 							LogEnter "Marking as dependency...\n"
-							sudo pacman --database --asdeps "$dependency"
+							sudo "$PACMAN" --database --asdeps "$dependency"
 							LogLeave
 						fi
 
@@ -851,7 +853,7 @@ function AconfMakePkg() {
 				do
 					local keyserver=pgp.mit.edu
 					#local keyserver=subkeys.pgp.net
-					
+
 					export GNUPGHOME="$gnupg_home"
 
 					if [[ ! -d "$GNUPGHOME" ]]
@@ -973,7 +975,7 @@ function AconfNeedPackageFile() {
 	local package="$1"
 
 	local info
-	info="$(pacman --sync --info "$package")"
+	info="$("$PACMAN" --sync --info "$package")"
 	version="$(printf "%s" "$info" | grep '^Version' | sed 's/^.* : //g')"
 	architecture="$(printf "%s" "$info" | grep '^Architecture' | sed 's/^.* : //g')"
 
@@ -983,7 +985,7 @@ function AconfNeedPackageFile() {
 	then
 		LogEnter "Downloading package %s (%s) to pacman's cache\n" "$(Color M %q "$package")" "$(Color C %q "$(basename "$file")")"
 		ParanoidConfirm ''
-		sudo pacman --sync --download --nodeps --nodeps --noconfirm "$package" 1>&2
+		sudo "$PACMAN" --sync --download --nodeps --nodeps --noconfirm "$package" 1>&2
 		LogLeave
 	fi
 

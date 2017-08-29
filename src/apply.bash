@@ -171,7 +171,7 @@ function AconfApply() {
 		function Details() { Log "Unpinning (setting install reason to 'as dependency') the following packages:%s\n" "$(Color M " %q" "${unknown_packages[@]}")" ; }
 		Confirm Details
 
-		Print0Array unknown_packages | sudo xargs -0 pacman --database --asdeps
+		Print0Array unknown_packages | sudo xargs -0 "$PACMAN" --database --asdeps
 
 		modified=y
 		LogLeave
@@ -184,7 +184,7 @@ function AconfApply() {
 
 	# Missing installed/unpinned packages (native and foreign packages that are implicitly installed,
 	# and listed in the configuration, but not marked as explicitly installed)
-	missing_unpinned_packages=($(comm -12 <(PrintArray missing_packages) <(pacman --query --quiet | sort)))
+	missing_unpinned_packages=($(comm -12 <(PrintArray missing_packages) <("$PACMAN" --query --quiet | sort)))
 
 	if [[ ${#missing_unpinned_packages[@]} != 0 ]]
 	then
@@ -193,7 +193,7 @@ function AconfApply() {
 		function Details() { Log "Pinning (setting install reason to 'explicitly installed') the following packages:%s\n" "$(Color M " %q" "${missing_unpinned_packages[@]}")" ; }
 		Confirm Details
 
-		Print0Array missing_unpinned_packages | sudo xargs -0 pacman --database --asexplicit
+		Print0Array missing_unpinned_packages | sudo xargs -0 "$PACMAN" --database --asexplicit
 
 		modified=y
 		LogLeave
@@ -201,7 +201,7 @@ function AconfApply() {
 
 
 	# Missing native packages (native packages that are listed in the configuration, but not installed)
-	missing_native_packages=($(comm -23 <(PrintArray packages) <(pacman --query --quiet | sort)))
+	missing_native_packages=($(comm -23 <(PrintArray packages) <("$PACMAN" --query --quiet | sort)))
 
 	if [[ ${#missing_native_packages[@]} != 0 ]]
 	then
@@ -217,7 +217,7 @@ function AconfApply() {
 	fi
 
 	# Missing foreign packages (foreign packages that are listed in the configuration, but not installed)
-	missing_foreign_packages=($(comm -23 <(PrintArray foreign_packages) <(pacman --query --quiet | sort)))
+	missing_foreign_packages=($(comm -23 <(PrintArray foreign_packages) <("$PACMAN" --query --quiet | sort)))
 
 	if [[ ${#missing_foreign_packages[@]} != 0 ]]
 	then
@@ -259,7 +259,7 @@ function AconfApply() {
 
 	# Orphan packages
 
-	if pacman --query --unrequired --unrequired --deps --quiet > /dev/null
+	if "$PACMAN" --query --unrequired --unrequired --deps --quiet > /dev/null
 	then
 		LogEnter "Pruning orphan packages...\n"
 
@@ -270,7 +270,7 @@ function AconfApply() {
 			LogEnter "Iteration %s:\n" "$(Color G "$iter")"
 
 			LogEnter "Querying orphan packages...\n"
-			orphan_packages=($(pacman --query --unrequired --unrequired --deps --quiet || true))
+			orphan_packages=($("$PACMAN" --query --unrequired --unrequired --deps --quiet || true))
 			LogLeave
 
 			if [[ ${#orphan_packages[@]} != 0 ]]
@@ -483,7 +483,7 @@ function AconfApply() {
 				absent=true
 			fi
 
-			package="$(pacman --query --owns --quiet "$file" | head -n 1 || true)"
+			package="$("$PACMAN" --query --owns --quiet "$file" | head -n 1 || true)"
 
 			if $absent
 			then
@@ -552,7 +552,7 @@ function AconfApply() {
 					LogEnter "%s the following file properties:\n" "$verb"
 					first=n
 				fi
-				
+
 				local kind="${key##*:}"
 				local file="${key%:*}"
 				local value="${output_file_props[$key]:-}"
