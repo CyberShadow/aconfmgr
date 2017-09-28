@@ -4,7 +4,7 @@ aconfmgr \- a configuration manager for Arch Linux
 .SH SYNOPSIS
 .B aconfmgr
 [\fIOPTIONS\fR]
-.BR save " | " apply
+.BR save " | " apply " | " check
 .SH DESCRIPTION
 .B aconfmgr
 is a package to track, manage, and restore the configuration of an Arch Linux system.
@@ -12,6 +12,21 @@ is a package to track, manage, and restore the configuration of an Arch Linux sy
 For a detailed description, please see the full documentation:
 
 .I https://github.com/CyberShadow/aconfmgr#readme
+.SH ACTIONS
+
+.TP
+.BR save
+Update the configuration to reflect the current state of the system.
+
+.TP
+.BR apply
+Update the system to reflect the current contents of the configuration.
+
+.TP
+
+.BR check
+Syntax-check and lint the configuration.
+
 .SH OPTIONS
 
 .TP

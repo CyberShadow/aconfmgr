@@ -105,6 +105,7 @@ function CopyFileTo() {
 		Log "%s: Source file path %s is not absolute.\n" \
 			"$(Color Y "Warning")" \
 			"$(Color C "%q" "$src_file")"
+		config_warnings+=1
 	fi
 
 	if [[ "$dst_file" != /* && "$dst_file" != "$src_file" ]]
@@ -112,6 +113,7 @@ function CopyFileTo() {
 		Log "%s: Target file path %s is not absolute.\n" \
 			"$(Color Y "Warning")" \
 			"$(Color C "%q" "$dst_file")"
+		config_warnings+=1
 	fi
 
 	mkdir --parents "$(dirname "$output_dir"/files/"$dst_file")"
@@ -123,6 +125,8 @@ function CopyFileTo() {
 	SetFileProperty "$dst_file" mode  "$mode"
 	SetFileProperty "$dst_file" owner "$owner"
 	SetFileProperty "$dst_file" group "$group"
+
+	used_files["$src_file"]=y
 }
 
 #

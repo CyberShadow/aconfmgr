@@ -24,6 +24,8 @@ ANSI_color_W="[1;39m"
 ANSI_reset="[0m"
 
 verbose=0
+lint_config=false
+declare -i config_warnings=0
 
 umask $((666 - default_file_mode))
 
@@ -86,6 +88,7 @@ function AconfCompileOutput() {
 
 	typeset -ag ignore_packages=()
 	typeset -ag ignore_foreign_packages=()
+	typeset -Ag used_files
 
 	local found=n
 	for file in "$config_dir"/*.sh
@@ -99,6 +102,30 @@ function AconfCompileOutput() {
 			LogLeave ''
 		fi
 	done
+
+	if $lint_config
+	then
+		# Check for unused files (files not referenced by the CopyFile
+		# helper).
+		# Only do this in the "check" action, as unused files do not
+		# necessarily indicate a bug in the configuration - they may
+		# simply be used under certain conditions.
+		if [[ -d "$config_dir/files" ]]
+		then
+			find "$config_dir/files" -type f -print0 | \
+				while read -r -d $'\0' line
+				do
+					local key=${line#$config_dir/files}
+					if [[ -z "${used_files[$key]+x}" ]]
+					then
+						Log "%s: Unused file: %s\n" \
+							"$(Color Y "Warning")" \
+							"$(Color C "%q" "$line")"
+						config_warnings+=1
+					fi
+				done
+		fi
+	fi
 
 	if [[ $found == y ]]
 	then

@@ -10,6 +10,8 @@ source "$src_dir"/common.bash
 source "$src_dir"/save.bash
 # shellcheck source=apply.bash
 source "$src_dir"/apply.bash
+# shellcheck source=check.bash
+source "$src_dir"/check.bash
 # shellcheck source=helpers.bash
 source "$src_dir"/helpers.bash
 
@@ -18,7 +20,12 @@ function Usage() {
 	printf "Written by Vladimir Panteleev <aconfmgr@thecyber%s.net>\n" "shadow"
 	printf "https://github.com/CyberShadow/aconfmgr\n"
 	echo
-	printf "Usage:  %s [OPTIONS]... save|apply\n" "$0"
+	printf "Usage:  %s [OPTIONS]... ACTION\n" "$0"
+	echo
+	printf "Supported actions:\n"
+	printf "  save    Update the configuration to reflect the current state of the system\n"
+	printf "  apply   Update the system to reflect the current contents of the configuration\n"
+	printf "  check   Syntax-check and lint the configuration\n"
 	echo
 	printf "Supported options:\n"
 	printf "  -h, --help               Print this message\n"
@@ -51,7 +58,7 @@ function Main() {
 	while [[ $# != 0 ]]
 	do
 		case "$1" in
-			save|apply)
+			save|apply|check)
 				if [[ -n "$command" ]]
 				then
 					UsageError "A command has already been specified"
@@ -146,6 +153,9 @@ function Main() {
 			;;
 		apply)
 			AconfApply
+			;;
+		check)
+			AconfCheck
 			;;
 		*)
 			Usage
