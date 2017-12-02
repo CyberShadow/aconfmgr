@@ -774,6 +774,7 @@ base_devel_installed=n
 
 function AconfMakePkg() {
 	local package="$1"
+	local asdeps="${2:-false}"
 
 	LogEnter "Building foreign package %s from source.\n" "$(Color M %q "$package")"
 
@@ -816,7 +817,7 @@ function AconfMakePkg() {
 		pkg_base=$(cower --format %b --info "$package")
 		LogLeave "Done, package base is %s.\n" "$(Color M %q "$pkg_base")"
 
-		AconfMakePkg "$pkg_base" # recurse
+		AconfMakePkg "$pkg_base" "$asdeps" # recurse
 		LogLeave # Package base
 		LogLeave # Package
 		return
@@ -859,7 +860,7 @@ function AconfMakePkg() {
 						elif "$PACMAN" --sync --info "$dependency" > /dev/null 2>&1
 						then
 							Log "Installing from repositories...\n"
-							AconfInstallNative "$dependency"
+							AconfInstallNative --asdeps "$dependency"
 							Log "Installed.\n"
 						else
 							local installed=false
@@ -877,7 +878,7 @@ function AconfMakePkg() {
 								if [[ -n "$providers" ]]
 								then
 									Log "Installing provider package from repositories...\n"
-									AconfInstallNative "$dependency"
+									AconfInstallNative --asdeps "$dependency"
 									Log "Installed.\n"
 									installed=true
 								fi
@@ -886,30 +887,9 @@ function AconfMakePkg() {
 							if ! $installed
 							then
 								Log "Installing from AUR...\n"
-								AconfMakePkg "$dependency"
+								AconfMakePkg "$dependency" true
 								Log "Installed.\n"
 							fi
-						fi
-
-						# Mark as installed as dependency, unless it's
-						# already in our list of packages to install.
-
-						local iter_package explicit=n
-						( Print0Array packages ; Print0Array foreign_packages ) | \
-							while read -r -d $'\0' iter_package
-							do
-								if [[ "$iter_package" == "$dependency" ]]
-								then
-									explicit=y
-									break
-								fi
-							done
-
-						if [[ $explicit == n ]]
-						then
-							LogEnter "Marking as dependency...\n"
-							sudo "$PACMAN" --database --asdeps "$dependency"
-							LogLeave
 						fi
 
 						LogLeave ''
@@ -976,12 +956,25 @@ EOF
 		cd "$pkg_dir"
 		mkdir --parents home
 		local args=(env "HOME=$PWD/home" "GNUPGHOME=$gnupg_home" "${makepkg_opts[@]}")
+
 		if [[ $EUID == 0 ]]
 		then
 			chown -R nobody: .
 			su -s /bin/bash nobody -c "GNUPGHOME=$(realpath ../../gnupg) $(printf ' %q' "${args[@]}")"
-			"${pacman_opts[@]}" --upgrade ./*.pkg.tar.xz
+
+			if $asdeps
+			then
+				"${pacman_opts[@]}" --upgrade --asdeps ./*.pkg.tar.xz
+			else
+				"${pacman_opts[@]}" --upgrade ./*.pkg.tar.xz
+			fi
+
 		else
+			if $asdeps
+			then
+				args+=(--asdeps)
+			fi
+
 			"${args[@]}" --install
 		fi
 	)
@@ -991,32 +984,48 @@ EOF
 }
 
 function AconfInstallNative() {
+	local asdeps=false asdeps_arr=()
+	if [[ "$1" == --asdeps ]]
+	then
+		asdeps=true
+		asdeps_arr=(--asdeps)
+		shift
+	fi
+
 	local target_packages=("$@")
 	if [[ $prompt_mode == never ]]
 	then
 		# Some prompts default to 'no'
-		( yes || true ) | sudo "${pacman_opts[@]}" --confirm --sync "${target_packages[@]}"
+		( yes || true ) | sudo "${pacman_opts[@]}" --confirm --sync "${asdeps_arr[@]}" "${target_packages[@]}"
 	else
-		sudo "${pacman_opts[@]}" --sync "${target_packages[@]}"
+		sudo "${pacman_opts[@]}" --sync "${asdeps_arr[@]}" "${target_packages[@]}"
 	fi
 }
 
 function AconfInstallForeign() {
+	local asdeps=false asdeps_arr=()
+	if [[ "$1" == --asdeps ]]
+	then
+		asdeps=true
+		asdeps_arr=(--asdeps)
+		shift
+	fi
+
 	local target_packages=("$@")
 
 	DetectAurHelper
 
 	case "$aur_helper" in
 		pacaur)
-			"${pacaur_opts[@]}" --sync --aur "${target_packages[@]}"
+			"${pacaur_opts[@]}" --sync --aur "${asdeps_arr[@]}" "${target_packages[@]}"
 			;;
 		yaourt)
-			"${yaourt_opts[@]}" --sync --aur "${target_packages[@]}"
+			"${yaourt_opts[@]}" --sync --aur "${asdeps_arr[@]}" "${target_packages[@]}"
 			;;
 		makepkg)
 			for package in "${target_packages[@]}"
 			do
-				AconfMakePkg "$package"
+				AconfMakePkg "$package" "$asdeps"
 			done
 			;;
 		*)
@@ -1037,11 +1046,11 @@ function AconfNeedProgram() {
 		then
 			LogEnter "Installing foreign dependency %s:\n" "$(Color M %q "$package")"
 			ParanoidConfirm ''
-			AconfInstallForeign "$package"
+			AconfInstallForeign --asdeps "$package"
 		else
 			LogEnter "Installing native dependency %s:\n" "$(Color M %q "$package")"
 			ParanoidConfirm ''
-			AconfInstallNative "$package"
+			AconfInstallNative --asdeps "$package"
 		fi
 		LogLeave "Installed.\n"
 	fi
