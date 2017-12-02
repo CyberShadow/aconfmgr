@@ -836,7 +836,15 @@ function AconfMakePkg() {
 
 			local depends missing_depends dependency arch
 			arch="$(uname -m)"
-			depends=($( ( grep -E $'^\t(make)?depends(_'"$arch"')? = ' "$infofile" || true ) | sed 's/^.* = \([^<>=]*\)\([<>=].*\)\?$/\1/g' ) )
+			# Filter out packages from the same base
+			depends=($(
+						 ( grep -E $'^\t(make)?depends(_'"$arch"')? = ' "$infofile" || true ) \
+							 | sed 's/^.* = \([^<>=]*\)\([<>=].*\)\?$/\1/g' \
+							 | ( grep -vFf <(( grep '^pkgname = ' "$infofile" || true) \
+												 | sed 's/^.* = \(.*\)$/\1/g' ) \
+									 || true ) \
+							 ) )
+
 			if [[ ${#depends[@]} != 0 ]]
 			then
 				missing_depends=($("$PACMAN" --deptest "${depends[@]}" || true))
