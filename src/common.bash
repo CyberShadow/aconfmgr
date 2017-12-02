@@ -805,6 +805,23 @@ function AconfMakePkg() {
 	git clone "https://aur.archlinux.org/$package.git" "$pkg_dir"
 	LogLeave
 
+	if [[ ! -f "$pkg_dir"/PKGBUILD ]]
+	then
+		Log "No package description file found!\n"
+		LogEnter "Assuming this package is part of a package base:\n"
+
+		LogEnter "Retrieving package info...\n"
+		AconfNeedProgram cower cower y
+		local pkg_base
+		pkg_base=$(cower --format %b --info "$package")
+		LogLeave "Done, package base is %s.\n" "$(Color M %q "$pkg_base")"
+
+		AconfMakePkg "$pkg_base" # recurse
+		LogLeave # Package base
+		LogLeave # Package
+		return
+	fi
+
 	local gnupg_home
 	gnupg_home="$(realpath -m "$tmp_dir/gnupg")"
 	local makepkg_user=nobody # when running as root
