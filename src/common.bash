@@ -838,7 +838,7 @@ function AconfMakePkg() {
 			arch="$(uname -m)"
 			# Filter out packages from the same base
 			depends=($(
-						 ( grep -E $'^\t(make)?depends(_'"$arch"')? = ' "$infofile" || true ) \
+						 ( grep -E $'^\t(make|check)?depends(_'"$arch"')? = ' "$infofile" || true ) \
 							 | sed 's/^.* = \([^<>=]*\)\([<>=].*\)\?$/\1/g' \
 							 | ( grep -vFf <(( grep '^pkgname = ' "$infofile" || true) \
 												 | sed 's/^.* = \(.*\)$/\1/g' ) \
