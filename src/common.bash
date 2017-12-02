@@ -802,10 +802,7 @@ function AconfMakePkg() {
 	fi
 
 	LogEnter "Cloning...\n"
-	(
-		cd "$tmp_dir"/aur
-		git clone "https://aur.archlinux.org/$package.git"
-	)
+	git clone "https://aur.archlinux.org/$package.git" "$pkg_dir"
 	LogLeave
 
 	local gnupg_home
