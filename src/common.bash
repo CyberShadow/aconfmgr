@@ -776,8 +776,12 @@ function AconfMakePkg() {
 	local package="$1"
 
 	LogEnter "Building foreign package %s from source.\n" "$(Color M %q "$package")"
-	rm -rf "$tmp_dir"/aur/"$package"
-	mkdir --parents "$tmp_dir"/aur/"$package"
+
+	local pkg_dir="$tmp_dir"/aur/"$package"
+	Log "Using directory %s.\n" "$(Color C %q "$pkg_dir")"
+
+	rm -rf "$pkg_dir"
+	mkdir --parents "$pkg_dir"
 
 	# Needed to clone the AUR repo. Should be replaced with curl/tar.
 	AconfNeedProgram git git n
@@ -811,7 +815,7 @@ function AconfMakePkg() {
 	local infofile infofilename
 	for infofilename in .SRCINFO .AURINFO
 	do
-		infofile="$tmp_dir"/aur/"$package"/"$infofilename"
+		infofile="$pkg_dir"/"$infofilename"
 		if test -f "$infofile"
 		then
 			LogEnter "Checking dependencies...\n"
@@ -923,7 +927,7 @@ EOF
 
 	LogEnter "Building...\n"
 	(
-		cd "$tmp_dir"/aur/"$package"
+		cd "$pkg_dir"
 		mkdir --parents home
 		local args=(env "HOME=$PWD/home" "GNUPGHOME=$gnupg_home" "${makepkg_opts[@]}")
 		if [[ $EUID == 0 ]]
