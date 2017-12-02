@@ -862,9 +862,33 @@ function AconfMakePkg() {
 							AconfInstallNative "$dependency"
 							Log "Installed.\n"
 						else
-							Log "Installing from AUR...\n"
-							AconfMakePkg "$dependency"
-							Log "Installed.\n"
+							local installed=false
+
+							# Avoid infinite recursion - we know pacutils
+							# is in AUR and not provided by ABS package
+							if [[ "$package" != pacutils ]]
+							then
+								# Check if this package is provided by something in pacman repos.
+								# `pacman -Si` will not give us that information,
+								# however, `pacman -S` still works.
+								AconfNeedProgram pacsift pacutils y
+								local providers
+								providers=$(pacsift --sync --exact --satisfies="$dependency")
+								if [[ -n "$providers" ]]
+								then
+									Log "Installing provider package from repositories...\n"
+									AconfInstallNative "$dependency"
+									Log "Installed.\n"
+									installed=true
+								fi
+							fi
+
+							if ! $installed
+							then
+								Log "Installing from AUR...\n"
+								AconfMakePkg "$dependency"
+								Log "Installed.\n"
+							fi
 						fi
 
 						# Mark as installed as dependency, unless it's
