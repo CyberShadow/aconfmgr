@@ -773,6 +773,13 @@ function DetectAurHelper() {
 base_devel_installed=n
 
 function AconfMakePkg() {
+	local install=true
+	if [[ "$1" == --noinstall ]]
+	then
+		install=false
+		shift
+	fi
+
 	local package="$1"
 	local asdeps="${2:-false}"
 
@@ -962,20 +969,27 @@ EOF
 			chown -R nobody: .
 			su -s /bin/bash nobody -c "GNUPGHOME=$(realpath ../../gnupg) $(printf ' %q' "${args[@]}")"
 
-			if $asdeps
+			if $install
 			then
-				"${pacman_opts[@]}" --upgrade --asdeps ./*.pkg.tar.xz
-			else
-				"${pacman_opts[@]}" --upgrade ./*.pkg.tar.xz
+				if $asdeps
+				then
+					"${pacman_opts[@]}" --upgrade --asdeps ./*.pkg.tar.xz
+				else
+					"${pacman_opts[@]}" --upgrade ./*.pkg.tar.xz
+				fi
 			fi
-
 		else
 			if $asdeps
 			then
 				args+=(--asdeps)
 			fi
 
-			"${args[@]}" --install
+			if $install
+			then
+				args+=(--install)
+			fi
+
+			"${args[@]}"
 		fi
 	)
 	LogLeave
@@ -1057,31 +1071,177 @@ function AconfNeedProgram() {
 }
 
 # Get the path to the package file (.pkg.tar.xz) for the specified package.
+# Download or build the package if necessary.
 function AconfNeedPackageFile() {
+	set -e
 	local package="$1"
 
-	local info
-	info="$("$PACMAN" --sync --info "$package")"
-	version="$(printf "%s" "$info" | grep '^Version' | sed 's/^.* : //g')"
-	architecture="$(printf "%s" "$info" | grep '^Architecture' | sed 's/^.* : //g')"
-
-	local file="/var/cache/pacman/pkg/$package-$version-$architecture.pkg.tar.xz"
-
-	if [[ ! -f "$file" ]]
+	local info foreign
+	if info="$("$PACMAN" --query --info "$package")"
 	then
-		LogEnter "Downloading package %s (%s) to pacman's cache\n" "$(Color M %q "$package")" "$(Color C %q "$(basename "$file")")"
-		ParanoidConfirm ''
-		sudo "$PACMAN" --sync --download --nodeps --nodeps --noconfirm "$package" 1>&2
-		LogLeave
+		if "$PACMAN" --query --info --foreign "$package" > /dev/null
+		then
+			foreign=true
+		else
+			foreign=false
+		fi
+	else
+		if info="$("$PACMAN" --sync --info "$package")"
+		then
+			foreign=false
+		else
+			foreign=true
+		fi
 	fi
 
-	if [[ ! -f "$file" ]]
+	local version='' architecture='' filename
+	if [[ -n "$info" ]]
 	then
-		Log "Error: Expected to find %s, but it is not present\n" "$(Color C %q "$file")"
-		Exit 1
+		version="$(grep '^Version' <<< "$info" | sed 's/^.* : //g')"
+		architecture="$(grep '^Architecture' <<< "$info" | sed 's/^.* : //g')"
+		filename="$package-$version-$architecture.pkg.tar.xz"
 	fi
+	local filemask="$package-*-*.pkg.tar.xz"
 
-	printf "%s" "$file"
+	# try without downloading first
+	local downloaded
+	for downloaded in false true
+	do
+		local precise
+		for precise in true false
+		do
+			# if we don't have the exact version, we can only do non-precise
+			if $precise && [[ -z "$version" ]]
+			then
+				continue
+			fi
+
+			local dirs=()
+			if $foreign
+			then
+				DetectAurHelper
+				local -A tried_helper
+
+				local helper
+				for helper in "$aur_helper" "${aur_helpers[@]}"
+				do
+					if [[ ${tried_helper[$helper]+x} ]]
+					then
+						continue
+					fi
+					tried_helper[$helper]=y
+
+					case "$helper" in
+						pacaur)
+							dirs+=("${XDG_CACHE_HOME:-$HOME/.cache}/pacaur/$package")
+							;;
+						yaourt)
+							# yaourt does not save .pkg.xz files
+							;;
+						makepkg)
+							dirs+=("$tmp_dir"/aur/"$package")
+							;;
+						*)
+							Log "Error: unknown AUR helper %q\n" "$aur_helper"
+							false
+							;;
+					esac
+				done
+			else
+				dirs+=(/var/cache/pacman/pkg)
+			fi
+
+			local files=()
+			local dir
+			for dir in "${dirs[@]}"
+			do
+				if $precise
+				then
+					if [[ -f "$dir"/"$filename" ]]
+					then
+						files+=("$dir"/"$filename")
+					fi
+				else
+					if [[ -d "$dir" ]]
+					then
+						find "$dir" -type f -name "$filemask" -print0 | \
+							while read -r -d $'\0' file
+							do
+								files+=("$file")
+							done
+					fi
+				fi
+			done
+
+			local file
+			for file in "${files[@]}"
+			do
+				local correct
+				if $precise
+				then
+					correct=true
+				else
+					local pkgname
+					pkgname=$(bsdtar -x --to-stdout --file "$file" .PKGINFO | \
+								  sed -n 's/^pkgname = \(.*\)$/\1/p')
+					if [[ "$pkgname" == "$package" ]]
+					then
+						correct=true
+					else
+						correct=false
+					fi
+				fi
+
+				if $correct
+				then
+					printf "%s" "$file"
+					return
+				fi
+			done
+		done
+
+		if $downloaded
+		then
+			Log "Unable to find package file for package %s!\n" "$(Color M %q "$package")"
+			Exit 1
+		else
+			if $foreign
+			then
+				LogEnter "Downloading package %s (%s) to pacman's cache\n" "$(Color M %q "$package")" "$(Color C %q "$filename")"
+				ParanoidConfirm ''
+
+				local helper
+				for helper in "$aur_helper" "${aur_helpers[@]}"
+				do
+					case "$helper" in
+						pacaur)
+							"${pacaur_opts[@]}" --makepkg --aur "${asdeps_arr[@]}" "${target_packages[@]}"
+							break
+							;;
+						yaourt)
+							# yaourt does not save .pkg.xz files
+							continue
+							;;
+						makepkg)
+							AconfMakePkg --noinstall "$package"
+							break
+							;;
+						*)
+							Log "Error: unknown AUR helper %q\n" "$aur_helper"
+							false
+							;;
+					esac
+				done
+
+				LogLeave
+			else
+				LogEnter "Downloading package %s (%s) to pacman's cache\n" "$(Color M %q "$package")" "$(Color C %q "$filename")"
+				ParanoidConfirm ''
+				sudo "$PACMAN" --sync --download --nodeps --nodeps --noconfirm "$package" 1>&2
+				LogLeave
+			fi
+		fi
+	done
 }
 
 # Extract the original file from a package to stdout
