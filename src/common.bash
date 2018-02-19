@@ -1120,7 +1120,7 @@ function AconfNeedPackageFile() {
 			if $foreign
 			then
 				DetectAurHelper
-				local -A tried_helper
+				local -A tried_helper=()
 
 				local helper
 				for helper in "$aur_helper" "${aur_helpers[@]}"
