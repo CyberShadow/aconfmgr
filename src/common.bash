@@ -1207,7 +1207,7 @@ function AconfNeedPackageFile() {
 		else
 			if $foreign
 			then
-				LogEnter "Downloading package %s (%s) to pacman's cache\n" "$(Color M %q "$package")" "$(Color C %q "$filename")"
+				LogEnter "Building foreign package %s\n" "$(Color M %q "$package")" "$(Color C %q "$filename")"
 				ParanoidConfirm ''
 
 				local helper
