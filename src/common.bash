@@ -1429,6 +1429,9 @@ function OnError() {
 			LogLeave ''
 		fi
 	fi
+
+	# Ensure complete abort when inside a string expansion
+	exit 1
 }
 trap OnError EXIT ERR
 
