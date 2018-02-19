@@ -1215,7 +1215,7 @@ function AconfNeedPackageFile() {
 				do
 					case "$helper" in
 						pacaur)
-							"${pacaur_opts[@]}" --makepkg --aur "${asdeps_arr[@]}" "${target_packages[@]}"
+							"${pacaur_opts[@]}" --makepkg --aur --makepkg "$package" 1>&2
 							break
 							;;
 						yaourt)
