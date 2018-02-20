@@ -228,15 +228,16 @@ BEGIN {
 			\)										\
 			-printf 'O' -print0						\
 			| tee /dev/fd/$progress_fd				\
-			| grep									\
-				  --null --null-data				\
-				  --invert-match					\
-				  --fixed-strings					\
-				  --line-regexp						\
-				  --file							\
-				  <( < "$tmp_dir"/managed-files		\
-					   sed -e 's#^#O#'				\
-				   )								\
+			| ( grep								\
+					--null --null-data				\
+					--invert-match					\
+					--fixed-strings					\
+					--line-regexp					\
+					--file							\
+					<( < "$tmp_dir"/managed-files	\
+						 sed -e 's#^#O#'			\
+					 )								\
+					|| true )						\
 	) |												\
 		while read -r -d $'\0' line
 		do
