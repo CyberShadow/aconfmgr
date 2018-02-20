@@ -1,5 +1,5 @@
 #!/bin/bash
-source ./lib-common.bash
+source ./lib.bash
 
 # Test basic 'aconfmgr save' functionality.
 
