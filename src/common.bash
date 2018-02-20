@@ -190,7 +190,7 @@ function AconfCompileSystem() {
 
 	# Progress display - only show file names once per second
 	exec {progress_fd}> \
-		 >( awk '
+		 >( gawk '
 BEGIN {
     RS = "\0";
     t = systime();
