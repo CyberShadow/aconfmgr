@@ -57,14 +57,38 @@ $(BASH_BIN) : $(BASH_TAR)
 	cd $(TMP)/$(BASH_TAR_DIR) && ./configure --prefix=$(realpath $(TMP))/bash
 	make -C $(TMP)/$(BASH_TAR_DIR) install
 
-# Use built bash with BUILD_BASH=1 (on Travis CI)
+# Download and build coreutils (for CI)
+
+COREUTILS_VERSION=8.29
+COREUTILS_TAR_SHA1=63d522f430f0f9fceca71e4b52b414999531915c
+COREUTILS_TAR_DIR=coreutils-$(COREUTILS_VERSION)
+COREUTILS_TAR_FN=$(COREUTILS_TAR_DIR).tar.xz
+COREUTILS_TAR_URL_BASE=https://ftp.gnu.org/gnu/coreutils/
+COREUTILS_TAR_URL=$(COREUTILS_TAR_URL_BASE)$(COREUTILS_TAR_FN)
+COREUTILS_TAR=$(TMP)/$(COREUTILS_TAR_FN)
+COREUTILS_BIN_DIR=$(TMP)/coreutils/bin
+
+$(COREUTILS_TAR) : | $(TMP)
+	curl --fail --output $@.tmp $(COREUTILS_TAR_URL)
+	printf "%s %s\n" $(COREUTILS_TAR_SHA1) $@.tmp | sha1sum -c
+	mv $@.tmp $@
+
+$(COREUTILS_BIN_DIR) : $(COREUTILS_TAR)
+	rm -rf $(TMP)/$(COREUTILS_TAR_DIR)
+	tar Jxf $(COREUTILS_TAR) -C $(TMP)
+	cd $(TMP)/$(COREUTILS_TAR_DIR) && ./configure --prefix=$(realpath $(TMP))/coreutils
+	make -C $(TMP)/$(COREUTILS_TAR_DIR) install
+
+# Use built bash/coreutils with BUILD_BASH=1 (on Travis CI)
 
 ifeq (,$(BUILD_BASH))
  BASH=$(shell command -v bash 2> /dev/null)
  BASH_DEP=
+ PATH_PREFIX=
 else
  BASH=$(BASH_BIN)
- BASH_DEP=$(BASH_BIN)
+ BASH_DEP=$(BASH_BIN) $(COREUTILS_BIN_DIR)
+ PATH_PREFIX=$(realpath $(COREUTILS_BIN_DIR)):
 endif
 
 # Create temporary directory
@@ -86,7 +110,7 @@ TESTSUITE=$(wildcard t/*sh)
 TESTSUITE_OK=$(TMP)/.testsuite-ok
 testsuite : $(TESTSUITE_OK)
 $(TESTSUITE_OK) : $(SRC) $(TESTSUITE) $(BASH_DEP)
-	$(BASH) t/all.sh
+	PATH=$(PATH_PREFIX)$(PATH) $(BASH) t/all.sh
 	touch "$@"
 
 # Coverage
@@ -94,6 +118,6 @@ $(TESTSUITE_OK) : $(SRC) $(TESTSUITE) $(BASH_DEP)
 COVERAGE_REPORT=$(TMP)/coverage/index.html
 coverage : $(COVERAGE_REPORT)
 $(COVERAGE_REPORT) : $(SRC) $(TESTSUITE) $(BASH_DEP) .simplecov
-	bashcov --bash-path $(BASH) --root=.. t/all.sh
+	PATH=$(PATH_PREFIX)$(PATH) bashcov --bash-path $(BASH) --root=.. t/all.sh
 
 .PHONY: test ci shellcheck testsuite coverage
