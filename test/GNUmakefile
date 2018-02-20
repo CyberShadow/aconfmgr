@@ -6,6 +6,7 @@ TMP=tmp
 # Default target
 
 test : shellcheck testsuite
+ci : test coverage
 
 # Download shellcheck
 
@@ -63,4 +64,4 @@ coverage : $(COVERAGE_REPORT)
 $(COVERAGE_REPORT) : $(SRC) $(TESTSUITE) .simplecov
 	bashcov --root=.. t/all.sh
 
-.PHONY: test shellcheck testsuite coverage
+.PHONY: test ci shellcheck testsuite coverage

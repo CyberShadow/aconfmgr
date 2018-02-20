@@ -3,4 +3,4 @@ language: bash
 sudo: false
 
 script:
- - make -C test
+ - make -C test ci
