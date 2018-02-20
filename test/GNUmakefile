@@ -91,7 +91,7 @@ $(TESTSUITE_OK) : $(SRC) $(TESTSUITE) $(BASH_DEP)
 
 # Coverage
 
-COVERAGE_REPORT=../coverage/index.html
+COVERAGE_REPORT=$(TMP)/coverage/index.html
 coverage : $(COVERAGE_REPORT)
 $(COVERAGE_REPORT) : $(SRC) $(TESTSUITE) $(BASH_DEP) .simplecov
 	bashcov --bash-path $(BASH) --root=.. t/all.sh
