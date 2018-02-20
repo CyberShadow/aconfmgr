@@ -111,3 +111,7 @@ function find() {
 function paccheck() {
 	: # TODO
 }
+
+function AconfNeedProgram() {
+	: # ignore
+}
