@@ -1494,3 +1494,5 @@ function SuperCat() {
 		sudo cat "$1"
 	fi
 }
+
+: # include in coverage

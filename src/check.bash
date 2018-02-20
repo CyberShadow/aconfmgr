@@ -9,3 +9,5 @@ function AconfCheck() {
 
 	LogLeave "Done (%s warnings).\n" "$(Color G "$config_warnings")"
 }
+
+: # include in coverage

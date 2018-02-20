@@ -598,3 +598,5 @@ function AconfApply() {
 		LogLeave "Done (%s).\n" "$(Color Y "system state changed")"
 	fi
 }
+
+: # include in coverage

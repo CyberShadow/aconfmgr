@@ -257,3 +257,5 @@ function AconfSave() {
 		LogLeave "Done (%s).\n" "$(Color Y "configuration changed")"
 	fi
 }
+
+: # include in coverage

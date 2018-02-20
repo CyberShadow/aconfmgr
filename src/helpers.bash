@@ -267,3 +267,5 @@ function SetFileProperty() {
 function IgnorePath() {
 	ignore_paths+=("$@")
 }
+
+: # include in coverage
