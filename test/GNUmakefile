@@ -28,9 +28,9 @@ $(SHELLCHECK) : | $(SHELLCHECK_TAR)
 
 # Download multishellcheck
 
-MULTISHELLCHECK=$(TMP)/multishellcheck
-MULTISHELLCHECK_SHA1=6775ac8a4441851c4210f2c2fdabe5b02b4ae398
+MULTISHELLCHECK_SHA1=b5348a91c7a325c588fc0c6b827b38fcd5be3d64
 MULTISHELLCHECK_URL=https://raw.githubusercontent.com/CyberShadow/multishellcheck/$(MULTISHELLCHECK_SHA1)/multishellcheck
+MULTISHELLCHECK=$(TMP)/multishellcheck-$(MULTISHELLCHECK_SHA1)
 $(MULTISHELLCHECK) : | $(TMP)
 	curl --output $@ $(MULTISHELLCHECK_URL)
 
@@ -44,6 +44,6 @@ $(TMP) :
 SHELLCHECK_OK=$(TMP)/.shellcheck-ok
 shellcheck : $(SHELLCHECK_OK)
 $(SHELLCHECK_OK) : $(SRC) $(SHELLCHECK) $(MULTISHELLCHECK)
-	PATH=$(PATH):$(TMP) bash $(MULTISHELLCHECK) ../aconfmgr
+	SHELLCHECK=$(SHELLCHECK) bash $(MULTISHELLCHECK) ../aconfmgr
 	touch "$@"
 
