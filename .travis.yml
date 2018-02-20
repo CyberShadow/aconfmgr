@@ -2,5 +2,9 @@ language: bash
 
 sudo: false
 
+install:
+  - gem install coveralls_reborn
+  - gem install bashcov
+
 script:
- - make -C test ci
+ - make -C test ci BUILD_BASH=1
