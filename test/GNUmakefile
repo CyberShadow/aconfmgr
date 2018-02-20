@@ -5,7 +5,7 @@ TMP=tmp
 
 # Default target
 
-test : shellcheck
+test : shellcheck testsuite
 
 # Download shellcheck
 
@@ -47,3 +47,13 @@ $(SHELLCHECK_OK) : $(SRC) $(SHELLCHECK) $(MULTISHELLCHECK)
 	SHELLCHECK=$(SHELLCHECK) bash $(MULTISHELLCHECK) ../aconfmgr
 	touch "$@"
 
+# Test suite
+
+TESTSUITE=$(wildcard t/*sh)
+TESTSUITE_OK=$(TMP)/.testsuite-ok
+testsuite : $(TESTSUITE_OK)
+$(TESTSUITE_OK) : $(SRC) $(TESTSUITE)
+	t/all.sh
+	touch "$@"
+
+.PHONY: shellcheck testsuite
