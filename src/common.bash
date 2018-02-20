@@ -1377,11 +1377,11 @@ function FatalError() {
 
 function Color() {
 	local var="ANSI_color_$1"
-	printf "%s" "${!var}"
+	printf -- "%s" "${!var}"
 	shift
 	# shellcheck disable=2059
-	printf "$@"
-	printf "%s" "${ANSI_color_W}"
+	printf -- "$@"
+	printf -- "%s" "${ANSI_color_W}"
 }
 
 # The ANSI_color_* variables are looked up by name:
