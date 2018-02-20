@@ -56,4 +56,11 @@ $(TESTSUITE_OK) : $(SRC) $(TESTSUITE)
 	t/all.sh
 	touch "$@"
 
-.PHONY: shellcheck testsuite
+# Coverage
+
+COVERAGE_REPORT=../coverage/index.html
+coverage : $(COVERAGE_REPORT)
+$(COVERAGE_REPORT) : $(SRC) $(TESTSUITE) .simplecov
+	bashcov --root=.. t/all.sh
+
+.PHONY: test shellcheck testsuite coverage
