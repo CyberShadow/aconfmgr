@@ -3,5 +3,5 @@ set -eu
 
 cd "$(dirname "$0")"
 
-./t-sample.sh
-./t-save.sh
+$BASH ./t-sample.sh
+$BASH ./t-save.sh
