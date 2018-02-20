@@ -1370,6 +1370,11 @@ function LogLeave() {
 	log_indent=${log_indent::-1}
 }
 
+function FatalError() {
+	Log "$@"
+	Exit 1
+}
+
 function Color() {
 	local var="ANSI_color_$1"
 	printf "%s" "${!var}"
