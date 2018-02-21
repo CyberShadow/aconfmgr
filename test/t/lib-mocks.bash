@@ -24,7 +24,26 @@ function find() {
 	then
 		command "find" "$@"
 	else
-		: # TODO
+		# Assume this is the find invocation for finding lost files in
+		# common.sh.
+		cat "$test_data_dir"/find_lost_files.txt
+	fi
+}
+
+function cat() {
+	if [[ $# -eq 0 ]]
+	then
+		/bin/cat
+	else
+		for arg in "$@"
+		do
+			if [[ "$arg" == /* ]]
+			then
+				command cat "$test_data_dir"/file-contents/"$arg"
+			else
+				command cat "$arg"
+			fi
+		done
 	fi
 }
 

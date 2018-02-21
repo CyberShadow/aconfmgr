@@ -3,6 +3,8 @@
 # shellcheck source=../lib-init-mock.bash
 source ./lib-init-mock.bash
 
+# External mock to allow error handling inside `if pacman ...`
+
 function pacman() {
 	local command=
 	local subcommand=

@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# shellcheck source=../lib-init-mock.bash
+source ./lib-init-mock.bash
+
+# External mock to allow execution via xargs
+
+function stat() {
+	local dir
+	local passthrough=false
+	local first_arg=$1
+
+	case "$first_arg" in
+		--format=%F)
+			dir=file-types
+			;;
+		--format=%s)
+			dir=file-contents
+			passthrough=true
+			;;
+		--format=%a)
+			dir=file-modes
+			;;
+		--format=%U)
+			dir=file-owners
+			;;
+		--format=%G)
+			dir=file-groups
+			;;
+		-f)
+			/usr/bin/stat "$@"
+			return
+			;;
+		*)
+			FatalError 'Unknown first argument to stat: %s\n' "$first_arg"
+			;;
+	esac
+
+	shift
+	for arg in "$@"
+	do
+		if [[ "$arg" == /* ]]
+		then
+			local path="$test_data_dir"/"$dir"/"$arg"
+			if $passthrough
+			then
+				/usr/bin/stat "$first_arg" "$path"
+			else
+				cat "$path"
+				printf '\n'
+			fi
+		else
+			/usr/bin/stat "$first_arg" "$arg"
+		fi
+	done
+}
+
+stat "$@"
+
+Exit 0

@@ -5,6 +5,9 @@
 set -eEuo pipefail
 shopt -s lastpipe
 
+IFS=$'\n'
+export LC_COLLATE=C
+
 if [[ -n ${ACONFMGR_CURRENT_TEST+x} ]]
 then
 	test_name=$ACONFMGR_CURRENT_TEST
