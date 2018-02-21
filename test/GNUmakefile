@@ -8,6 +8,11 @@ TMP=tmp
 check : shellcheck testsuite
 ci : check coverage
 
+# Create temporary directory
+
+$(TMP) :
+	mkdir -p $@
+
 # Download shellcheck
 
 SHELLCHECK_VERSION=0.4.6
@@ -90,11 +95,6 @@ else
  BASH_DEP=$(BASH_BIN) $(COREUTILS_BIN_DIR)
  PATH_PREFIX=$(realpath $(COREUTILS_BIN_DIR)):
 endif
-
-# Create temporary directory
-
-$(TMP) :
-	mkdir -p $@
 
 # ShellCheck rule
 
