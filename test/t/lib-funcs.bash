@@ -1,5 +1,8 @@
 # Test case configuration functions
 
+###############################################################################
+# Test phases
+
 function TestPhase_Setup() {
 	LogLeave
 	LogEnter 'Setting up test case...\n'
@@ -21,6 +24,9 @@ function TestDone() {
 	Exit 0
 }
 
+###############################################################################
+# Packages
+
 function TestAddPackage() {
 	local name=$1
 	local kind=$2
@@ -28,6 +34,9 @@ function TestAddPackage() {
 
 	printf '%s\t%s\t%s\n' "$name" "$kind" "$inst_as" >> "$test_data_dir"/packages.txt
 }
+
+###############################################################################
+# Configuration
 
 # Add a line to the configuration
 function TestAddConfig() {
