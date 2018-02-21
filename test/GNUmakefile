@@ -123,7 +123,7 @@ $(SHELLCHECK_OK) : $(SRC) $(SHELLCHECK) $(MULTISHELLCHECK)
 
 # Test suite
 
-TESTSUITE_LIB=$(wildcard t/lib*.bash)
+TESTSUITE_LIB=$(wildcard t/lib*.bash t/mocks/*)
 TESTSUITE_TESTS=$(wildcard t/t-*.sh)
 TESTSUITE_TESTS_OK=$(patsubst t/%.sh,tmp/test/%/.ok,$(TESTSUITE_TESTS))
 

@@ -1,4 +1,5 @@
 # aconfmgr test suite support code.
+# Sourced by test case scripts.
 
 # aconfmgr tests work by:
 # - mocking operations that inspect and modify the system (see
@@ -6,14 +7,7 @@
 # - helper functions that set up or inspect aconfmgr's configuration /
 #   environment / results (see ./lib-funcs.bash)
 
-set -eEuo pipefail
-shopt -s lastpipe
-
-test_name=$(basename "$0" .sh)
-
-config_dir=../tmp/test/"$test_name"/config
-tmp_dir=../tmp/test/"$test_name"/tmp
-test_data_dir=../tmp/test/"$test_name"/testdata
+source ./lib-init.bash
 
 source ../../src/common.bash
 source ../../src/save.bash

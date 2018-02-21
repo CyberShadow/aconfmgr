@@ -1,95 +1,6 @@
 # Mocked system introspection programs
 
-function pacman() {
-	set -e
-	local command=
-	local subcommand=
-	local args=()
-	local opt_quiet=false
-	local opt_explicit=false
-	local opt_native=false
-	local opt_foreign=false
-
-	local arg
-	for arg in "$@"
-	do
-		case "$arg" in
-			--query)
-				command=query
-				;;
-			--list|--info)
-				subcommand=${arg#--}
-				;;
-			--quiet)
-				opt_quiet=true
-				;;
-			--explicit)
-				opt_explicit=true
-				;;
-			--native)
-				opt_native=true
-				;;
-			--foreign)
-				opt_foreign=true
-				;;
-			--*)
-				FatalError 'Unknown mocked pacman switch %s\n' "$(Color Y "$arg")"
-				;;
-			*)
-				args+=("$arg")
-		esac
-	done
-
-	case "$command" in
-		query)
-			case "$subcommand" in
-				'')
-					$opt_quiet || FatalError 'Mocked pacman --query without --quiet\n'
-					$opt_explicit || FatalError 'Mocked pacman --query without --explicit\n'
-
-					local name kind inst_as
-					while IFS=$'\t' read -r name kind inst_as
-					do
-						if $opt_native && [[ "$kind" != native ]]
-						then
-							continue
-						fi
-
-						if $opt_foreign && [[ "$kind" != foreign ]]
-						then
-							continue
-						fi
-
-						if $opt_explicit && [[ "$inst_as" != explicit ]]
-						then
-							continue
-						fi
-
-						printf "%s\n" "$name"
-					done < "$test_data_dir"/packages.txt
-					;;
-				info)
-					local package
-					for package in "${args[@]}"
-					do
-						printf 'Name            : %s\n' "$package"
-						printf 'Description     : %s\n' "Dummy aconfmgr test suite package"
-						printf '\n'
-					done
-					;;
-				list)
-					: # TODO
-					;;
-				*)
-					FatalError 'Unknown --query subcommand %s\n' "$subcommand"
-					;;
-			esac
-			;;
-		*)
-			FatalError 'Unknown command %s\n' "$command"
-			;;
-	esac
-}
+# We can redefine some mocked programs as functions.
 
 function sudo() {
 	"$@"
@@ -124,3 +35,10 @@ function paccheck() {
 function AconfNeedProgram() {
 	: # ignore
 }
+
+# Some programs cannot be functions because they are executed from a
+# condition (e.g. `if prog; then` or `prog || failed=true`). This
+# disables `set -e` in a way that is impossible to re-enable (bash
+# CMD_IGNORE_RETURN flag), so they must be separate executables.
+
+export PATH=$PWD/mocks:$PATH
