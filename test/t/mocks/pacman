@@ -9,8 +9,10 @@ function pacman() {
 	local args=()
 	local opt_quiet=false
 	local opt_explicit=false
+	local opt_deps=false
 	local opt_native=false
 	local opt_foreign=false
+	local opt_unrequired=0
 
 	local arg
 	for arg in "$@"
@@ -28,11 +30,17 @@ function pacman() {
 			--explicit)
 				opt_explicit=true
 				;;
+			--deps)
+				opt_deps=true
+				;;
 			--native)
 				opt_native=true
 				;;
 			--foreign)
 				opt_foreign=true
+				;;
+			--unrequired)
+				opt_unrequired=$((opt_unrequired+1))
 				;;
 			--*)
 				FatalError 'Unknown mocked pacman switch %s\n' "$(Color Y "$arg")"
@@ -47,7 +55,6 @@ function pacman() {
 			case "$subcommand" in
 				'')
 					$opt_quiet || FatalError 'Mocked pacman --query without --quiet\n'
-					$opt_explicit || FatalError 'Mocked pacman --query without --explicit\n'
 
 					local name kind inst_as
 					while IFS=$'\t' read -r name kind inst_as
@@ -63,6 +70,16 @@ function pacman() {
 						fi
 
 						if $opt_explicit && [[ "$inst_as" != explicit ]]
+						then
+							continue
+						fi
+
+						if $opt_deps && [[ "$inst_as" == explicit ]]
+						then
+							continue
+						fi
+
+						if [[ $opt_unrequired -eq 2 && "$inst_as" == orphan ]]
 						then
 							continue
 						fi
