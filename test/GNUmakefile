@@ -1,9 +1,25 @@
+#
+# aconfmgr test suite
+#
+# Main targets:
+# - check - run all checks
+# - coverage - create coverage report in tmp/coverage/index.html
+#
+# Other targets:
+# - shellcheck - lint source code only
+# - testsuite - run test suite only
+#
+# Options:
+# - BUILD_BASH=1 - build/use bash and coreutils from source
+#                  (useful for testing on old / non-Arch systems)
+#
+
 # Common macros
 
 SRC=../aconfmgr $(wildcard ../src/*.bash)
 TMP=tmp
 
-# Default target
+# Entry point targets
 
 check : shellcheck testsuite
 ci : check coverage
