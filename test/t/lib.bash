@@ -9,9 +9,11 @@
 set -eEuo pipefail
 shopt -s lastpipe
 
-config_dir=../tmp/test/config
-tmp_dir=../tmp/test/tmp
-test_data_dir=../tmp/test/testdata
+test_name=$(basename "$0" .sh)
+
+config_dir=../tmp/test/"$test_name"/config
+tmp_dir=../tmp/test/"$test_name"/tmp
+test_data_dir=../tmp/test/"$test_name"/testdata
 
 source ../../src/common.bash
 source ../../src/save.bash
@@ -19,7 +21,7 @@ source ../../src/apply.bash
 source ../../src/check.bash
 source ../../src/helpers.bash
 
-LogEnter 'Running test case %s...\n' "$(Color C "$(basename "$0" .sh)")"
+LogEnter 'Running test case %s...\n' "$(Color C "$test_name")"
 LogEnter 'Setting up test suite...\n'
 
 rm -rf   "$config_dir" "$tmp_dir" "$test_data_dir"
