@@ -29,6 +29,14 @@ function TestAddPackage() {
 	printf '%s\t%s\t%s\n' "$name" "$kind" "$inst_as" >> "$test_data_dir"/packages.txt
 }
 
+# Add a line to the configuration
+function TestAddConfig() {
+	(
+		printf "%q " "$@"
+		printf '\n'
+	) >> "$config_dir"/50-aconfmgr-test-config.sh
+}
+
 # Verify that the generated 99-unsorted.sh configuration, stripped of
 # blank and comment lines, matches stdin.
 function TestExpectConfig() {
