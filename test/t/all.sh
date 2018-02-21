@@ -3,7 +3,7 @@ set -eu
 
 cd "$(dirname "$0")"
 
-$BASH ./t-sample.sh
-$BASH ./t-save-empty.sh
-$BASH ./t-save-packages.sh
-$BASH ./t-save-missing-packages.sh
+for t in ./t-*.sh
+do
+	$BASH "$t"
+done
