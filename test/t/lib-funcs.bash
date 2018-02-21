@@ -26,5 +26,11 @@ function TestAddPackage() {
 	local kind=$2
 	local inst_as=$3
 
-	printf '%s %s %s\n' "$name" "$kind" "$inst_as" >> "$test_data_dir"/packages.txt
+	printf '%s\t%s\t%s\n' "$name" "$kind" "$inst_as" >> "$test_data_dir"/packages.txt
+}
+
+# Verify that the generated 99-unsorted.sh configuration, stripped of
+# blank and comment lines, matches stdin.
+function TestExpectConfig() {
+	diff -u <(grep '^[^#]' "$config_dir"/99-unsorted.sh) /dev/stdin
 }

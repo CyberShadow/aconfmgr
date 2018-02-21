@@ -17,8 +17,8 @@ function pacman() {
 			--query)
 				command=query
 				;;
-			--list)
-				subcommand=list
+			--list|--info)
+				subcommand=${arg#--}
 				;;
 			--quiet)
 				opt_quiet=true
@@ -67,6 +67,15 @@ function pacman() {
 
 						printf "%s\n" "$name"
 					done < "$test_data_dir"/packages.txt
+					;;
+				info)
+					local package
+					for package in "${args[@]}"
+					do
+						printf 'Name            : %s\n' "$package"
+						printf 'Description     : %s\n' "Dummy aconfmgr test suite package"
+						printf '\n'
+					done
 					;;
 				list)
 					: # TODO
