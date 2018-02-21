@@ -1373,6 +1373,9 @@ function LogLeave() {
 
 function FatalError() {
 	Log "$@"
+	false
+	# if we're here, errexit is not set
+	Log "Continuing after error. This is a bug, please report it.\n"
 	Exit 1
 }
 
