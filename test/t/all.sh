@@ -2,8 +2,7 @@
 set -eu
 
 # Run all test scripts.
-# If this script finishes successfully (exit status 0), the test suite
-# is considered to have passed.
+# Used for coverage analysis.
 
 cd "$(dirname "$0")"
 

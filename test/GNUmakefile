@@ -108,7 +108,7 @@ ifeq (,$(BUILD_BASH))
  BASH_DEP=
  PATH_PREFIX=
 else
- BASH=$(BASH_BIN)
+ BASH=$(realpath $(BASH_BIN))
  BASH_DEP=$(BASH_BIN) $(COREUTILS_BIN_DIR)
  PATH_PREFIX=$(realpath $(COREUTILS_BIN_DIR)):
 endif
@@ -123,12 +123,15 @@ $(SHELLCHECK_OK) : $(SRC) $(SHELLCHECK) $(MULTISHELLCHECK)
 
 # Test suite
 
-TESTSUITE=$(wildcard t/*sh)
-TESTSUITE_OK=$(TMP)/.testsuite-ok
-testsuite : $(TESTSUITE_OK)
-$(TESTSUITE_OK) : $(SRC) $(TESTSUITE) $(BASH_DEP)
-	PATH=$(PATH_PREFIX)$(PATH) $(BASH) t/all.sh
+TESTSUITE_LIB=$(wildcard t/lib*.bash)
+TESTSUITE_TESTS=$(wildcard t/t-*.sh)
+TESTSUITE_TESTS_OK=$(patsubst t/%.sh,tmp/test/%/.ok,$(TESTSUITE_TESTS))
+
+tmp/test/%/.ok : t/%.sh $(SRC) $(TESTSUITE_LIB) $(BASH_DEP)
+	cd t && PATH=$(PATH_PREFIX)$(PATH) $(BASH) $(<:t/%=%)
 	touch "$@"
+
+testsuite : $(TESTSUITE_TESTS_OK)
 
 # Coverage
 
