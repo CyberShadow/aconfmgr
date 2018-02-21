@@ -4,6 +4,7 @@
 # Main targets:
 # - check - run all checks
 # - coverage - create coverage report in tmp/coverage/index.html
+# - clean - delete temporary/intermediate files
 #
 # Other targets:
 # - shellcheck - lint source code only
@@ -136,4 +137,11 @@ coverage : $(COVERAGE_REPORT)
 $(COVERAGE_REPORT) : $(SRC) $(TESTSUITE) $(BASH_DEP) .simplecov
 	PATH=$(PATH_PREFIX)$(PATH) bashcov --bash-path $(BASH) --root=.. t/all.sh
 
-.PHONY: check ci shellcheck testsuite coverage
+# Clean-up
+
+clean :
+	rm -rf $(TMP)
+
+# GNU make directives
+
+.PHONY: check ci shellcheck testsuite coverage clean
