@@ -1,3 +1,11 @@
+# aconfmgr test suite support code.
+
+# aconfmgr tests work by:
+# - mocking operations that inspect and modify the system (see
+#   ./lib-mocks.bash)
+# - helper functions that set up or inspect aconfmgr's configuration /
+#   environment / results (see ./lib-funcs.bash)
+
 set -eEuo pipefail
 shopt -s lastpipe
 

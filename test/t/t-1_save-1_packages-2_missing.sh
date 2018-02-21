@@ -1,19 +1,19 @@
 #!/bin/bash
 source ./lib.bash
 
-# Test basic package list saving.
+# Test saving missing packages.
 
-TestPhase_Setup
+TestPhase_Setup ###############################################################
 TestAddConfig AddPackage           test-native-package
 TestAddConfig AddPackage --foreign test-foreign-package
 
-TestPhase_Run
+TestPhase_Run #################################################################
 AconfSave
 
-TestPhase_Check
+TestPhase_Check ###############################################################
 TestExpectConfig <<EOF
 RemovePackage test-native-package
 RemovePackage --foreign test-foreign-package
 EOF
 
-TestDone
+TestDone ######################################################################

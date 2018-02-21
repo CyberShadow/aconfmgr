@@ -6,21 +6,21 @@ source ./lib.bash
 # aconfmgr test cases can have three phases,
 # all optional: setup, run, and check.
 
-# Setup phase (configure the environment).
-TestPhase_Setup
+TestPhase_Setup ###############################################################
 
+# Setup phase (configure the environment).
 a=2
 b=2
 
-# Run phase (execute the relevant parts of aconfmgr being tested).
-TestPhase_Run
+TestPhase_Run #################################################################
 
+# Run phase (execute the relevant parts of aconfmgr being tested).
 c=$((a+b))
 
-# Check phase (verify that the resulting state is as expected).
-TestPhase_Check
+TestPhase_Check ###############################################################
 
+# Check phase (verify that the resulting state is as expected).
 test $c -eq 4
 
 # Tests must end with an invocation of TestDone.
-TestDone
+TestDone ######################################################################
