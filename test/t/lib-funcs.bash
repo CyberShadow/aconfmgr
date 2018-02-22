@@ -20,7 +20,7 @@ function TestPhase_Check() {
 
 function TestDone() {
 	LogLeave
-	LogLeave
+	LogLeave 'Test %s: %s!\n' "$(Color C "$test_name")" "$(Color G success)"
 	Exit 0
 }
 
