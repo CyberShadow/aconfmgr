@@ -123,5 +123,5 @@ function TestAddConfig() {
 # blank and comment lines, matches stdin.
 function TestExpectConfig() {
 	touch "$config_dir"/99-unsorted.sh
-	diff -u <(grep '^[^#]' "$config_dir"/99-unsorted.sh) /dev/stdin
+	diff -u <(grep '^[^#]' "$config_dir"/99-unsorted.sh || true) /dev/stdin
 }
