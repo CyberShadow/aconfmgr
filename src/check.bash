@@ -5,6 +5,8 @@
 function AconfCheck() {
 	lint_config=true
 
+	LogEnter "Checking configuration...\n"
+
 	AconfCompileOutput
 
 	LogLeave "Done (%s warnings).\n" "$(Color G "$config_warnings")"
