@@ -14,4 +14,6 @@ TestExpectConfig <<EOF
 CopyFile /lostfile.txt
 EOF
 
+diff -u "$config_dir"/files/lostfile.txt <(printf "Lost file contents")
+
 TestDone ######################################################################
