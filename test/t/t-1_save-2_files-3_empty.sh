@@ -4,7 +4,7 @@ source ./lib.bash
 # Test saving empty files.
 
 TestPhase_Setup ###############################################################
-TestAddFile /emptyfile.txt 644 root root ''
+TestAddFile /emptyfile.txt ''
 
 TestPhase_Run #################################################################
 AconfSave

@@ -50,16 +50,15 @@ function TestWriteFile() {
 # Add a file to the virtual filesystem.
 function TestAddFile() {
 	local path=$1
-	local mode=$2
-	local owner=$3
-	local group=$4
-	local contents=$5
+	local contents=$2
+	local mode=${3:-}
+	local owner=${4:-}
+	local group=${5:-}
 
 	TestWriteFile "$test_data_dir"/files/"$path" "$contents"
-	TestWriteFile "$test_data_dir"/file-props/"$path".type 'regular file'
-	TestWriteFile "$test_data_dir"/file-props/"$path".mode "$mode"
-	TestWriteFile "$test_data_dir"/file-props/"$path".owner "$owner"
-	TestWriteFile "$test_data_dir"/file-props/"$path".group "$group"
+	if [[ -n "$mode"  ]] ; then TestWriteFile "$test_data_dir"/file-props/"$path".mode  "$mode"  ; fi
+	if [[ -n "$owner" ]] ; then TestWriteFile "$test_data_dir"/file-props/"$path".owner "$owner" ; fi
+	if [[ -n "$group" ]] ; then TestWriteFile "$test_data_dir"/file-props/"$path".group "$group" ; fi
 }
 
 function TestAddPackageFile() {

@@ -8,7 +8,7 @@ TestPhase_Setup ###############################################################
 TestAddPackage test-package native explicit
 TestAddConfig AddPackage test-package
 
-TestAddFile /badfile.txt 666 lucifer hell "This is a bad file"
+TestAddFile /badfile.txt 'This is a bad file' 666 lucifer hell
 TestAddModifiedFile /badfile.txt test-package UID root
 TestAddModifiedFile /badfile.txt test-package GID root
 TestAddModifiedFile /badfile.txt test-package permission 644
