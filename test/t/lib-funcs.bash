@@ -114,7 +114,7 @@ function TestAddModifiedFile() {
 # Add a line to the configuration
 function TestAddConfig() {
 	(
-		printf "%q " "$@"
+		printf "%s " "$@"
 		printf '\n'
 	) >> "$config_dir"/50-aconfmgr-test-config.sh
 }
