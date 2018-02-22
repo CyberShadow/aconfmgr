@@ -20,6 +20,7 @@ function TestPhase_Check() {
 
 function TestDone() {
 	LogLeave
+	test "$log_indent" == :: || FatalError 'Unbalanced log level!\n'
 	LogLeave 'Test %s: %s!\n' "$(Color C "$test_name")" "$(Color G success)"
 	Exit 0
 }
