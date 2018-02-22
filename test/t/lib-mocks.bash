@@ -150,6 +150,64 @@ function install() {
 	test -z "$group" || TestWriteFile "$test_data_dir"/file-props/"$dst".group "$group"
 }
 
+function cp() {
+	local args=()
+
+	local arg
+	for arg in "$@"
+	do
+		if [[ "$arg" == /* ]]
+		then
+			args+=("$test_data_dir"/files"$arg")
+		else
+			args+=("$arg")
+		fi
+	done
+
+	command cp "${args[@]}"
+}
+
+function chown() {
+	local args=()
+	local mode='' owner='' group=''
+	local dir=false
+
+	local arg
+	for arg in "$@"
+	do
+		case "$arg" in
+			--no-dereference)
+				;;
+			-*)
+				FatalError 'Unrecognized chown option: %q\n' "$arg"
+				;;
+			*)
+				args+=("$arg")
+				;;
+		esac
+	done
+
+	test ${#args[@]} -eq 2 || FatalError 'Expected two chown arguments\n'
+	local owner="${args[0]}"
+	local dst="${args[1]}"
+
+	[[ "$dst" == /* ]] || FatalError 'Can'\''t chown non-absolute path\n'
+
+	local group=''
+	if [[ "$owner" == *:* ]]
+	then
+		group="${owner#*:}"
+		owner="${owner%:*}"
+		if [[ -z "$group" ]]
+		then
+			group=$owner
+		fi
+	fi
+
+	test -z "$owner" || TestWriteFile "$test_data_dir"/file-props"$dst".owner "$owner"
+	test -z "$group" || TestWriteFile "$test_data_dir"/file-props"$dst".group "$group"
+}
+
 ###############################################################################
 # Packages
 
