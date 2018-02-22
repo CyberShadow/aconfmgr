@@ -95,6 +95,44 @@ function readlink() {
 	fi
 }
 
+function install() {
+	local args=()
+	local mode='' owner='' group=''
+
+	local arg
+	for arg in "$@"
+	do
+		case "$arg" in
+			--mode=*)
+				mode="${arg#--mode=}"
+				;;
+			--owner=*)
+				owner="${arg#--owner=}"
+				;;
+			--group=*)
+				group="${arg#--group=}"
+				;;
+			-*)
+				FatalError 'Unrecognized install option: %q\n' "$arg"
+				;;
+			*)
+				args+=("$arg")
+				;;
+		esac
+	done
+
+	test ${#args[@]} -eq 2 || FatalError 'Expected two non-option arguments to install\n'
+
+	local src="${args[0]}"
+	local dst="${args[1]}"
+	[[ "$dst" == /* ]] || FatalError 'Can'\''t install to non-absolute path\n'
+
+	cp "$src" "$test_data_dir"/files/"$dst"
+	test -z "$mode"  || TestWriteFile "$test_data_dir"/file-props/"$dst".mode  "$mode"
+	test -z "$owner" || TestWriteFile "$test_data_dir"/file-props/"$dst".owner "$owner"
+	test -z "$group" || TestWriteFile "$test_data_dir"/file-props/"$dst".group "$group"
+}
+
 ###############################################################################
 # Packages
 
