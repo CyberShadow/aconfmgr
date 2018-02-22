@@ -4,7 +4,7 @@ source ./lib.bash
 # Test saving lost files.
 
 TestPhase_Setup ###############################################################
-TestAddLostFile /lostfile.txt 644 root root "Lost file contents"
+TestAddFile /lostfile.txt 644 root root "Lost file contents"
 
 TestPhase_Run #################################################################
 AconfSave

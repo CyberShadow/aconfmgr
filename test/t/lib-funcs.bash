@@ -47,19 +47,19 @@ function TestWriteFile() {
 	printf "%s" "$data" > "$fn"
 }
 
-function TestAddLostFile() {
+# Add a file to the virtual filesystem.
+function TestAddFile() {
 	local path=$1
 	local mode=$2
 	local owner=$3
 	local group=$4
 	local contents=$5
 
-	printf 'O%s\0' "$path" >> "$test_data_dir"/find_lost_files.txt
-	TestWriteFile "$test_data_dir"/file-types/"$path" 'regular file'
-	TestWriteFile "$test_data_dir"/file-modes/"$path" "$mode"
-	TestWriteFile "$test_data_dir"/file-owners/"$path" "$owner"
-	TestWriteFile "$test_data_dir"/file-groups/"$path" "$group"
-	TestWriteFile "$test_data_dir"/file-contents/"$path" "$contents"
+	TestWriteFile "$test_data_dir"/files/"$path" "$contents"
+	TestWriteFile "$test_data_dir"/file-props/"$path".type 'regular file'
+	TestWriteFile "$test_data_dir"/file-props/"$path".mode "$mode"
+	TestWriteFile "$test_data_dir"/file-props/"$path".owner "$owner"
+	TestWriteFile "$test_data_dir"/file-props/"$path".group "$group"
 }
 
 ###############################################################################

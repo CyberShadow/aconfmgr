@@ -6,33 +6,31 @@ source ./lib-init-mock.bash
 # External mock to allow execution via xargs
 
 function stat() {
-	local dir
-	local passthrough=false
-	local first_arg=$1
+	local kind=
+	local arg1=$1
 
-	case "$first_arg" in
+	case "$arg1" in
 		--format=%F)
-			dir=file-types
+			kind=type
 			;;
 		--format=%s)
-			dir=file-contents
-			passthrough=true
+			kind=size
 			;;
 		--format=%a)
-			dir=file-modes
+			kind=mode
 			;;
 		--format=%U)
-			dir=file-owners
+			kind=owner
 			;;
 		--format=%G)
-			dir=file-groups
+			kind=group
 			;;
-		-f)
+		-f) # filesystem
 			/usr/bin/stat "$@"
 			return
 			;;
 		*)
-			FatalError 'Unknown first argument to stat: %s\n' "$first_arg"
+			FatalError 'Unknown first argument to stat: %s\n' "$arg1"
 			;;
 	esac
 
@@ -41,16 +39,19 @@ function stat() {
 	do
 		if [[ "$arg" == /* ]]
 		then
-			local path="$test_data_dir"/"$dir"/"$arg"
-			if $passthrough
+			local path="$test_data_dir"/file-props/"$arg"."$kind"
+			if [[ -f "$path" ]]
 			then
-				/usr/bin/stat "$first_arg" "$path"
-			else
 				cat "$path"
 				printf '\n'
+			elif [[ "$kind" == owner || "$kind" == group ]]
+			then
+				printf 'root\n'
+			else
+				/usr/bin/stat "$arg1" "$test_data_dir"/files/"$arg"
 			fi
 		else
-			/usr/bin/stat "$first_arg" "$arg"
+			/usr/bin/stat "$arg1" "$arg"
 		fi
 	done
 }

@@ -20,13 +20,40 @@ function stdbuf() {
 }
 
 function find() {
-	if [[ $1 != / ]]
+	if [[ "$1" != / ]]
 	then
 		command "find" "$@"
 	else
 		# Assume this is the find invocation for finding lost files in
-		# common.sh.
-		cat "$test_data_dir"/find_lost_files.txt
+		# common.sh.  Prefix arguments with our "virtual filesystem"
+		# directory and then remove it from the output.
+
+		args=()
+		for arg in "$@"
+		do
+			if [[ "$arg" == /* ]]
+			then
+				args+=("$test_data_dir"/files"$arg")
+			else
+				args+=("$arg")
+			fi
+		done
+
+		mkdir -p "$test_data_dir"/files
+
+		command find "${args[@]}" | \
+			while read -r -d $'\0' line
+			do
+				file=${line:1}
+				action=${line:0:1}
+				if [[ "$file" == "$test_data_dir"/files/* ]]
+				then
+					file=${file#$test_data_dir/files}
+				else
+					FatalError 'Unexpected find output line: %s\n' "$line"
+				fi
+				printf '%s%s\0' "$action" "$file"
+			done
 	fi
 }
 
@@ -39,7 +66,7 @@ function cat() {
 		do
 			if [[ "$arg" == /* ]]
 			then
-				command cat "$test_data_dir"/file-contents/"$arg"
+				command cat "$test_data_dir"/files"$arg"
 			else
 				command cat "$arg"
 			fi
