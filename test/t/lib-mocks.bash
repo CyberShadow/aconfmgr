@@ -2,6 +2,9 @@
 
 # We can redefine some mocked programs as functions.
 
+###############################################################################
+# General
+
 function sudo() {
 	"$@"
 }
@@ -18,6 +21,9 @@ function stdbuf() {
 	shift
 	"$@"
 }
+
+###############################################################################
+# Files
 
 function find() {
 	if [[ "$1" != / ]]
@@ -88,6 +94,9 @@ function readlink() {
 		command readlink "$arg"
 	fi
 }
+
+###############################################################################
+# Packages
 
 function paccheck() {
 	cat "$test_data_dir"/modified-files.txt
