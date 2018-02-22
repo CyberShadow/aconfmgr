@@ -108,6 +108,7 @@ function pacman() {
 			esac
 			;;
 		sync)
+			local arg
 			for arg in "${args[@]}"
 			do
 				printf '%s\n' "$arg" >> "$test_data_dir"/installed-packages.txt

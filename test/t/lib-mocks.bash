@@ -29,6 +29,7 @@ function find() {
 		# directory and then remove it from the output.
 
 		args=()
+		local arg
 		for arg in "$@"
 		do
 			if [[ "$arg" == /* ]]
@@ -41,6 +42,7 @@ function find() {
 
 		mkdir -p "$test_data_dir"/files
 
+		local line
 		command find "${args[@]}" | \
 			while read -r -d $'\0' line
 			do
@@ -62,6 +64,7 @@ function cat() {
 	then
 		/bin/cat
 	else
+		local arg
 		for arg in "$@"
 		do
 			if [[ "$arg" == /* ]]

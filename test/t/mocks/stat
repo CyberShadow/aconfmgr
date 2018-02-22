@@ -35,6 +35,7 @@ function stat() {
 	esac
 
 	shift
+	local arg
 	for arg in "$@"
 	do
 		if [[ "$arg" == /* ]]
