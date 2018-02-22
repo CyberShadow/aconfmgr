@@ -167,10 +167,35 @@ function cp() {
 	command cp "${args[@]}"
 }
 
+function chmod() {
+	local args=()
+
+	local arg
+	for arg in "$@"
+	do
+		case "$arg" in
+			# --no-dereference)
+			# 	;;
+			-*)
+				FatalError 'Unrecognized chmod option: %q\n' "$arg"
+				;;
+			*)
+				args+=("$arg")
+				;;
+		esac
+	done
+
+	test ${#args[@]} -eq 2 || FatalError 'Expected two chmod arguments\n'
+	local mode="${args[0]}"
+	local dst="${args[1]}"
+
+	[[ "$dst" == /* ]] || FatalError 'Can'\''t chmod non-absolute path\n'
+
+	TestWriteFile "$test_data_dir"/file-props"$dst".mode "$mode"
+}
+
 function chown() {
 	local args=()
-	local mode='' owner='' group=''
-	local dir=false
 
 	local arg
 	for arg in "$@"
@@ -206,6 +231,33 @@ function chown() {
 
 	test -z "$owner" || TestWriteFile "$test_data_dir"/file-props"$dst".owner "$owner"
 	test -z "$group" || TestWriteFile "$test_data_dir"/file-props"$dst".group "$group"
+}
+
+function chgrp() {
+	local args=()
+
+	local arg
+	for arg in "$@"
+	do
+		case "$arg" in
+			--no-dereference)
+				;;
+			-*)
+				FatalError 'Unrecognized chgrp option: %q\n' "$arg"
+				;;
+			*)
+				args+=("$arg")
+				;;
+		esac
+	done
+
+	test ${#args[@]} -eq 2 || FatalError 'Expected two chgrp arguments\n'
+	local group="${args[0]}"
+	local dst="${args[1]}"
+
+	[[ "$dst" == /* ]] || FatalError 'Can'\''t chgrp non-absolute path\n'
+
+	TestWriteFile "$test_data_dir"/file-props"$dst".group "$group"
 }
 
 ###############################################################################
