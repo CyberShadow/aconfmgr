@@ -74,6 +74,21 @@ function TestAddDir() {
 	if [[ -n "$group" ]] ; then TestWriteFile "$test_data_dir"/file-props/"$path".group "$group" ; fi
 }
 
+# Add a symlink to the virtual filesystem.
+function TestAddLink() {
+	local path=$1
+	local target=$2
+	local owner=${3:-}
+	local group=${4:-}
+
+	local fn="$test_data_dir"/files/"$path"
+	mkdir -p "$(dirname "$fn")"
+	ln -s "$target" "$fn"
+
+	if [[ -n "$owner" ]] ; then TestWriteFile "$test_data_dir"/file-props/"$path".owner "$owner" ; fi
+	if [[ -n "$group" ]] ; then TestWriteFile "$test_data_dir"/file-props/"$path".group "$group" ; fi
+}
+
 function TestAddPackageFile() {
 	local package=$1
 	local path=$2

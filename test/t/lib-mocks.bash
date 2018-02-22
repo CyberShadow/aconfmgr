@@ -74,6 +74,18 @@ function cat() {
 	fi
 }
 
+function readlink() {
+	test $# -eq 1 || FatalError 'Expected one readlink argument\n'
+	local arg=$1
+
+	if [[ "$arg" == /* ]]
+	then
+		command readlink "$test_data_dir"/files"$arg"
+	else
+		command readlink "$arg"
+	fi
+}
+
 function paccheck() {
 	cat "$test_data_dir"/modified-files.txt
 }
