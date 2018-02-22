@@ -126,6 +126,7 @@ $(SHELLCHECK_OK) : $(SRC) $(SHELLCHECK) $(MULTISHELLCHECK)
 TESTSUITE_LIB=$(wildcard t/lib*.bash t/mocks/*)
 TESTSUITE_TESTS=$(wildcard t/t-*.sh)
 TESTSUITE_TESTS_OK=$(patsubst t/%.sh,tmp/test/%/.ok,$(TESTSUITE_TESTS))
+TESTSUITE=$(TESTSUITE_LIB) $(TESTSUITE_TESTS)
 
 tmp/test/%/.ok : t/%.sh $(SRC) $(TESTSUITE_LIB) $(BASH_DEP)
 	cd t && PATH=$(PATH_PREFIX)$(PATH) $(BASH) $(<:t/%=%)
