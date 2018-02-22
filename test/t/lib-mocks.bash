@@ -98,6 +98,7 @@ function readlink() {
 function install() {
 	local args=()
 	local mode='' owner='' group=''
+	local dir=false
 
 	local arg
 	for arg in "$@"
@@ -112,6 +113,9 @@ function install() {
 			--group=*)
 				group="${arg#--group=}"
 				;;
+			-d)
+				dir=true
+				;;
 			-*)
 				FatalError 'Unrecognized install option: %q\n' "$arg"
 				;;
@@ -121,13 +125,26 @@ function install() {
 		esac
 	done
 
-	test ${#args[@]} -eq 2 || FatalError 'Expected two non-option arguments to install\n'
+	local src dst
+	if $dir
+	then
+		test ${#args[@]} -eq 1 || FatalError 'Expected one non-option argument to install (with -d)\n'
+		dst="${args[0]}"
+	else
+		test ${#args[@]} -eq 2 || FatalError 'Expected two non-option arguments to install (without -d)\n'
+		src="${args[0]}"
+		dst="${args[1]}"
+	fi
 
-	local src="${args[0]}"
-	local dst="${args[1]}"
 	[[ "$dst" == /* ]] || FatalError 'Can'\''t install to non-absolute path\n'
 
-	cp "$src" "$test_data_dir"/files/"$dst"
+	if $dir
+	then
+		mkdir -p "$test_data_dir"/files/"$dst"
+	else
+		cp "$src" "$test_data_dir"/files/"$dst"
+	fi
+
 	test -z "$mode"  || TestWriteFile "$test_data_dir"/file-props/"$dst".mode  "$mode"
 	test -z "$owner" || TestWriteFile "$test_data_dir"/file-props/"$dst".owner "$owner"
 	test -z "$group" || TestWriteFile "$test_data_dir"/file-props/"$dst".group "$group"
