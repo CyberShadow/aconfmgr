@@ -20,8 +20,8 @@ function pacman() {
 	for arg in "$@"
 	do
 		case "$arg" in
-			--query)
-				command=query
+			--query|--sync)
+				command=${arg#--}
 				;;
 			--list|--info)
 				subcommand=${arg#--}
@@ -106,6 +106,12 @@ function pacman() {
 					FatalError 'Unknown --query subcommand %s\n' "$subcommand"
 					;;
 			esac
+			;;
+		sync)
+			for arg in "${args[@]}"
+			do
+				printf '%s\n' "$arg" >> "$test_data_dir"/installed-packages.txt
+			done
 			;;
 		*)
 			FatalError 'Unknown command %s\n' "$command"
