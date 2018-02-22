@@ -122,5 +122,6 @@ function TestAddConfig() {
 # Verify that the generated 99-unsorted.sh configuration, stripped of
 # blank and comment lines, matches stdin.
 function TestExpectConfig() {
+	touch "$config_dir"/99-unsorted.sh
 	diff -u <(grep '^[^#]' "$config_dir"/99-unsorted.sh) /dev/stdin
 }
