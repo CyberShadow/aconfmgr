@@ -61,6 +61,19 @@ function TestAddFile() {
 	if [[ -n "$group" ]] ; then TestWriteFile "$test_data_dir"/file-props/"$path".group "$group" ; fi
 }
 
+# Add a directory to the virtual filesystem.
+function TestAddDir() {
+	local path=$1
+	local mode=${2:-}
+	local owner=${3:-}
+	local group=${4:-}
+
+	mkdir -p "$test_data_dir"/files/"$path"
+	if [[ -n "$mode"  ]] ; then TestWriteFile "$test_data_dir"/file-props/"$path".mode  "$mode"  ; fi
+	if [[ -n "$owner" ]] ; then TestWriteFile "$test_data_dir"/file-props/"$path".owner "$owner" ; fi
+	if [[ -n "$group" ]] ; then TestWriteFile "$test_data_dir"/file-props/"$path".group "$group" ; fi
+}
+
 function TestAddPackageFile() {
 	local package=$1
 	local path=$2
