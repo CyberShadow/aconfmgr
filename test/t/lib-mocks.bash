@@ -75,7 +75,7 @@ function cat() {
 }
 
 function paccheck() {
-	: # TODO
+	cat "$test_data_dir"/modified-files.txt
 }
 
 function AconfNeedProgram() {

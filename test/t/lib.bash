@@ -22,6 +22,8 @@ rm -rf   "$config_dir" "$tmp_dir" "$test_data_dir"
 mkdir -p "$config_dir" "$tmp_dir" "$test_data_dir"
 
 touch "$test_data_dir"/packages.txt
+touch "$test_data_dir"/modified-files.txt
+touch "$test_data_dir"/package-files.txt
 
 source ./lib-mocks.bash
 source ./lib-funcs.bash

@@ -99,7 +99,8 @@ function pacman() {
 					done
 					;;
 				list)
-					: # TODO
+					$opt_quiet || FatalError 'Mocked pacman --query --list without --quiet\n'
+					cat "$test_data_dir"/package-files.txt
 					;;
 				*)
 					FatalError 'Unknown --query subcommand %s\n' "$subcommand"

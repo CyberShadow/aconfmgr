@@ -62,6 +62,25 @@ function TestAddFile() {
 	TestWriteFile "$test_data_dir"/file-props/"$path".group "$group"
 }
 
+function TestAddPackageFile() {
+	local package=$1
+	local path=$2
+
+	printf '%s\n' "$path" >> "$test_data_dir"/package-files.txt
+}
+
+function TestAddModifiedFile() {
+	local path=$1
+	local package=$2
+	local property=$3 # as emitted by paccheck
+	local old_value=$4
+
+	printf '%s: '\''%s'\'' %s mismatch (expected %s)\n' \
+		   "$package" "$path" "$property" "$old_value" \
+		   >> "$test_data_dir"/modified-files.txt
+	TestAddPackageFile "$package" "$path"
+}
+
 ###############################################################################
 # Configuration
 
