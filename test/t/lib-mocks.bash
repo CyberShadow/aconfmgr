@@ -55,9 +55,17 @@ function AconfNeedProgram() {
 	: # ignore
 }
 
-# Some programs cannot be functions because they are executed from a
-# condition (e.g. `if prog; then` or `prog || failed=true`). This
-# disables `set -e` in a way that is impossible to re-enable (bash
-# CMD_IGNORE_RETURN flag), so they must be separate executables.
+# Some mocked commands cannot be functions, if:
+#
+# - They are executed from a condition (e.g. `if prog; then` or `prog
+#   || failed=true`). This disables `set -e` in a way that is impossible
+#   to re-enable (bash CMD_IGNORE_RETURN flag), so they must be separate
+#   executables.
+#
+# - They are executed via xargs, or some other method that is
+#   unreasonably cumbersome to mock as a function.
+#
+# For such cases, the implementation lies in a separate executable
+# file, the path to which we prepend to the system PATH.
 
 export PATH=$PWD/mocks:$PATH
