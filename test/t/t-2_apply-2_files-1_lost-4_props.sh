@@ -4,7 +4,6 @@ source ./lib.bash
 # Test installing a file with non-default properties.
 
 TestPhase_Setup ###############################################################
-prompt_mode=never
 TestAddConfig 'echo foo > $(CreateFile /extrafile.txt 600 billy wheel)'
 
 TestPhase_Run #################################################################

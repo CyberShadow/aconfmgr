@@ -4,7 +4,6 @@ source ./lib.bash
 # Test applying file properties.
 
 TestPhase_Setup ###############################################################
-prompt_mode=never
 TestAddFile /testfile.txt 'Test file contents'
 TestAddPackageFile test-package /testfile.txt 'Test file contents'
 TestAddConfig SetFileProperty /testfile.txt owner billy

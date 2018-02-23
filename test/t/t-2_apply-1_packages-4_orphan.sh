@@ -4,7 +4,6 @@ source ./lib.bash
 # Test removing an orphan package.
 
 TestPhase_Setup ###############################################################
-prompt_mode=never
 TestAddPackage test-explicit-package native explicit
 TestAddPackage test-dependency-package native dependency
 TestAddPackage test-orphan-package native orphan

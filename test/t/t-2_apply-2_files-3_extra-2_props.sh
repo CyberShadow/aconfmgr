@@ -4,7 +4,6 @@ source ./lib.bash
 # Test clearing file properties.
 
 TestPhase_Setup ###############################################################
-prompt_mode=never
 TestAddFile /testfile.txt foo 666 billy wheel
 TestAddConfig 'echo foo > $(CreateFile /testfile.txt)'
 

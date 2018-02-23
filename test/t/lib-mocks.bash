@@ -22,6 +22,18 @@ function stdbuf() {
 	"$@"
 }
 
+prompt_mode=paranoid
+function Confirm() {
+	local detail_func="$1"
+
+	if [[ -n "$detail_func" ]]
+	then
+		"$detail_func"
+	fi
+
+	return 0
+}
+
 ###############################################################################
 # Files
 

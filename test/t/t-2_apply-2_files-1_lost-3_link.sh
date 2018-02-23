@@ -4,7 +4,6 @@ source ./lib.bash
 # Test installing a symbolic link.
 
 TestPhase_Setup ###############################################################
-prompt_mode=never
 TestAddConfig CreateLink /symlink target
 
 TestPhase_Run #################################################################

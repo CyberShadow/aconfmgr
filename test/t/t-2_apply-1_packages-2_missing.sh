@@ -4,7 +4,6 @@ source ./lib.bash
 # Test unpinning a package.
 
 TestPhase_Setup ###############################################################
-prompt_mode=never
 TestAddPackage test-package native explicit
 
 TestPhase_Run #################################################################

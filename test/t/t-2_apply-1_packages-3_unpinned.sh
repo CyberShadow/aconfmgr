@@ -4,7 +4,6 @@ source ./lib.bash
 # Test pinning a package.
 
 TestPhase_Setup ###############################################################
-prompt_mode=never
 TestAddPackage test-package native dependency
 TestAddConfig AddPackage test-package
 

@@ -4,7 +4,6 @@ source ./lib.bash
 # Test applying modified files.
 
 TestPhase_Setup ###############################################################
-prompt_mode=never
 TestAddFile /testfile.txt 'Original file contents'
 TestAddPackageFile test-package /testfile.txt 'Original file contents'
 TestAddConfig 'echo "Modified file contents" > $(CreateFile /testfile.txt)'

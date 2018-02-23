@@ -4,7 +4,6 @@ source ./lib.bash
 # Test deleting an extra file.
 
 TestPhase_Setup ###############################################################
-prompt_mode=never
 TestAddFile /testfile.txt foo
 
 TestPhase_Run #################################################################

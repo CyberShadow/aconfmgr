@@ -4,7 +4,6 @@ source ./lib.bash
 # Test installing a file.
 
 TestPhase_Setup ###############################################################
-prompt_mode=never
 TestAddConfig 'echo foo > $(CreateFile /extrafile.txt)'
 
 TestPhase_Run #################################################################
