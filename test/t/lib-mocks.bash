@@ -319,7 +319,10 @@ function TestPacCheckCompare() {
 }
 
 function TestFileMd5sum() {
-	md5sum "$@" | cut -c 1-32
+	if ! [[ -d "$1" ]]
+	then
+		md5sum "$@" | cut -c 1-32
+	fi
 }
 
 function paccheck() {
