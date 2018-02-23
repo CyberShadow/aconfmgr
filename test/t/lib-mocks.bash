@@ -167,6 +167,23 @@ function cp() {
 	command cp "${args[@]}"
 }
 
+function rm() {
+	local args=()
+
+	local arg
+	for arg in "$@"
+	do
+		if [[ "$arg" == /* ]]
+		then
+			args+=("$test_data_dir"/files"$arg")
+		else
+			args+=("$arg")
+		fi
+	done
+
+	command rm "${args[@]}"
+}
+
 function chmod() {
 	local args=()
 
