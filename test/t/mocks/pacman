@@ -121,7 +121,7 @@ function pacman() {
 			local arg
 			for arg in "${args[@]}"
 			do
-				printf '%s\n' "$arg" >> "$test_data_dir"/installed-packages.txt
+				printf 'install %s\n' "$arg" >> "$test_data_dir"/pacman-actions.txt
 			done
 			;;
 		*)

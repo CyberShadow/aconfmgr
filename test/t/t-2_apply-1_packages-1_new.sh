@@ -10,8 +10,8 @@ TestPhase_Run #################################################################
 AconfApply
 
 TestPhase_Check ###############################################################
-diff -u "$test_data_dir"/installed-packages.txt /dev/stdin <<EOF
-test-package
+diff -u "$test_data_dir"/pacman-actions.txt /dev/stdin <<EOF
+install test-package
 EOF
 
 TestDone ######################################################################
