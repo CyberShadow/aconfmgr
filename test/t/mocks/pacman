@@ -16,6 +16,7 @@ function pacman() {
 	local opt_foreign=false
 	local opt_unrequired=0
 	local opt_asdeps=false
+	local opt_asexplicit=false
 
 	local arg
 	for arg in "$@"
@@ -47,6 +48,9 @@ function pacman() {
 				;;
 			--asdeps)
 				opt_asdeps=true
+				;;
+			--asexplicit)
+				opt_asexplicit=true
 				;;
 			--*)
 				FatalError 'Unknown mocked pacman switch %s\n' "$(Color Y "$arg")"
@@ -85,7 +89,7 @@ function pacman() {
 							continue
 						fi
 
-						if [[ $opt_unrequired -eq 2 && "$inst_as" == orphan ]]
+						if [[ $opt_unrequired -eq 2 && "$inst_as" != orphan ]]
 						then
 							continue
 						fi
@@ -129,12 +133,18 @@ function pacman() {
 			done
 			;;
 		database)
-			$opt_asdeps || FatalError 'Mocked pacman --database without --asdeps\n'
-
 			local arg
 			for arg in "${args[@]}"
 			do
-				printf 'unpin %s\n' "$arg" >> "$test_data_dir"/pacman-actions.txt
+				if $opt_asdeps
+				then
+					printf 'unpin %s\n' "$arg" >> "$test_data_dir"/pacman-actions.txt
+				elif $opt_asexplicit
+				then
+					printf 'pin %s\n' "$arg" >> "$test_data_dir"/pacman-actions.txt
+				else
+					FatalError 'Mocked pacman --database without --asdeps/--asexplicit\n'
+				fi
 			done
 			;;
 		*)
