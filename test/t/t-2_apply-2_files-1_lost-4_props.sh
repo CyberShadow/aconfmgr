@@ -1,0 +1,18 @@
+#!/bin/bash
+source ./lib.bash
+
+# Test installing a file with non-default properties.
+
+TestPhase_Setup ###############################################################
+prompt_mode=never
+TestAddConfig 'echo foo > $(CreateFile /extrafile.txt 600 billy wheel)'
+
+TestPhase_Run #################################################################
+AconfApply
+
+TestPhase_Check ###############################################################
+diff -u <(stat --format=%a /extrafile.txt) <(echo 600)
+diff -u <(stat --format=%U /extrafile.txt) <(echo billy)
+diff -u <(stat --format=%G /extrafile.txt) <(echo wheel)
+
+TestDone ######################################################################
