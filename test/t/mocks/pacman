@@ -15,12 +15,13 @@ function pacman() {
 	local opt_native=false
 	local opt_foreign=false
 	local opt_unrequired=0
+	local opt_asdeps=false
 
 	local arg
 	for arg in "$@"
 	do
 		case "$arg" in
-			--query|--sync)
+			--query|--sync|--database)
 				command=${arg#--}
 				;;
 			--list|--info)
@@ -43,6 +44,9 @@ function pacman() {
 				;;
 			--unrequired)
 				opt_unrequired=$((opt_unrequired+1))
+				;;
+			--asdeps)
+				opt_asdeps=true
 				;;
 			--*)
 				FatalError 'Unknown mocked pacman switch %s\n' "$(Color Y "$arg")"
@@ -122,6 +126,15 @@ function pacman() {
 			for arg in "${args[@]}"
 			do
 				printf 'install %s\n' "$arg" >> "$test_data_dir"/pacman-actions.txt
+			done
+			;;
+		database)
+			$opt_asdeps || FatalError 'Mocked pacman --database without --asdeps\n'
+
+			local arg
+			for arg in "${args[@]}"
+			do
+				printf 'unpin %s\n' "$arg" >> "$test_data_dir"/pacman-actions.txt
 			done
 			;;
 		*)
