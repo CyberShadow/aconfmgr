@@ -6,7 +6,7 @@ source ./lib.bash
 TestPhase_Setup ###############################################################
 prompt_mode=never
 TestAddFile /testfile.txt 'Test file contents'
-TestAddPackageFile test-package /testfile.txt
+TestAddPackageFile test-package /testfile.txt 'Test file contents'
 TestAddConfig SetFileProperty /testfile.txt owner billy
 TestAddConfig SetFileProperty /testfile.txt group wheel
 TestAddConfig SetFileProperty /testfile.txt mode 600

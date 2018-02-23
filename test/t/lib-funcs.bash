@@ -48,6 +48,46 @@ function TestWriteFile() {
 	printf "%s" "$data" > "$fn"
 }
 
+function TestAddFSObj() {
+	local package=$1 # empty string to add to filesystem
+	local path=$2
+	local type=$3 # file, dir, link
+	local contents=$4 # file contents or link data
+	local mode=${5:-}
+	local owner=${6:-}
+	local group=${7:-}
+
+	local root
+	if [[ -z "$package" ]]
+	then
+		root="$test_data_dir"
+	else
+		root="$test_data_dir"/packages/"$package"
+	fi
+
+	case "$type" in
+		file)
+			TestWriteFile "$root"/files/"$path" "$contents"
+			;;
+		dir)
+			test -z "$contents" || FatalError 'Attempting to create directory with non-empty contents\n'
+			mkdir -p "$root"/files/"$path"
+			;;
+		link)
+			local fn="$test_data_dir"/files/"$path"
+			mkdir -p "$(dirname "$fn")"
+			ln -s "$contents" "$fn"
+			;;
+		*)
+			FatalError 'Unknown filesystem object type %s\n' "$type"
+			;;
+	esac
+
+	if [[ -n "$mode"  ]] ; then TestWriteFile "$root"/file-props/"$path".mode  "$mode"  ; fi
+	if [[ -n "$owner" ]] ; then TestWriteFile "$root"/file-props/"$path".owner "$owner" ; fi
+	if [[ -n "$group" ]] ; then TestWriteFile "$root"/file-props/"$path".group "$group" ; fi
+}
+
 # Add a file to the virtual filesystem.
 function TestAddFile() {
 	local path=$1
@@ -56,10 +96,7 @@ function TestAddFile() {
 	local owner=${4:-}
 	local group=${5:-}
 
-	TestWriteFile "$test_data_dir"/files/"$path" "$contents"
-	if [[ -n "$mode"  ]] ; then TestWriteFile "$test_data_dir"/file-props/"$path".mode  "$mode"  ; fi
-	if [[ -n "$owner" ]] ; then TestWriteFile "$test_data_dir"/file-props/"$path".owner "$owner" ; fi
-	if [[ -n "$group" ]] ; then TestWriteFile "$test_data_dir"/file-props/"$path".group "$group" ; fi
+	TestAddFSObj '' "$path" file "$contents" "$mode" "$owner" "$group"
 }
 
 # Add a directory to the virtual filesystem.
@@ -69,10 +106,7 @@ function TestAddDir() {
 	local owner=${3:-}
 	local group=${4:-}
 
-	mkdir -p "$test_data_dir"/files/"$path"
-	if [[ -n "$mode"  ]] ; then TestWriteFile "$test_data_dir"/file-props/"$path".mode  "$mode"  ; fi
-	if [[ -n "$owner" ]] ; then TestWriteFile "$test_data_dir"/file-props/"$path".owner "$owner" ; fi
-	if [[ -n "$group" ]] ; then TestWriteFile "$test_data_dir"/file-props/"$path".group "$group" ; fi
+	TestAddFSObj '' "$path" dir '' "$mode" "$owner" "$group"
 }
 
 # Add a symlink to the virtual filesystem.
@@ -82,31 +116,18 @@ function TestAddLink() {
 	local owner=${3:-}
 	local group=${4:-}
 
-	local fn="$test_data_dir"/files/"$path"
-	mkdir -p "$(dirname "$fn")"
-	ln -s "$target" "$fn"
-
-	if [[ -n "$owner" ]] ; then TestWriteFile "$test_data_dir"/file-props/"$path".owner "$owner" ; fi
-	if [[ -n "$group" ]] ; then TestWriteFile "$test_data_dir"/file-props/"$path".group "$group" ; fi
+	TestAddFSObj '' "$path" link "$target" '' "$owner" "$group"
 }
 
 function TestAddPackageFile() {
 	local package=$1
 	local path=$2
+	local contents=$3
+	local mode=${4:-}
+	local owner=${5:-}
+	local group=${6:-}
 
-	printf '%s\n' "$path" >> "$test_data_dir"/package-files.txt
-}
-
-function TestAddModifiedFile() {
-	local path=$1
-	local package=$2
-	local property=$3 # as emitted by paccheck
-	local old_value=$4
-
-	printf '%s: '\''%s'\'' %s mismatch (expected %s)\n' \
-		   "$package" "$path" "$property" "$old_value" \
-		   >> "$test_data_dir"/modified-files.txt
-	TestAddPackageFile "$package" "$path"
+	TestAddFSObj "$package" "$path" file "$contents" "$mode" "$owner" "$group"
 }
 
 ###############################################################################

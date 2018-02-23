@@ -263,8 +263,83 @@ function chgrp() {
 ###############################################################################
 # Packages
 
+function TestGetAttr() {
+	local root=$1
+	local path=$2
+	local ext=$3
+	shift 3
+	local query_cmd=("$@")
+
+	local prop_path="$root"/file-props/"$path"."$ext"
+	if [[ -f "$prop_path" ]]
+	then
+		cat "$prop_path"
+	else
+		"${query_cmd[@]}" "$root"/files/"$path"
+	fi
+}
+
+function TestPacCheckCompare() {
+	local package=$1
+	local path=$2
+	local paccheck_attr=$3
+	local ext_attr=$4
+	shift 4
+	local query_cmd=("$@")
+
+	local root1="$test_data_dir"
+	local root2="$test_data_dir"/packages/"$package"
+
+	local attr1 attr2
+	attr1=$(TestGetAttr "$root1" "$path" "$ext_attr" "${query_cmd[@]}")
+	attr2=$(TestGetAttr "$root2" "$path" "$ext_attr" "${query_cmd[@]}")
+
+	if [[ "$attr1" != "$attr2" ]]
+	then
+		printf '%s: '\''%s'\'' %s mismatch (expected %s)\n' "$package" /"$path" "$paccheck_attr" "$attr2"
+		return 1
+	fi
+}
+
+function TestFileMd5sum() {
+	md5sum "$@" | cut -c 1-32
+}
+
 function paccheck() {
-	cat "$test_data_dir"/modified-files.txt
+	local package
+	find "$test_data_dir"/packages -mindepth 1 -maxdepth 1 -printf '%P\0' | \
+		while read -r -d $'\0' package
+		do
+			local path
+			local modified=false
+			find "$test_data_dir"/packages/"$package"/files -mindepth 1 -printf '%P\0' | \
+				while read -r -d $'\0' path
+				do
+					# local package_path="$test_data_dir"/packages/"$package"/files/"$path"
+					# local package_prop_path="$test_data_dir"/packages/"$package"/file-props/"$path"
+					local fs_path="$test_data_dir"/files/"$path"
+					# local fs_prop_path="$test_data_dir"/file-props/"$path"
+
+					if [[ -e "$fs_path" ]]
+					then
+						TestPacCheckCompare "$package" "$path" type                type  stat --format=%F || modified=true
+						TestPacCheckCompare "$package" "$path" size                size  stat --format=%s || modified=true
+					#	TestPacCheckCompare "$package" "$path" 'modification time' ''    stat --format=%y || modified=true
+						TestPacCheckCompare "$package" "$path" md5sum              ''    TestFileMd5sum   || modified=true
+						TestPacCheckCompare "$package" "$path" UID                 owner stat --format=%U || modified=true
+						TestPacCheckCompare "$package" "$path" GID                 group stat --format=%G || modified=true
+						TestPacCheckCompare "$package" "$path" permission          mode  stat --format=%a || modified=true
+						TestPacCheckCompare "$package" "$path" 'symlink target'    ''    readlink         || modified=true
+					else
+						printf '%s: '\''%s'\'' missing file\n' "$package" /"$path"
+					fi
+				done
+
+			if ! $modified
+			then
+				printf '%s: all files match database\n' "$package"
+			fi
+		done
 }
 
 function AconfNeedProgram() {

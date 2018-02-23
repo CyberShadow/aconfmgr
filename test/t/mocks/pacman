@@ -100,7 +100,17 @@ function pacman() {
 					;;
 				list)
 					$opt_quiet || FatalError 'Mocked pacman --query --list without --quiet\n'
-					cat "$test_data_dir"/package-files.txt
+
+					local package
+					find "$test_data_dir"/packages -mindepth 1 -maxdepth 1 -printf '%P\0' | \
+						while read -r -d $'\0' package
+						do
+							find "$test_data_dir"/packages/"$package"/files \
+								 -mindepth 1 \
+								 -printf '%P\n' \
+								| sed 's#^#/#'
+						done \
+							| sort -u
 					;;
 				*)
 					FatalError 'Unknown --query subcommand %s\n' "$subcommand"
