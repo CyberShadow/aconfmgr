@@ -22,7 +22,7 @@ function pacman() {
 	for arg in "$@"
 	do
 		case "$arg" in
-			--query|--sync|--database)
+			--query|--sync|--database|--remove)
 				command=${arg#--}
 				;;
 			--list|--info)
@@ -145,6 +145,14 @@ function pacman() {
 				else
 					FatalError 'Mocked pacman --database without --asdeps/--asexplicit\n'
 				fi
+			done
+			;;
+		remove)
+			local arg
+			for arg in "${args[@]}"
+			do
+				printf 'remove %s\n' "$arg" >> "$test_data_dir"/pacman-actions.txt
+				sed -i "$(printf "/%q/d" "$arg")" "$test_data_dir"/packages.txt
 			done
 			;;
 		*)
