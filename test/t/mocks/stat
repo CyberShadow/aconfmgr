@@ -38,10 +38,10 @@ function stat() {
 			;;
 	esac
 
-	local switches=()
+	local args=(/usr/bin/stat)
 	if [[ -n "$kind" ]]
 	then
-		switches+=("$arg1")
+		args+=("$arg1")
 		shift
 	fi
 
@@ -59,10 +59,10 @@ function stat() {
 			then
 				printf 'root\n'
 			else
-				/usr/bin/stat "${switches[@]}" "$test_data_dir"/files/"$arg" || Exit 1
+				"${args[@]}" "$test_data_dir"/files/"$arg" || Exit 1
 			fi
 		else
-			/usr/bin/stat "${switches[@]}" "$arg" || Exit 1
+			"${args[@]}" "$arg" || Exit 1
 		fi
 	done
 }
