@@ -188,6 +188,10 @@ function touch() {
 	TestSimpleWrap touch "$@"
 }
 
+function test() {
+	TestSimpleWrap test "$@"
+}
+
 function chmod() {
 	local args=()
 

@@ -1158,12 +1158,12 @@ function AconfNeedPackageFile() {
 			do
 				if $precise
 				then
-					if [[ -f "$dir"/"$filename" ]]
+					if test -f "$dir"/"$filename"
 					then
 						files+=("$dir"/"$filename")
 					fi
 				else
-					if [[ -d "$dir" ]]
+					if test -d "$dir"
 					then
 						find "$dir" -type f -name "$filemask" -print0 | \
 							while read -r -d $'\0' file
