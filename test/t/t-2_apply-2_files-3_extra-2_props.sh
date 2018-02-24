@@ -5,7 +5,7 @@ source ./lib.bash
 
 TestPhase_Setup ###############################################################
 TestAddFile /testfile.txt foo 666 billy wheel
-TestAddConfig 'echo foo > $(CreateFile /testfile.txt)'
+TestAddConfig 'printf foo > $(CreateFile /testfile.txt)'
 
 TestPhase_Run #################################################################
 AconfApply
