@@ -196,9 +196,16 @@ function tar() {
 	TestSimpleWrap tar "$@"
 }
 
-function bsdtar() {
-	TestSimpleWrap bsdtar "$@"
-}
+if command -v bsdtar > /dev/null
+then
+	function bsdtar() {
+		TestSimpleWrap bsdtar "$@"
+	}
+else
+	function bsdtar() {
+		TestSimpleWrap tar "$@"
+	}
+fi
 
 function chmod() {
 	local args=()
