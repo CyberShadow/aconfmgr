@@ -77,34 +77,34 @@ function find() {
 	fi
 }
 
+# Simple wrapper around a command.
+# Rewrite all absolute path arguments to those pointing to our virtual
+# filesystem.
+function TestSimpleWrap() {
+	local command="$1"
+	shift
+
+	local args=()
+	local arg
+	for arg in "$@"
+	do
+		if [[ "$arg" == /* ]]
+		then
+			args+=("$test_data_dir"/files"$arg")
+		else
+			args+=("$arg")
+		fi
+	done
+
+	command "$command" "${args[@]}"
+}
+
 function cat() {
-	if [[ $# -eq 0 ]]
-	then
-		/bin/cat
-	else
-		local arg
-		for arg in "$@"
-		do
-			if [[ "$arg" == /* ]]
-			then
-				command cat "$test_data_dir"/files"$arg"
-			else
-				command cat "$arg"
-			fi
-		done
-	fi
+	TestSimpleWrap cat "$@"
 }
 
 function readlink() {
-	test $# -eq 1 || FatalError 'Expected one readlink argument\n'
-	local arg=$1
-
-	if [[ "$arg" == /* ]]
-	then
-		command readlink "$test_data_dir"/files"$arg"
-	else
-		command readlink "$arg"
-	fi
+	TestSimpleWrap readlink "$@"
 }
 
 function install() {
@@ -163,37 +163,15 @@ function install() {
 }
 
 function cp() {
-	local args=()
-
-	local arg
-	for arg in "$@"
-	do
-		if [[ "$arg" == /* ]]
-		then
-			args+=("$test_data_dir"/files"$arg")
-		else
-			args+=("$arg")
-		fi
-	done
-
-	command cp "${args[@]}"
+	TestSimpleWrap cp "$@"
 }
 
 function rm() {
-	local args=()
+	TestSimpleWrap rm "$@"
+}
 
-	local arg
-	for arg in "$@"
-	do
-		if [[ "$arg" == /* ]]
-		then
-			args+=("$test_data_dir"/files"$arg")
-		else
-			args+=("$arg")
-		fi
-	done
-
-	command rm "${args[@]}"
+function mkdir() {
+	TestSimpleWrap mkdir "$@"
 }
 
 function chmod() {
@@ -287,23 +265,6 @@ function chgrp() {
 	[[ "$dst" == /* ]] || FatalError 'Can'\''t chgrp non-absolute path\n'
 
 	TestWriteFile "$test_data_dir"/file-props"$dst".group "$group"
-}
-
-function mkdir() {
-	local args=()
-
-	local arg
-	for arg in "$@"
-	do
-		if [[ "$arg" == /* ]]
-		then
-			args+=("$test_data_dir"/files"$arg")
-		else
-			args+=("$arg")
-		fi
-	done
-
-	command mkdir "${args[@]}"
 }
 
 ###############################################################################
