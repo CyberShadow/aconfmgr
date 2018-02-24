@@ -184,7 +184,7 @@ function AconfApply() {
 
 	# Missing installed/unpinned packages (native and foreign packages that are implicitly installed,
 	# and listed in the configuration, but not marked as explicitly installed)
-	missing_unpinned_packages=($(comm -12 <(PrintArray missing_packages) <("$PACMAN" --query --quiet | sort)))
+	missing_unpinned_packages=($(comm -12 <(PrintArray missing_packages) <(("$PACMAN" --query --quiet || true) | sort)))
 
 	if [[ ${#missing_unpinned_packages[@]} != 0 ]]
 	then
@@ -201,7 +201,7 @@ function AconfApply() {
 
 
 	# Missing native packages (native packages that are listed in the configuration, but not installed)
-	missing_native_packages=($(comm -23 <(PrintArray packages) <("$PACMAN" --query --quiet | sort)))
+	missing_native_packages=($(comm -23 <(PrintArray packages) <(("$PACMAN" --query --quiet || true) | sort)))
 
 	if [[ ${#missing_native_packages[@]} != 0 ]]
 	then
@@ -217,7 +217,7 @@ function AconfApply() {
 	fi
 
 	# Missing foreign packages (foreign packages that are listed in the configuration, but not installed)
-	missing_foreign_packages=($(comm -23 <(PrintArray foreign_packages) <("$PACMAN" --query --quiet | sort)))
+	missing_foreign_packages=($(comm -23 <(PrintArray foreign_packages) <(("$PACMAN" --query --quiet || true) | sort)))
 
 	if [[ ${#missing_foreign_packages[@]} != 0 ]]
 	then
@@ -483,7 +483,7 @@ function AconfApply() {
 				absent=true
 			fi
 
-			package="$("$PACMAN" --query --owns --quiet "$file" | head -n 1 || true)"
+			package="$( ("$PACMAN" --query --owns --quiet "$file" || true) | head -n 1)"
 
 			if $absent
 			then

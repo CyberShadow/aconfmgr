@@ -5,6 +5,8 @@ source ./lib-init-mock.bash
 
 # External mock to allow error handling inside `if pacman ...`
 
+exit_code=0
+
 function pacman() {
 	local command=
 	local subcommand=
@@ -66,6 +68,7 @@ function pacman() {
 				'')
 					$opt_quiet || FatalError 'Mocked pacman --query without --quiet\n'
 
+					local found=false
 					local name kind inst_as
 					while IFS=$'\t' read -r name kind inst_as
 					do
@@ -95,7 +98,13 @@ function pacman() {
 						fi
 
 						printf "%s\n" "$name"
+						found=true
 					done < "$test_data_dir"/packages.txt
+
+					if ! $found
+					then
+						exit_code=1
+					fi
 					;;
 				info)
 					local package
@@ -163,4 +172,4 @@ function pacman() {
 
 pacman "$@"
 
-Exit 0
+Exit "$exit_code"

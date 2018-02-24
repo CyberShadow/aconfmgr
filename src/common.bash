@@ -180,7 +180,7 @@ function AconfCompileSystem() {
 
 	LogEnter "Enumerating managed files...\n"
 	mkdir --parents "$tmp_dir"
-	"$PACMAN" --query --list --quiet | sed 's#\/$##' | sort --unique > "$tmp_dir"/managed-files
+	( "$PACMAN" --query --list --quiet || true ) | sed 's#\/$##' | sort --unique > "$tmp_dir"/managed-files
 	LogLeave
 
 	LogEnter "Searching for lost files...\n"
