@@ -229,6 +229,9 @@ function CreateDir() {
 #
 # You should refactor out any occurrences of this function from your configuration.
 #
+# If you want to delete a file owned by a package, instead use:
+# SetFileProperty /path/to/file deleted y
+#
 
 function RemoveFile() {
 	local file="$1"
