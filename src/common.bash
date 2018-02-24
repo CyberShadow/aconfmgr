@@ -1080,7 +1080,7 @@ function AconfNeedPackageFile() {
 	local info foreign
 	if info="$("$PACMAN" --query --info "$package")"
 	then
-		if "$PACMAN" --query --info --foreign "$package" > /dev/null
+		if "$PACMAN" --query --quiet --foreign "$package" > /dev/null
 		then
 			foreign=true
 		else
