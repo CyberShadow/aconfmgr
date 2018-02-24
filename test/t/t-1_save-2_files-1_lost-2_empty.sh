@@ -14,6 +14,6 @@ TestExpectConfig <<EOF
 CreateFile /emptyfile.txt > /dev/null
 EOF
 
-! test -e "$config_dir"/files/emptyfile.txt # should not exist
+test ! -e "$config_dir"/files/emptyfile.txt # should not exist
 
 TestDone ######################################################################
