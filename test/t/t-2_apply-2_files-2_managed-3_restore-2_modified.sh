@@ -1,11 +1,12 @@
 #!/bin/bash
 source ./lib.bash
 
-# Test restoring a package file.
+# Test restoring a modified package file.
 
 TestPhase_Setup ###############################################################
 TestAddPackageFile test-package /testfile.txt foo
 TestCreatePackageFile test-package
+TestAddFile /testfile.txt bar
 
 TestPhase_Run #################################################################
 AconfApply
