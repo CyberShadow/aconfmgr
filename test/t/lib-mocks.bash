@@ -289,6 +289,23 @@ function chgrp() {
 	TestWriteFile "$test_data_dir"/file-props"$dst".group "$group"
 }
 
+function mkdir() {
+	local args=()
+
+	local arg
+	for arg in "$@"
+	do
+		if [[ "$arg" == /* ]]
+		then
+			args+=("$test_data_dir"/files"$arg")
+		else
+			args+=("$arg")
+		fi
+	done
+
+	command mkdir "${args[@]}"
+}
+
 ###############################################################################
 # Packages
 
