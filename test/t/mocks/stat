@@ -59,10 +59,10 @@ function stat() {
 			then
 				printf 'root\n'
 			else
-				/usr/bin/stat "${switches[@]}" "$test_data_dir"/files/"$arg"
+				/usr/bin/stat "${switches[@]}" "$test_data_dir"/files/"$arg" || Exit 1
 			fi
 		else
-			/usr/bin/stat "${switches[@]}" "$arg"
+			/usr/bin/stat "${switches[@]}" "$arg" || Exit 1
 		fi
 	done
 }
