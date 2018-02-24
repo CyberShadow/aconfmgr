@@ -26,3 +26,9 @@ mkdir -p "$test_data_dir"/packages
 
 source ./lib-mocks.bash
 source ./lib-funcs.bash
+
+# Don't use diff --color=auto when it's not available
+if test -v BUILD_BASH && ! diff --color=auto /dev/null /dev/null 2>/dev/null
+then
+	diff_opts=(diff)
+fi
