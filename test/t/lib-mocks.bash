@@ -192,6 +192,14 @@ function test() {
 	TestSimpleWrap test "$@"
 }
 
+function tar() {
+	TestSimpleWrap tar "$@"
+}
+
+function bsdtar() {
+	TestSimpleWrap bsdtar "$@"
+}
+
 function chmod() {
 	local args=()
 
