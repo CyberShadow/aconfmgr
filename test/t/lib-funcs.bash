@@ -36,6 +36,33 @@ function TestAddPackage() {
 	printf '%s\t%s\t%s\n' "$name" "$kind" "$inst_as" >> "$test_data_dir"/packages.txt
 }
 
+function TestCreatePackageFile() {
+	local package=$1
+	local version=1.0 # $2
+	local arch=x86_64 # $3
+
+	local package_file="$test_data_dir"/files/var/cache/pacman/pkg/"$package"-"$version"-"$arch".pkg.tar.xz
+	mkdir -p "$test_data_dir"/files/var/cache/pacman/pkg
+
+	printf 'pkgname = %s\n' "$package" > "$test_data_dir"/packages/"$package"/.PKGINFO
+	tar --create -f "$package_file" -C "$test_data_dir"/packages/"$package" .PKGINFO
+
+	local path
+	find "$test_data_dir"/packages/"$package"/files -mindepth 1 -printf '%P\0' | \
+		while read -r -d $'\0' path
+		do
+			# local package_path="$test_data_dir"/packages/"$package"/files/"$path"
+			local package_prop_path="$test_data_dir"/packages/"$package"/file-props/"$path"
+
+			local opts=()
+			if [[ -e "$package_prop_path".owner ]] ; then opts+=(--owner "$(cat "$package_prop_path".owner)") ; fi
+			if [[ -e "$package_prop_path".group ]] ; then opts+=(--group "$(cat "$package_prop_path".group)") ; fi
+			if [[ -e "$package_prop_path".mode  ]] ; then opts+=(--mode  "$(cat "$package_prop_path".mode )") ; fi
+
+			tar --append -f "$package_file" "${opts[@]}" -C "$test_data_dir"/packages/"$package"/files "$path"
+		done
+}
+
 ###############################################################################
 # Files
 

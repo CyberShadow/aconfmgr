@@ -27,7 +27,7 @@ function pacman() {
 			--query|--sync|--database|--remove)
 				command=${arg#--}
 				;;
-			--list|--info)
+			--list|--info|--owns)
 				subcommand=${arg#--}
 				;;
 			--quiet)
@@ -111,7 +111,9 @@ function pacman() {
 					for package in "${args[@]}"
 					do
 						printf 'Name            : %s\n' "$package"
-						printf 'Description     : %s\n' "Dummy aconfmgr test suite package"
+						printf 'Description     : %s\n' 'Dummy aconfmgr test suite package'
+						printf 'Version         : %s\n' '1.0'
+						printf 'Architecture    : %s\n' 'x86_64'
 						printf '\n'
 					done
 					;;
@@ -128,6 +130,28 @@ function pacman() {
 								| sed 's#^#/#'
 						done \
 							| sort -u
+					;;
+				owns)
+					$opt_quiet || FatalError 'Mocked pacman --query --owns without --quiet\n'
+					test "${#args[@]}" -eq 1 || FatalError 'Mocked pacman --query --owns expected 1 argument\n'
+
+					local found=false
+
+					local package
+					find "$test_data_dir"/packages -mindepth 1 -maxdepth 1 -printf '%P\0' | \
+						while read -r -d $'\0' package
+						do
+							if [[ -e "$test_data_dir"/packages/"$package"/files/"${args[0]}" ]]
+							then
+								printf '%s\n' "$package"
+								found=true
+							fi
+						done
+
+					if ! $found
+					then
+						exit_code=1
+					fi
 					;;
 				*)
 					FatalError 'Unknown --query subcommand %s\n' "$subcommand"

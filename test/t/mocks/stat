@@ -29,12 +29,22 @@ function stat() {
 			/usr/bin/stat "$@"
 			return
 			;;
-		*)
+		-*)
 			FatalError 'Unknown first argument to stat: %s\n' "$arg1"
+			;;
+		*)
+			# File existence check, output ignored
+			kind=
 			;;
 	esac
 
-	shift
+	local switches=()
+	if [[ -n "$kind" ]]
+	then
+		switches+=("$arg1")
+		shift
+	fi
+
 	local arg
 	for arg in "$@"
 	do
@@ -49,10 +59,10 @@ function stat() {
 			then
 				printf 'root\n'
 			else
-				/usr/bin/stat "$arg1" "$test_data_dir"/files/"$arg"
+				/usr/bin/stat "${switches[@]}" "$test_data_dir"/files/"$arg"
 			fi
 		else
-			/usr/bin/stat "$arg1" "$arg"
+			/usr/bin/stat "${switches[@]}" "$arg"
 		fi
 	done
 }

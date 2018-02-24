@@ -38,10 +38,14 @@ function Confirm() {
 # Files
 
 function find() {
-	if [[ "$1" != / ]]
+	if [[ "$1" != /* ]]
 	then
-		command "find" "$@"
-	else
+		command find "$@"
+	elif [[ "$1" == /var/cache/pacman/pkg ]]
+	then
+		TestSimpleWrap find "$@"
+	elif [[ "$1" == / ]]
+	then
 		# Assume this is the find invocation for finding lost files in
 		# common.sh.  Prefix arguments with our "virtual filesystem"
 		# directory and then remove it from the output.
@@ -74,6 +78,8 @@ function find() {
 				fi
 				printf '%s%s\0' "$action" "$file"
 			done
+	else
+		FatalError 'Unknown find invocation!\n'
 	fi
 }
 
@@ -166,12 +172,20 @@ function cp() {
 	TestSimpleWrap cp "$@"
 }
 
+function mv() {
+	TestSimpleWrap mv "$@"
+}
+
 function rm() {
 	TestSimpleWrap rm "$@"
 }
 
 function mkdir() {
 	TestSimpleWrap mkdir "$@"
+}
+
+function touch() {
+	TestSimpleWrap touch "$@"
 }
 
 function chmod() {
@@ -320,8 +334,9 @@ function paccheck() {
 	find "$test_data_dir"/packages -mindepth 1 -maxdepth 1 -printf '%P\0' | \
 		while read -r -d $'\0' package
 		do
-			local path
 			local modified=false
+
+			local path
 			find "$test_data_dir"/packages/"$package"/files -mindepth 1 -printf '%P\0' | \
 				while read -r -d $'\0' path
 				do
