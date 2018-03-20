@@ -1149,7 +1149,17 @@ function AconfNeedPackageFile() {
 					esac
 				done
 			else
-				dirs+=(/var/cache/pacman/pkg)
+				local dir
+				( LC_ALL=C pacman --verbose 2>/dev/null || true ) \
+					| sed -n 's/^Cache Dirs: \(.*\)$/\1/p' \
+					| sed 's/  /\n/g' \
+					| while IFS=$'\n' read -r dir
+				do
+					if [[ -n "$dir" ]]
+					then
+						dirs+=("$dir")
+					fi
+				done
 			fi
 
 			local files=()

@@ -12,6 +12,7 @@ function pacman() {
 	local subcommand=
 	local args=()
 	local opt_quiet=false
+	local opt_verbose=false
 	local opt_explicit=false
 	local opt_deps=false
 	local opt_native=false
@@ -32,6 +33,9 @@ function pacman() {
 				;;
 			--quiet)
 				opt_quiet=true
+				;;
+			--verbose)
+				opt_verbose=true
 				;;
 			--explicit)
 				opt_explicit=true
@@ -54,13 +58,20 @@ function pacman() {
 			--asexplicit)
 				opt_asexplicit=true
 				;;
-			--*)
+			-*)
 				FatalError 'Unknown mocked pacman switch %s\n' "$(Color Y "$arg")"
 				;;
 			*)
 				args+=("$arg")
 		esac
 	done
+
+	if $opt_verbose
+	then
+		printf 'Cache Dirs: '
+		printf '%s  ' '/var/cache/pacman/pkg'
+		printf '\n'
+	fi
 
 	case "$command" in
 		query)
