@@ -117,6 +117,8 @@ The list of provided helper functions:
 
 You are free to define your own custom helper functions as part of your configuration, e.g. by placing them in a `00-helpers.sh` file.
 
+Some examples can be found on [the project wiki](https://github.com/CyberShadow/aconfmgr/wiki).
+
 ### Ignoring some changes
 
 #### Ignoring files
