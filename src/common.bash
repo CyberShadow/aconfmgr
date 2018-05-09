@@ -1263,7 +1263,13 @@ function AconfGetPackageOriginalFile() {
 	local package_file
 	package_file="$(AconfNeedPackageFile "$package")"
 
-	bsdtar -x --to-stdout --file "$package_file" "${file/\//}"
+	local args=(bsdtar -x --to-stdout --file "$package_file" "${file/\//}")
+	if [[ -r "$package_file" ]]
+	then
+		"${args[@]}"
+	else
+		sudo "${args[@]}"
+	fi
 }
 
 # Move filesystem object at $1 to $2, replacing any existing one.
