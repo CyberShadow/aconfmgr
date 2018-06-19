@@ -41,9 +41,6 @@ function find() {
 	if [[ "$1" != /* ]]
 	then
 		command find "$@"
-	elif [[ "$1" == /var/cache/pacman/pkg ]]
-	then
-		TestSimpleWrap find "$@"
 	elif [[ "$1" == / ]]
 	then
 		# Assume this is the find invocation for finding lost files in
@@ -79,7 +76,7 @@ function find() {
 				printf '%s%s\0' "$action" "$file"
 			done
 	else
-		FatalError 'Unknown find invocation!\n'
+		TestSimpleWrap find "$@"
 	fi
 }
 

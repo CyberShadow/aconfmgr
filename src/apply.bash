@@ -434,6 +434,8 @@ function AconfApply() {
 		}
 		Confirm Details
 
+		local -A parents=()
+
 		# Iterate backwards, so that inner files/directories are
 		# deleted before their parent ones.
 		local i
@@ -441,15 +443,27 @@ function AconfApply() {
 		do
 			local file="${files_to_delete[$i]}"
 
-			LogEnter "Deleting %s...\n" "$(Color C "%q" "$file")"
-			ParanoidConfirm ''
-			sudo rm --dir "$file"
+			if [[ -n "${parents[$file]+x}" && -n "$(sudo find "$file" -maxdepth 0 -type d -not -empty 2>/dev/null)" ]]
+			then
+				# Ignoring paths under a directory can cause us to
+				# want to remove a directory which will in fact not be
+				# empty, and actually contain ignored files. So, skip
+				# deleting empty directories which are parents of
+				# previously-deleted objects.
+				LogEnter 'Skipping non-empty directory %s.\n' "$(Color C "%q" "$file")"
+			else
+				LogEnter "Deleting %s...\n" "$(Color C "%q" "$file")"
+				ParanoidConfirm ''
+				sudo rm --dir "$file"
+			fi
 
 			for prop in "${all_file_property_kinds[@]}"
 			do
 				local key="$file:$prop"
 				unset "system_file_props[\$key]"
 			done
+
+			parents["$(dirname "$file")"]=y
 
 			LogLeave ''
 		done
