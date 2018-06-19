@@ -460,6 +460,7 @@ function AconfApply() {
 	if [[ ${#files_to_restore[@]} != 0 ]]
 	then
 		LogEnter "Restoring %s files.\n" "$(Color G ${#files_to_restore[@]})"
+		printf '%s\0' "${files_to_restore[@]}" | sort --zero-terminated | mapfile -d $'\0' files_to_restore
 
 		# shellcheck disable=2059
 		function Details() {
