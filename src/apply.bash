@@ -502,7 +502,12 @@ function AconfApply() {
 				AconfNeedProgram diff diffutils n
 				AconfGetPackageOriginalFile "$package" "$file" | ( "${diff_opts[@]}" --unified <(SuperCat "$file") - || true )
 			}
-			ParanoidConfirm Details
+			if sudo test -f "$file"
+			then
+				ParanoidConfirm Details
+			else
+				ParanoidConfirm ''
+			fi
 
 			local package_file
 			package_file="$(AconfNeedPackageFile "$package")"
