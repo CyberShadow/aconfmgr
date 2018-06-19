@@ -157,6 +157,16 @@ function TestAddPackageFile() {
 	TestAddFSObj "$package" "$path" file "$contents" "$mode" "$owner" "$group"
 }
 
+function TestAddPackageDir() {
+	local package=$1
+	local path=$2
+	local mode=${3:-}
+	local owner=${4:-}
+	local group=${5:-}
+
+	TestAddFSObj "$package" "$path" dir '' "$mode" "$owner" "$group"
+}
+
 ###############################################################################
 # Configuration
 

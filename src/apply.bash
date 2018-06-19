@@ -425,6 +425,7 @@ function AconfApply() {
 	if [[ ${#files_to_delete[@]} != 0 ]]
 	then
 		LogEnter "Deleting %s files.\n" "$(Color G ${#files_to_delete[@]})"
+		printf '%s\0' "${files_to_delete[@]}" | sort --zero-terminated | mapfile -d $'\0' files_to_delete
 
 		# shellcheck disable=2059
 		function Details() {
