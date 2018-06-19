@@ -48,7 +48,7 @@ function TestCreatePackageFile() {
 	tar --create -f "$package_file" -C "$test_data_dir"/packages/"$package" .PKGINFO
 
 	local path
-	find "$test_data_dir"/packages/"$package"/files -mindepth 1 -printf '%P\0' | \
+	find "$test_data_dir"/packages/"$package"/files -mindepth 1 -maxdepth 1 -printf '%P\0' | \
 		while read -r -d $'\0' path
 		do
 			# local package_path="$test_data_dir"/packages/"$package"/files/"$path"
