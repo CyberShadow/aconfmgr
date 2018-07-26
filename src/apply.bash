@@ -160,9 +160,10 @@ function AconfApply() {
 	#	yes		yes		yes		yes		nothing
 
 	# Unknown packages (native and foreign packages that are explicitly installed but not listed)
-	unknown_packages=($(comm -13																				\
-							 <((PrintArray           packages ; PrintArray           foreign_packages) | sort)	\
-							 <((PrintArray installed_packages ; PrintArray installed_foreign_packages) | sort)))
+	comm -13                                                                               \
+		 <((PrintArray           packages ; PrintArray           foreign_packages) | sort) \
+		 <((PrintArray installed_packages ; PrintArray installed_foreign_packages) | sort) \
+		 | mapfile -t unknown_packages
 
 	if [[ ${#unknown_packages[@]} != 0 ]]
 	then
@@ -178,13 +179,14 @@ function AconfApply() {
 	fi
 
 	# Missing packages (native and foreign packages that are listed in the configuration, but not marked as explicitly installed)
-	missing_packages=($(comm -23																			\
-							 <((PrintArray           packages ; PrintArray           foreign_packages) | sort)	\
-							 <((PrintArray installed_packages ; PrintArray installed_foreign_packages) | sort)))
+	comm -23																			   \
+		 <((PrintArray           packages ; PrintArray           foreign_packages) | sort) \
+		 <((PrintArray installed_packages ; PrintArray installed_foreign_packages) | sort) \
+		 | mapfile -t missing_packages
 
 	# Missing installed/unpinned packages (native and foreign packages that are implicitly installed,
 	# and listed in the configuration, but not marked as explicitly installed)
-	missing_unpinned_packages=($(comm -12 <(PrintArray missing_packages) <(("$PACMAN" --query --quiet || true) | sort)))
+	comm -12 <(PrintArray missing_packages) <(("$PACMAN" --query --quiet || true) | sort) | mapfile -t missing_unpinned_packages
 
 	if [[ ${#missing_unpinned_packages[@]} != 0 ]]
 	then
@@ -201,7 +203,7 @@ function AconfApply() {
 
 
 	# Missing native packages (native packages that are listed in the configuration, but not installed)
-	missing_native_packages=($(comm -23 <(PrintArray packages) <(("$PACMAN" --query --quiet || true) | sort)))
+	comm -23 <(PrintArray packages) <(("$PACMAN" --query --quiet || true) | sort) | mapfile -t missing_native_packages
 
 	if [[ ${#missing_native_packages[@]} != 0 ]]
 	then
@@ -217,7 +219,7 @@ function AconfApply() {
 	fi
 
 	# Missing foreign packages (foreign packages that are listed in the configuration, but not installed)
-	missing_foreign_packages=($(comm -23 <(PrintArray foreign_packages) <(("$PACMAN" --query --quiet || true) | sort)))
+	comm -23 <(PrintArray foreign_packages) <(("$PACMAN" --query --quiet || true) | sort) | mapfile -t missing_foreign_packages
 
 	if [[ ${#missing_foreign_packages[@]} != 0 ]]
 	then
@@ -270,7 +272,7 @@ function AconfApply() {
 			LogEnter 'Iteration %s:\n' "$(Color G "$iter")"
 
 			LogEnter 'Querying orphan packages...\n'
-			orphan_packages=($("$PACMAN" --query --unrequired --unrequired --deps --quiet || true))
+			( "$PACMAN" --query --unrequired --unrequired --deps --quiet || true ) | mapfile -t orphan_packages
 			LogLeave
 
 			if [[ ${#orphan_packages[@]} != 0 ]]

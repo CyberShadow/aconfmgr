@@ -421,11 +421,11 @@ BEGIN {
 	then
 		Log 'No files found, skipping.\n'
 	else
-		Log 'Reading file types...\n'  ;  found_file_types=($(Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%F))
-		Log 'Reading file sizes...\n'  ;  found_file_sizes=($(Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%s))
-		Log 'Reading file modes...\n'  ;  found_file_modes=($(Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%a))
-		Log 'Reading file owners...\n' ; found_file_owners=($(Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%U))
-		Log 'Reading file groups...\n' ; found_file_groups=($(Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%G))
+		Log 'Reading file types...\n'  ; Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%F | mapfile -t  found_file_types
+		Log 'Reading file sizes...\n'  ; Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%s | mapfile -t  found_file_sizes
+		Log 'Reading file modes...\n'  ; Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%a | mapfile -t  found_file_modes
+		Log 'Reading file owners...\n' ; Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%U | mapfile -t found_file_owners
+		Log 'Reading file groups...\n' ; Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%G | mapfile -t found_file_groups
 	fi
 
 	LogLeave # Reading file attributes
@@ -691,7 +691,7 @@ function AconfAnalyzeFiles() {
 	LogLeave
 
 	typeset -ag all_file_property_kinds
-	all_file_property_kinds=($(echo "${!file_property_kind_exists[*]}" | sort))
+	echo "${!file_property_kind_exists[*]}" | sort | mapfile -t all_file_property_kinds
 
 	AconfCompareFileProps
 
@@ -719,11 +719,11 @@ function AconfCompile() {
 
 	# Vars
 
-	                  packages=($(< "$output_dir"/packages.txt sort --unique))
-	        installed_packages=($(< "$system_dir"/packages.txt sort --unique))
+	< "$output_dir"/packages.txt         sort --unique | mapfile -t                   packages
+	< "$system_dir"/packages.txt         sort --unique | mapfile -t         installed_packages
 
-	          foreign_packages=($(< "$output_dir"/foreign-packages.txt sort --unique))
-	installed_foreign_packages=($(< "$system_dir"/foreign-packages.txt sort --unique))
+	< "$output_dir"/foreign-packages.txt sort --unique | mapfile -t           foreign_packages
+	< "$system_dir"/foreign-packages.txt sort --unique | mapfile -t installed_foreign_packages
 
 	AconfAnalyzeFiles
 
@@ -800,8 +800,8 @@ function AconfMakePkg() {
 	then
 		LogEnter 'Making sure the %s group is installed...\n' "$(Color M base-devel)"
 		ParanoidConfirm ''
-		local base_devel_all=($("$PACMAN" --sync --quiet --group base-devel))
-		local base_devel_missing=($("$PACMAN" --deptest "${base_devel_all[@]}" || true))
+		"$PACMAN" --sync --quiet --group base-devel | mapfile -t local base_devel_all
+		"$PACMAN" --deptest "${base_devel_all[@]}" || true | mapfile -t local base_devel_missing
 		if [[ ${#base_devel_missing[@]} != 0 ]]
 		then
 			AconfInstallNative "${base_devel_missing[@]}"
@@ -847,17 +847,16 @@ function AconfMakePkg() {
 			local depends missing_depends dependency arch
 			arch="$(uname -m)"
 			# Filter out packages from the same base
-			depends=($(
-						 ( grep -E $'^\t(make|check)?depends(_'"$arch"')? = ' "$infofile" || true ) \
-							 | sed 's/^.* = \([^<>=]*\)\([<>=].*\)\?$/\1/g' \
-							 | ( grep -vFf <(( grep '^pkgname = ' "$infofile" || true) \
-												 | sed 's/^.* = \(.*\)$/\1/g' ) \
-									 || true ) \
-							 ) )
+			( grep -E $'^\t(make|check)?depends(_'"$arch"')? = ' "$infofile" || true ) \
+				| sed 's/^.* = \([^<>=]*\)\([<>=].*\)\?$/\1/g' \
+				| ( grep -vFf <(( grep '^pkgname = ' "$infofile" || true) \
+									| sed 's/^.* = \(.*\)$/\1/g' ) \
+						|| true ) \
+				| mapfile -t depends
 
 			if [[ ${#depends[@]} != 0 ]]
 			then
-				missing_depends=($("$PACMAN" --deptest "${depends[@]}" || true))
+				( "$PACMAN" --deptest "${depends[@]}" || true ) | mapfile -t missing_depends
 				if [[ ${#missing_depends[@]} != 0 ]]
 				then
 					for dependency in "${missing_depends[@]}"
@@ -909,7 +908,7 @@ function AconfMakePkg() {
 			LogLeave
 
 			local keys
-			keys=($( ( grep -E $'^\tvalidpgpkeys = ' "$infofile" || true ) | sed 's/^.* = \(.*\)$/\1/' ) )
+			( grep -E $'^\tvalidpgpkeys = ' "$infofile" || true ) | sed 's/^.* = \(.*\)$/\1/' | mapfile -t keys
 			if [[ ${#keys[@]} != 0 ]]
 			then
 				LogEnter 'Checking PGP keys...\n'

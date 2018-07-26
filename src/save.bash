@@ -18,7 +18,7 @@ function AconfSave() {
 
 	# Unknown native packages (installed but not listed)
 
-	unknown_packages=($(comm -13 <(PrintArray packages) <(PrintArray installed_packages)))
+	comm -13 <(PrintArray packages) <(PrintArray installed_packages) | mapfile -t unknown_packages
 
 	if [[ ${#unknown_packages[@]} != 0 ]]
 	then
@@ -37,7 +37,7 @@ function AconfSave() {
 
 	# Missing native packages (listed but not installed on current system)
 
-	missing_packages=($(comm -23 <(PrintArray packages) <(PrintArray installed_packages)))
+	comm -23 <(PrintArray packages) <(PrintArray installed_packages) | mapfile -t missing_packages
 
 	if [[ ${#missing_packages[@]} != 0 ]]
 	then
@@ -53,7 +53,7 @@ function AconfSave() {
 
 	# Unknown foreign packages (installed but not listed)
 
-	unknown_foreign_packages=($(comm -13 <(PrintArray foreign_packages) <(PrintArray installed_foreign_packages)))
+	comm -13 <(PrintArray foreign_packages) <(PrintArray installed_foreign_packages) | mapfile -t unknown_foreign_packages
 
 	if [[ ${#unknown_foreign_packages[@]} != 0 ]]
 	then
@@ -72,7 +72,7 @@ function AconfSave() {
 
 	# Missing foreign packages (listed but not installed on current system)
 
-	missing_foreign_packages=($(comm -23 <(PrintArray foreign_packages) <(PrintArray installed_foreign_packages)))
+	comm -23 <(PrintArray foreign_packages) <(PrintArray installed_foreign_packages) | mapfile -t missing_foreign_packages
 
 	if [[ ${#missing_foreign_packages[@]} != 0 ]]
 	then
