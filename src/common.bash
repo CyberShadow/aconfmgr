@@ -573,9 +573,9 @@ function AconfReadFileProps() {
 
 			if [[ -z "$value" ]]
 			then
-				unset "$varname[\$file:\$kind]"
+				unset "${varname}[\$file:\$kind]"
 			else
-				eval "$varname[\$file:\$kind]=\"\$value\""
+				eval "${varname}[\$file:\$kind]=\"\$value\""
 			fi
 
 			file_property_kind_exists[$kind]=y
@@ -1483,10 +1483,10 @@ function PrintArray() {
 	local name="$1" # Name of the global variable containing the array
 	local size
 
-	size="$(eval "echo \${#$name""[*]}")"
+	size="$(eval "echo \${#${name}""[*]}")"
 	if [[ $size != 0 ]]
 	then
-		eval "echo \"\${$name[*]}\""
+		eval "echo \"\${${name}[*]}\""
 	fi
 }
 
@@ -1495,7 +1495,7 @@ function Print0Array() {
 	local name="$1" # Name of the global variable containing the array
 
 	eval "$(cat <<EOF
-	if [[ \${#$name[*]} != 0 ]]
+	if [[ \${#${name}[*]} != 0 ]]
 	then
 		local item
 		for item in "\${${name}[@]}"
