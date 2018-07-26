@@ -759,7 +759,7 @@ function DetectAurHelper() {
 	local helper
 	for helper in "${aur_helpers[@]}"
 	do
-		if which "$helper" > /dev/null 2>&1
+		if hash "$helper" 2> /dev/null
 		then
 			aur_helper=$helper
 			LogLeave '%s... Yes\n' "$(Color C %s "$helper")"
@@ -1058,7 +1058,7 @@ function AconfNeedProgram() {
 	local package="$2" # package the program is available in
 	local foreign="$3" # whether this is a foreign package
 
-	if ! which "$program" > /dev/null 2>&1
+	if ! hash "$program" 2> /dev/null
 	then
 		if [[ $foreign == y ]]
 		then
