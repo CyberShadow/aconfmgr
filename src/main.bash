@@ -16,30 +16,30 @@ source "$src_dir"/check.bash
 source "$src_dir"/helpers.bash
 
 function Usage() {
-	printf "aconfmgr v%s\n" "${aconfmgr_version}"
-	printf "Written by Vladimir Panteleev <aconfmgr@thecyber%s.net>\n" "shadow"
-	printf "https://github.com/CyberShadow/aconfmgr\n"
+	printf 'aconfmgr v%s\n' "${aconfmgr_version}"
+	printf 'Written by Vladimir Panteleev <aconfmgr@thecyber%s.net>\n' "shadow"
+	printf 'https://github.com/CyberShadow/aconfmgr\n'
 	echo
-	printf "Usage:  %s [OPTIONS]... ACTION\n" "$0"
+	printf 'Usage:  %s [OPTIONS]... ACTION\n' "$0"
 	echo
-	printf "Supported actions:\n"
-	printf "  save    Update the configuration to reflect the current state of the system\n"
-	printf "  apply   Update the system to reflect the current contents of the configuration\n"
-	printf "  check   Syntax-check and lint the configuration\n"
+	printf 'Supported actions:\n'
+	printf '  save    Update the configuration to reflect the current state of the system\n'
+	printf '  apply   Update the system to reflect the current contents of the configuration\n'
+	printf '  check   Syntax-check and lint the configuration\n'
 	echo
-	printf "Supported options:\n"
-	printf "  -h, --help               Print this message\n"
-	printf "  -c, --config DIR         Set the path to your configuration directory\n"
-	printf "      --skip-inspection    Skip the system inspection step\n"
-	printf "                           (reuse previous results)\n"
-	printf "      --aur-helper HELPER  Set AUR helper to use for installing foreign packages\n"
-	printf "      --color WHEN         When to use colors in output (always/auto/never)\n"
-	printf "      --paranoid           Always prompt before making any changes to the system\n"
-	printf "      --yes                Never prompt before making any changes to the system\n"
-	printf "  -v, --verbose            Show progress with additional detail\n"
+	printf 'Supported options:\n'
+	printf '  -h, --help               Print this message\n'
+	printf '  -c, --config DIR         Set the path to your configuration directory\n'
+	printf '      --skip-inspection    Skip the system inspection step\n'
+	printf '                           (reuse previous results)\n'
+	printf '      --aur-helper HELPER  Set AUR helper to use for installing foreign packages\n'
+	printf '      --color WHEN         When to use colors in output (always/auto/never)\n'
+	printf '      --paranoid           Always prompt before making any changes to the system\n'
+	printf '      --yes                Never prompt before making any changes to the system\n'
+	printf '  -v, --verbose            Show progress with additional detail\n'
 	echo
-	printf "For more information, please refer to the full documentation at:\n"
-	printf "https://github.com/CyberShadow/aconfmgr#readme\n"
+	printf 'For more information, please refer to the full documentation at:\n'
+	printf 'https://github.com/CyberShadow/aconfmgr#readme\n'
 }
 
 function UsageError() {

@@ -16,7 +16,7 @@ function AddPackage() {
 		fn='foreign-packages.txt'
 	fi
 
-	printf "%q\n" "$@" >> "$output_dir"/"$fn"
+	printf '%q\n' "$@" >> "$output_dir"/"$fn"
 }
 
 #
@@ -102,7 +102,7 @@ function CopyFileTo() {
 
 	if [[ "$src_file" != /* ]]
 	then
-		Log "%s: Source file path %s is not absolute.\n" \
+		Log '%s: Source file path %s is not absolute.\n' \
 			"$(Color Y "Warning")" \
 			"$(Color C "%q" "$src_file")"
 		config_warnings+=1
@@ -110,7 +110,7 @@ function CopyFileTo() {
 
 	if [[ "$dst_file" != /* && "$dst_file" != "$src_file" ]]
 	then
-		Log "%s: Target file path %s is not absolute.\n" \
+		Log '%s: Target file path %s is not absolute.\n' \
 			"$(Color Y "Warning")" \
 			"$(Color C "%q" "$dst_file")"
 		config_warnings+=1
@@ -150,7 +150,7 @@ function CreateFile() {
 	SetFileProperty "$file" owner "$owner"
 	SetFileProperty "$file" group "$group"
 
-	printf "%s" "$output_dir"/files/"$file"
+	printf '%s' "$output_dir"/files/"$file"
 }
 
 #
@@ -172,7 +172,7 @@ function GetPackageOriginalFile() {
 
 	AconfGetPackageOriginalFile	"$package" "$file" > "$output_file"
 
-	printf "%s" "$output_file"
+	printf '%s' "$output_file"
 }
 
 #
@@ -256,7 +256,7 @@ function SetFileProperty() {
 	local type="$2"
 	local value="$3"
 
-	printf "%s\t%s\t%q\n" "$type" "$value" "$file" >> "$output_dir"/file-props.txt
+	printf '%s\t%s\t%q\n' "$type" "$value" "$file" >> "$output_dir"/file-props.txt
 }
 
 #

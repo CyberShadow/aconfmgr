@@ -15,12 +15,12 @@ function AconfApply() {
 		then
 			local default_value
 			default_value="$(AconfDefaultFileProp "$file" "$kind")"
-			value_text="$(printf "%s (default value)" "$(Color G "%s" "$default_value")")"
+			value_text="$(printf '%s (default value)' "$(Color G "%s" "$default_value")")"
 		else
 			value_text="$(Color G "%s" "$value")"
 		fi
 
-		Log "Setting %s of %s to %s\n"	\
+		Log 'Setting %s of %s to %s\n'	\
 			"$(Color Y "%s" "$kind")"	\
 			"$(Color C "%q" "$file")"	\
 			"$value_text"
@@ -49,7 +49,7 @@ function AconfApply() {
 				sudo chgrp --no-dereference "$value" "$file"
 				;;
 			*)
-				Log "Unknown property %s with value %s for file %s"	\
+				Log 'Unknown property %s with value %s for file %s'	\
 					"$(Color Y "%q" "$kind")"						\
 					"$(Color G "%q" "$value")"						\
 					"$(Color C "%q" "$file")"
@@ -96,13 +96,13 @@ function AconfApply() {
 
 	AconfCompile
 
-	LogEnter "Applying configuration...\n"
+	LogEnter 'Applying configuration...\n'
 
 	#
 	# Priority files
 	#
 
-	LogEnter "Installing priority files...\n"
+	LogEnter 'Installing priority files...\n'
 
 	# These files must be installed before anything else,
 	# because they affect or are required for what follows.
@@ -122,7 +122,7 @@ function AconfApply() {
 			do
 				if [[ "$file" == "$priority_file" ]]
 				then
-					LogEnter "Installing %s...\n" "$(Color C %q "$file")"
+					LogEnter 'Installing %s...\n' "$(Color C %q "$file")"
 					Confirm ''
 					InstallFile "$file"
 					LogLeave
@@ -137,7 +137,7 @@ function AconfApply() {
 	# Apply packages
 	#
 
-	LogEnter "Configuring packages...\n"
+	LogEnter 'Configuring packages...\n'
 
 	#	in		in		in-
 	#	config	system	stalled foreign	action
@@ -166,9 +166,9 @@ function AconfApply() {
 
 	if [[ ${#unknown_packages[@]} != 0 ]]
 	then
-		LogEnter "Unpinning %s unknown packages.\n" "$(Color G ${#unknown_packages[@]})"
+		LogEnter 'Unpinning %s unknown packages.\n' "$(Color G ${#unknown_packages[@]})"
 
-		function Details() { Log "Unpinning (setting install reason to 'as dependency') the following packages:%s\n" "$(Color M " %q" "${unknown_packages[@]}")" ; }
+		function Details() { Log 'Unpinning (setting install reason to '\''as dependency'\'') the following packages:%s\n' "$(Color M " %q" "${unknown_packages[@]}")" ; }
 		Confirm Details
 
 		Print0Array unknown_packages | sudo xargs -0 "$PACMAN" --database --asdeps
@@ -188,9 +188,9 @@ function AconfApply() {
 
 	if [[ ${#missing_unpinned_packages[@]} != 0 ]]
 	then
-		LogEnter "Pinning %s unknown packages.\n" "$(Color G ${#missing_unpinned_packages[@]})"
+		LogEnter 'Pinning %s unknown packages.\n' "$(Color G ${#missing_unpinned_packages[@]})"
 
-		function Details() { Log "Pinning (setting install reason to 'explicitly installed') the following packages:%s\n" "$(Color M " %q" "${missing_unpinned_packages[@]}")" ; }
+		function Details() { Log 'Pinning (setting install reason to '\''explicitly installed'\'') the following packages:%s\n' "$(Color M " %q" "${missing_unpinned_packages[@]}")" ; }
 		Confirm Details
 
 		Print0Array missing_unpinned_packages | sudo xargs -0 "$PACMAN" --database --asexplicit
@@ -205,9 +205,9 @@ function AconfApply() {
 
 	if [[ ${#missing_native_packages[@]} != 0 ]]
 	then
-		LogEnter "Installing %s missing native packages.\n" "$(Color G ${#missing_native_packages[@]})"
+		LogEnter 'Installing %s missing native packages.\n' "$(Color G ${#missing_native_packages[@]})"
 
-		function Details() { Log "Installing the following native packages:%s\n" "$(Color M " %q" "${missing_native_packages[@]}")" ; }
+		function Details() { Log 'Installing the following native packages:%s\n' "$(Color M " %q" "${missing_native_packages[@]}")" ; }
 		ParanoidConfirm Details
 
 		AconfInstallNative "${missing_native_packages[@]}"
@@ -221,9 +221,9 @@ function AconfApply() {
 
 	if [[ ${#missing_foreign_packages[@]} != 0 ]]
 	then
-		LogEnter "Installing %s missing foreign packages.\n" "$(Color G ${#missing_foreign_packages[@]})"
+		LogEnter 'Installing %s missing foreign packages.\n' "$(Color G ${#missing_foreign_packages[@]})"
 
-		function Details() { Log "Installing the following foreign packages:%s\n" "$(Color M " %q" "${missing_foreign_packages[@]}")" ; }
+		function Details() { Log 'Installing the following foreign packages:%s\n' "$(Color M " %q" "${missing_foreign_packages[@]}")" ; }
 		Confirm Details
 
 		# If an AUR helper is present in the list of packages to be installed,
@@ -236,7 +236,7 @@ function AconfApply() {
 				do
 					if [[ "$package" == "$helper" ]]
 					then
-						LogEnter "Installing AUR helper %s...\n" "$(Color M %q "$helper")"
+						LogEnter 'Installing AUR helper %s...\n' "$(Color M %q "$helper")"
 						ParanoidConfirm ''
 						AconfInstallForeign "$package"
 						aur_helper="$package"
@@ -261,23 +261,23 @@ function AconfApply() {
 
 	if "$PACMAN" --query --unrequired --unrequired --deps --quiet > /dev/null
 	then
-		LogEnter "Pruning orphan packages...\n"
+		LogEnter 'Pruning orphan packages...\n'
 
 		# We have to loop, since pacman's dependency scanning doesn't seem to be recursive
 		iter=1
 		while true
 		do
-			LogEnter "Iteration %s:\n" "$(Color G "$iter")"
+			LogEnter 'Iteration %s:\n' "$(Color G "$iter")"
 
-			LogEnter "Querying orphan packages...\n"
+			LogEnter 'Querying orphan packages...\n'
 			orphan_packages=($("$PACMAN" --query --unrequired --unrequired --deps --quiet || true))
 			LogLeave
 
 			if [[ ${#orphan_packages[@]} != 0 ]]
 			then
-				LogEnter "Pruning %s orphan packages.\n" "$(Color G ${#orphan_packages[@]})"
+				LogEnter 'Pruning %s orphan packages.\n' "$(Color G ${#orphan_packages[@]})"
 
-				function Details() { Log "Removing the following orphan packages:%s\n" "$(Color M " %q" "${orphan_packages[@]}")" ; }
+				function Details() { Log 'Removing the following orphan packages:%s\n' "$(Color M " %q" "${orphan_packages[@]}")" ; }
 				ParanoidConfirm Details
 
 				sudo "${pacman_opts[@]}" --remove "${orphan_packages[@]}"
@@ -304,22 +304,22 @@ function AconfApply() {
 	# Copy files
 	#
 
-	LogEnter "Configuring files...\n"
+	LogEnter 'Configuring files...\n'
 
 	if [[ ${#config_only_files[@]} != 0 ]]
 	then
-		LogEnter "Installing %s new files.\n" "$(Color G ${#config_only_files[@]})"
+		LogEnter 'Installing %s new files.\n' "$(Color G ${#config_only_files[@]})"
 
 		# shellcheck disable=2059
 		function Details() {
-			Log "Installing the following new files:\n"
-			printf "$(Color W "*") $(Color C "%s" "%s")\n" "${config_only_files[@]}"
+			Log 'Installing the following new files:\n'
+			printf "$(Color W "*") $(Color C "%s" "%s")\\n" "${config_only_files[@]}"
 		}
 		Confirm Details
 
 		for file in "${config_only_files[@]}"
 		do
-			LogEnter "Installing %s...\n" "$(Color C "%q" "$file")"
+			LogEnter 'Installing %s...\n' "$(Color C "%q" "$file")"
 			ParanoidConfirm ''
 			InstallFile "$file"
 			LogLeave ''
@@ -331,18 +331,18 @@ function AconfApply() {
 
 	if [[ ${#changed_files[@]} != 0 ]]
 	then
-		LogEnter "Overwriting %s changed files.\n" "$(Color G ${#changed_files[@]})"
+		LogEnter 'Overwriting %s changed files.\n' "$(Color G ${#changed_files[@]})"
 
 		# shellcheck disable=2059
 		function Details() {
-			Log "Overwriting the following changed files:\n"
-			printf "$(Color W "*") $(Color C "%s" "%s")\n" "${changed_files[@]}"
+			Log 'Overwriting the following changed files:\n'
+			printf "$(Color W "*") $(Color C "%s" "%s")\\n" "${changed_files[@]}"
 		}
 		Confirm Details
 
 		for file in "${changed_files[@]}"
 		do
-			LogEnter "Overwriting %s...\n" "$(Color C "%q" "$file")"
+			LogEnter 'Overwriting %s...\n' "$(Color C "%q" "$file")"
 			function Details() {
 				AconfNeedProgram diff diffutils n
 				"${diff_opts[@]}" --unified <(SuperCat "$file") "$output_dir"/files/"$file" || true
@@ -361,11 +361,11 @@ function AconfApply() {
 
 	if [[ ${#system_only_files[@]} != 0 ]]
 	then
-		LogEnter "Processing system-only files...\n"
+		LogEnter 'Processing system-only files...\n'
 
 		# Delete unknown lost files (files not present in config and belonging to no package)
 
-		LogEnter "Filtering system-only lost files...\n"
+		LogEnter 'Filtering system-only lost files...\n'
 		tr '\n' '\0' < "$tmp_dir"/managed-files > "$tmp_dir"/managed-files-0
 		local system_only_lost_files=0
 		comm -13 --zero-terminated "$tmp_dir"/managed-files-0 <(Print0Array system_only_files) | \
@@ -374,11 +374,11 @@ function AconfApply() {
 				files_to_delete+=("$file")
 				system_only_lost_files=$((system_only_lost_files+1))
 			done
-		LogLeave "Done (%s system-only lost files).\n" "$(Color G %s $system_only_lost_files)"
+		LogLeave 'Done (%s system-only lost files).\n' "$(Color G %s $system_only_lost_files)"
 
 		# Restore unknown managed files (files not present in config and belonging to a package)
 
-		LogEnter "Filtering system-only managed files...\n"
+		LogEnter 'Filtering system-only managed files...\n'
 		local system_only_managed_files=0
 		comm -12 --zero-terminated "$tmp_dir"/managed-files-0 <(Print0Array system_only_files) | \
 			while read -r -d $'\0' file
@@ -386,12 +386,12 @@ function AconfApply() {
 				files_to_restore+=("$file")
 				system_only_managed_files=$((system_only_managed_files+1))
 			done
-		LogLeave "Done (%s system-only managed files).\n" "$(Color G %s $system_only_managed_files)"
+		LogLeave 'Done (%s system-only managed files).\n' "$(Color G %s $system_only_managed_files)"
 
 		LogLeave # Processing system-only files
 	fi
 
-	LogEnter "Processing deleted files...\n"
+	LogEnter 'Processing deleted files...\n'
 
 	if [[ ${#config_only_file_props[@]} != 0 ]]
 	then
@@ -424,13 +424,13 @@ function AconfApply() {
 
 	if [[ ${#files_to_delete[@]} != 0 ]]
 	then
-		LogEnter "Deleting %s files.\n" "$(Color G ${#files_to_delete[@]})"
+		LogEnter 'Deleting %s files.\n' "$(Color G ${#files_to_delete[@]})"
 		printf '%s\0' "${files_to_delete[@]}" | sort --zero-terminated | mapfile -d $'\0' files_to_delete
 
 		# shellcheck disable=2059
 		function Details() {
-			Log "Deleting the following files:\n"
-			printf "$(Color W "*") $(Color C "%s" "%s")\n" "${files_to_delete[@]}"
+			Log 'Deleting the following files:\n'
+			printf "$(Color W "*") $(Color C "%s" "%s")\\n" "${files_to_delete[@]}"
 		}
 		Confirm Details
 
@@ -452,7 +452,7 @@ function AconfApply() {
 				# previously-deleted objects.
 				LogEnter 'Skipping non-empty directory %s.\n' "$(Color C "%q" "$file")"
 			else
-				LogEnter "Deleting %s...\n" "$(Color C "%q" "$file")"
+				LogEnter 'Deleting %s...\n' "$(Color C "%q" "$file")"
 				ParanoidConfirm ''
 				sudo rm --dir "$file"
 			fi
@@ -474,13 +474,13 @@ function AconfApply() {
 
 	if [[ ${#files_to_restore[@]} != 0 ]]
 	then
-		LogEnter "Restoring %s files.\n" "$(Color G ${#files_to_restore[@]})"
+		LogEnter 'Restoring %s files.\n' "$(Color G ${#files_to_restore[@]})"
 		printf '%s\0' "${files_to_restore[@]}" | sort --zero-terminated | mapfile -d $'\0' files_to_restore
 
 		# shellcheck disable=2059
 		function Details() {
-			Log "Restoring the following files:\n"
-			printf "$(Color W "*") $(Color C "%s" "%s")\n" "${files_to_restore[@]}"
+			Log 'Restoring the following files:\n'
+			printf "$(Color W "*") $(Color C "%s" "%s")\\n" "${files_to_restore[@]}"
 		}
 		Confirm Details
 
@@ -494,7 +494,7 @@ function AconfApply() {
 			local absent=false
 			if ! sudo stat "$file" > /dev/null
 			then
-				Log "Temporarily creating file %s for package query...\n" "$(Color C "%q" "$file")"
+				Log 'Temporarily creating file %s for package query...\n' "$(Color C "%q" "$file")"
 				sudo touch "$file"
 				absent=true
 			fi
@@ -508,11 +508,11 @@ function AconfApply() {
 
 			if [[ -z "$package" ]]
 			then
-				Log "Can't find owner of file %s\n" "$(Color C "%q" "$file")"
+				Log 'Can'\''t find owner of file %s\n' "$(Color C "%q" "$file")"
 				Exit 1
 			fi
 
-			LogEnter "Restoring %s file %s...\n" "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
+			LogEnter 'Restoring %s file %s...\n' "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
 			function Details() {
 				AconfNeedProgram diff diffutils n
 				AconfGetPackageOriginalFile "$package" "$file" | ( "${diff_opts[@]}" --unified <(SuperCat "$file") - || true )
@@ -550,13 +550,13 @@ function AconfApply() {
 	# Apply remaining file properties
 	#
 
-	LogEnter "Configuring file properties...\n"
+	LogEnter 'Configuring file properties...\n'
 
 	AconfCompareFileProps # Update data after ApplyFileProps' unsets
 
 	if [[ ${#config_only_file_props[@]} != 0 || ${#changed_file_props[@]} != 0 || ${#system_only_file_props[@]} != 0 ]]
 	then
-		LogEnter "Found %s new, %s changed, and %s extra files properties.\n"	\
+		LogEnter 'Found %s new, %s changed, and %s extra files properties.\n'	\
 				 "$(Color G ${#config_only_file_props[@]})"						\
 				 "$(Color G ${#changed_file_props[@]})" 						\
 				 "$(Color G ${#system_only_file_props[@]})"
@@ -570,7 +570,7 @@ function AconfApply() {
 			do
 				if [[ $first == y ]]
 				then
-					LogEnter "%s the following file properties:\n" "$verb"
+					LogEnter '%s the following file properties:\n' "$verb"
 					first=n
 				fi
 
@@ -614,9 +614,9 @@ function AconfApply() {
 
 	if [[ $modified == n ]]
 	then
-		LogLeave "Done (%s).\n" "$(Color G "system state unchanged")"
+		LogLeave 'Done (%s).\n' "$(Color G "system state unchanged")"
 	else
-		LogLeave "Done (%s).\n" "$(Color Y "system state changed")"
+		LogLeave 'Done (%s).\n' "$(Color Y "system state changed")"
 	fi
 }
 

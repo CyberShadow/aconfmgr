@@ -63,8 +63,8 @@ warn_tmp_df_threshold=$((1024*1024))  # Warn on error if free space in $tmp_dir 
 
 function LogLeaveDirStats() {
 	local dir="$1"
-	Log "Finalizing...\r"
-	LogLeave "Done (%s native packages, %s foreign packages, %s files).\n"	\
+	Log 'Finalizing...\r'
+	LogLeave 'Done (%s native packages, %s foreign packages, %s files).\n'	\
 			 "$(Color G "$(wc -l < "$dir"/packages.txt)")"					\
 			 "$(Color G "$(wc -l < "$dir"/foreign-packages.txt)")"			\
 			 "$(Color G "$(find "$dir"/files -not -type d | wc -l)")"
@@ -72,7 +72,7 @@ function LogLeaveDirStats() {
 
 # Run user configuration scripts, to collect desired state into #output_dir
 function AconfCompileOutput() {
-	LogEnter "Compiling user configuration...\n"
+	LogEnter 'Compiling user configuration...\n'
 
 	rm -rf "$output_dir"
 	mkdir --parents "$output_dir"
@@ -84,7 +84,7 @@ function AconfCompileOutput() {
 
 	# Configuration
 
-	Log "Using configuration in %s\n" "$(Color C "%q" "$config_dir")"
+	Log 'Using configuration in %s\n' "$(Color C "%q" "$config_dir")"
 
 	typeset -ag ignore_packages=()
 	typeset -ag ignore_foreign_packages=()
@@ -95,7 +95,7 @@ function AconfCompileOutput() {
 	do
 		if [[ -e "$file" ]]
 		then
-			LogEnter "Sourcing %s...\n" "$(Color C "%q" "$file")"
+			LogEnter 'Sourcing %s...\n' "$(Color C "%q" "$file")"
 			# shellcheck source=/dev/null
 			source "$file"
 			found=y
@@ -118,7 +118,7 @@ function AconfCompileOutput() {
 					local key=${line#$config_dir/files}
 					if [[ -z "${used_files[$key]+x}" ]]
 					then
-						Log "%s: Unused file: %s\n" \
+						Log '%s: Unused file: %s\n' \
 							"$(Color Y "Warning")" \
 							"$(Color C "%q" "$line")"
 						config_warnings+=1
@@ -131,7 +131,7 @@ function AconfCompileOutput() {
 	then
 		LogLeaveDirStats "$output_dir"
 	else
-		LogLeave "Done (configuration not found).\n"
+		LogLeave 'Done (configuration not found).\n'
 	fi
 }
 
@@ -139,11 +139,11 @@ skip_inspection=n
 
 # Collect system state into $system_dir
 function AconfCompileSystem() {
-	LogEnter "Inspecting system state...\n"
+	LogEnter 'Inspecting system state...\n'
 
 	if [[ $skip_inspection == y ]]
 	then
-		LogLeave "Skipped.\n"
+		LogLeave 'Skipped.\n'
 		return
 	fi
 
@@ -155,7 +155,7 @@ function AconfCompileSystem() {
 
 	### Packages
 
-	LogEnter "Querying package list...\n"
+	LogEnter 'Querying package list...\n'
 	( "$PACMAN" --query --quiet --explicit --native  || true ) | sort | ( grep -vFxf <(PrintArray ignore_packages        ) || true ) > "$system_dir"/packages.txt
 	( "$PACMAN" --query --quiet --explicit --foreign || true ) | sort | ( grep -vFxf <(PrintArray ignore_foreign_packages) || true ) > "$system_dir"/foreign-packages.txt
 	LogLeave
@@ -178,12 +178,12 @@ function AconfCompileSystem() {
 		ignore_args+=(-wholename "$ignore_path" -o)
 	done
 
-	LogEnter "Enumerating managed files...\n"
+	LogEnter 'Enumerating managed files...\n'
 	mkdir --parents "$tmp_dir"
 	( "$PACMAN" --query --list --quiet || true ) | sed 's#\/$##' | sort --unique > "$tmp_dir"/managed-files
 	LogLeave
 
-	LogEnter "Searching for lost files...\n"
+	LogEnter 'Searching for lost files...\n'
 
 	local line
 	local -Ag ignored_dirs
@@ -211,7 +211,7 @@ BEGIN {
 					do
 						path=${path%/*}
 					done
-					Log "Scanning %s...\r" "$(Color M "%q" "$path")"
+					Log 'Scanning %s...\r' "$(Color M "%q" "$path")"
 				done
 		  )
 
@@ -250,7 +250,7 @@ BEGIN {
 					#echo "ignore_paths+='$file' # "
 					if ((verbose))
 					then
-						Log "%s\r" "$(Color C "%q" "$file")"
+						Log '%s\r' "$(Color C "%q" "$file")"
 					fi
 
 					found_files+=("$file")
@@ -259,11 +259,11 @@ BEGIN {
 
 					if [[ $lost_file_count -eq $warn_file_count_threshold ]]
 					then
-						LogEnter "%s: reached %s lost files while in directory %s.\n" \
+						LogEnter '%s: reached %s lost files while in directory %s.\n' \
 							"$(Color Y "Warning")" \
 							"$(Color G "$lost_file_count")" \
 							"$(Color C "%q" "$(dirname "$file")")"
-						LogLeave "Perhaps add %s (or a parent directory) to configuration to ignore it.\n" \
+						LogLeave 'Perhaps add %s (or a parent directory) to configuration to ignore it.\n' \
 							"$(Color Y "IgnorePath %q" "$(dirname "$file")"/'*')"
 					fi
 					;;
@@ -298,11 +298,11 @@ BEGIN {
 			esac
 		done
 
-	LogLeave "Done (%s lost files).\n" "$(Color G %s $lost_file_count)"
+	LogLeave 'Done (%s lost files).\n' "$(Color G %s $lost_file_count)"
 
 	exec {progress_fd}<&-
 
-	LogEnter "Cleaning up ignored files' directories...\n"
+	LogEnter 'Cleaning up ignored files'\'' directories...\n'
 
 	for file in "${found_files[@]}"
 	do
@@ -321,7 +321,7 @@ BEGIN {
 
 	# Modified files
 
-	LogEnter "Searching for modified files...\n"
+	LogEnter 'Searching for modified files...\n'
 
 	AconfNeedProgram paccheck pacutils y
 	local modified_file_count=0
@@ -357,7 +357,7 @@ BEGIN {
 					if [[ -z "${saw_file[$file]+x}" ]]
 					then
 						saw_file[$file]=y
-						Log "%s: %s\n" "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
+						Log '%s: %s\n' "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
 						found_files+=("$file")
 						modified_file_count=$((modified_file_count+1))
 					fi
@@ -389,53 +389,53 @@ BEGIN {
 						local key="$file:$prop"
 						orig_file_props[$key]=$value
 
-						printf "%s\t%s\t%q\n" "$prop" "$value" "$file" >> "$system_dir"/orig-file-props.txt
+						printf '%s\t%s\t%q\n' "$prop" "$value" "$file" >> "$system_dir"/orig-file-props.txt
 					fi
 				fi
 			elif [[ $line =~ ^(.*):\ \'(.*)\'\ missing\ file$ ]]
 			then
 				local package="${BASH_REMATCH[1]}"
 				local file="${BASH_REMATCH[2]}"
-				Log "%s (missing)...\r" "$(Color M "%q" "$package")"
-				printf "%s\t%s\t%q\n" "deleted" "y" "$file" >> "$system_dir"/file-props.txt
+				Log '%s (missing)...\r' "$(Color M "%q" "$package")"
+				printf '%s\t%s\t%q\n' "deleted" "y" "$file" >> "$system_dir"/file-props.txt
 			elif [[ $line =~ ^warning:\ (.*):\ \'(.*)\'\ read\ error\ \(No\ such\ file\ or\ directory\)$ ]]
 			then
 				local package="${BASH_REMATCH[1]}"
 				local file="${BASH_REMATCH[2]}"
-				printf "%s\t%s\t%q\n" "deleted" "y" "$file" >> "$system_dir"/file-props.txt
+				printf '%s\t%s\t%q\n' "deleted" "y" "$file" >> "$system_dir"/file-props.txt
 			elif [[ $line =~ ^(.*):\ all\ files\ match\ (database|mtree|mtree\ md5sums)$ ]]
 			then
 				local package="${BASH_REMATCH[1]}"
-				Log "%s...\r" "$(Color M "%q" "$package")"
+				Log '%s...\r' "$(Color M "%q" "$package")"
 				#echo "Now at ${BASH_REMATCH[1]}"
 			else
-				Log "Unknown paccheck output line: %s\n" "$(Color Y "%q" "$line")"
+				Log 'Unknown paccheck output line: %s\n' "$(Color Y "%q" "$line")"
 			fi
 		done
-	LogLeave "Done (%s modified files).\n" "$(Color G %s $modified_file_count)"
+	LogLeave 'Done (%s modified files).\n' "$(Color G %s $modified_file_count)"
 
-	LogEnter "Reading file attributes...\n"
+	LogEnter 'Reading file attributes...\n'
 
 	typeset -a found_file_types found_file_sizes found_file_modes found_file_owners found_file_groups
 	if [[ ${#found_files[*]} == 0 ]]
 	then
-		Log "No files found, skipping.\n"
+		Log 'No files found, skipping.\n'
 	else
-		Log "Reading file types...\n"  ;  found_file_types=($(Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%F))
-		Log "Reading file sizes...\n"  ;  found_file_sizes=($(Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%s))
-		Log "Reading file modes...\n"  ;  found_file_modes=($(Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%a))
-		Log "Reading file owners...\n" ; found_file_owners=($(Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%U))
-		Log "Reading file groups...\n" ; found_file_groups=($(Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%G))
+		Log 'Reading file types...\n'  ;  found_file_types=($(Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%F))
+		Log 'Reading file sizes...\n'  ;  found_file_sizes=($(Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%s))
+		Log 'Reading file modes...\n'  ;  found_file_modes=($(Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%a))
+		Log 'Reading file owners...\n' ; found_file_owners=($(Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%U))
+		Log 'Reading file groups...\n' ; found_file_groups=($(Print0Array found_files | sudo env LC_ALL=C xargs -0 stat --format=%G))
 	fi
 
 	LogLeave # Reading file attributes
 
-	LogEnter "Processing found files...\n"
+	LogEnter 'Processing found files...\n'
 
 	local i
 	for ((i=0; i<${#found_files[*]}; i++))
 	do
-		Log "%s/%s...\r" "$(Color G "$i")" "$(Color G "${#found_files[*]}")"
+		Log '%s/%s...\r' "$(Color G "$i")" "$(Color G "${#found_files[*]}")"
 
 		local  file="${found_files[$i]}"
 		local  type="${found_file_types[$i]}"
@@ -459,14 +459,14 @@ BEGIN {
 			then
 				if [[ $size -gt $warn_size_threshold ]]
 				then
-					Log "%s: copying large file '%s' (%s bytes). Add %s to configuration to ignore.\n" "$(Color Y "Warning")" "$(Color C "%q" "$file")" "$(Color G "$size")" "$(Color Y "IgnorePath %q" "$file")"
+					Log '%s: copying large file %s (%s bytes). Add %s to configuration to ignore.\n' "$(Color Y "Warning")" "$(Color C "%q" "$file")" "$(Color G "$size")" "$(Color Y "IgnorePath %q" "$file")"
 				fi
 				( sudo cat "$file" ) > "$system_dir"/files/"$file"
 			elif [[ "$type" == "directory" ]]
 			then
 				mkdir --parents "$system_dir"/files/"$file"
 			else
-				Log "%s: Skipping file '%s' with unknown type '%s'. Add to %s to ignore.\n" "$(Color Y "Warning")" "$(Color C "%q" "$file")" "$(Color G "$type")" "$(Color Y "ignore_paths")"
+				Log '%s: Skipping file %s with unknown type %s. Add to %s to ignore.\n' "$(Color Y "Warning")" "$(Color C "%q" "$file")" "$(Color G "$type")" "$(Color Y "ignore_paths")"
 				continue
 			fi
 		fi
@@ -497,7 +497,7 @@ BEGIN {
 				local orig_value
 				orig_value=$(AconfDefaultFileProp "$file" "$prop" "$type" "$default_value")
 
-				[[ "$value" == "$orig_value" ]] || printf "%s\t%s\t%q\n" "$prop" "$value" "$file"
+				[[ "$value" == "$orig_value" ]] || printf '%s\t%s\t%q\n' "$prop" "$value" "$file"
 			done
 		} >> "$system_dir"/file-props.txt
 	done
@@ -523,13 +523,13 @@ function AconfDefaultFileProp() {
 
 	if [[ -n "${orig_file_props[$key]+x}" ]]
 	then
-		printf "%s" "${orig_file_props[$key]}"
+		printf '%s' "${orig_file_props[$key]}"
 		return
 	fi
 
 	if [[ -n "$default" ]]
 	then
-		printf "%s" "$default"
+		printf '%s' "$default"
 		return
 	fi
 
@@ -547,11 +547,11 @@ function AconfDefaultFileProp() {
 			then
 				printf 755
 			else
-				printf "%s" "$default_file_mode"
+				printf '%s' "$default_file_mode"
 			fi
 			;;
 		owner|group)
-			printf "root"
+			printf 'root'
 			;;
 	esac
 }
@@ -585,7 +585,7 @@ function AconfReadFileProps() {
 
 # Compare file properties.
 function AconfCompareFileProps() {
-	LogEnter "Comparing file properties...\n"
+	LogEnter 'Comparing file properties...\n'
 
 	typeset -ag system_only_file_props=()
 	typeset -ag changed_file_props=()
@@ -625,22 +625,22 @@ function AconfAnalyzeFiles() {
 	# Lost/modified files - diff
 	#
 
-	LogEnter "Examining files...\n"
+	LogEnter 'Examining files...\n'
 
-	LogEnter "Loading data...\n"
+	LogEnter 'Loading data...\n'
 	mkdir --parents "$tmp_dir"
 	( cd "$output_dir"/files && find . -mindepth 1 -print0 ) | cut --zero-terminated -c 2- | sort --zero-terminated > "$tmp_dir"/output-files
 	( cd "$system_dir"/files && find . -mindepth 1 -print0 ) | cut --zero-terminated -c 2- | sort --zero-terminated > "$tmp_dir"/system-files
 	LogLeave
 
-	Log "Comparing file data...\n"
+	Log 'Comparing file data...\n'
 
 	typeset -ag system_only_files=()
 
 	( comm -13 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files ) | \
 		while read -r -d $'\0' file
 		do
-			Log "Only in system: %s\n" "$(Color C "%q" "$file")"
+			Log 'Only in system: %s\n' "$(Color C "%q" "$file")"
 			system_only_files+=("$file")
 		done
 
@@ -658,7 +658,7 @@ function AconfAnalyzeFiles() {
 
 			if ! diff --no-dereference --brief "$output_dir"/files/"$file" "$system_dir"/files/"$file" > /dev/null
 			then
-				Log "Changed: %s\n" "$(Color C "%q" "$file")"
+				Log 'Changed: %s\n' "$(Color C "%q" "$file")"
 				changed_files+=("$file")
 			fi
 		done
@@ -668,11 +668,11 @@ function AconfAnalyzeFiles() {
 	( comm -23 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files ) | \
 		while read -r -d $'\0' file
 		do
-			Log "Only in config: %s\n" "$(Color C "%q" "$file")"
+			Log 'Only in config: %s\n' "$(Color C "%q" "$file")"
 			config_only_files+=("$file")
 		done
 
-	LogLeave "Done (%s only in system, %s changed, %s only in config).\n"	\
+	LogLeave 'Done (%s only in system, %s changed, %s only in config).\n'	\
 			 "$(Color G "${#system_only_files[@]}")"						\
 			 "$(Color G "${#changed_files[@]}")"							\
 			 "$(Color G "${#config_only_files[@]}")"
@@ -681,9 +681,9 @@ function AconfAnalyzeFiles() {
 	# Modified file properties
 	#
 
-	LogEnter "Examining file properties...\n"
+	LogEnter 'Examining file properties...\n'
 
-	LogEnter "Loading data...\n"
+	LogEnter 'Loading data...\n'
 	unset orig_file_props # Also populated by AconfCompileSystem, so that it can be used by AconfDefaultFileProp
 	typeset -Ag output_file_props ; AconfReadFileProps "$output_dir"/file-props.txt output_file_props
 	typeset -Ag system_file_props ; AconfReadFileProps "$system_dir"/file-props.txt system_file_props
@@ -695,7 +695,7 @@ function AconfAnalyzeFiles() {
 
 	AconfCompareFileProps
 
-	LogLeave "Done (%s only in system, %s changed, %s only in config).\n"	\
+	LogLeave 'Done (%s only in system, %s changed, %s only in config).\n'	\
 			 "$(Color G "${#system_only_file_props[@]}")"					\
 			 "$(Color G "${#changed_file_props[@]}")"						\
 			 "$(Color G "${#config_only_file_props[@]}")"
@@ -707,7 +707,7 @@ function AconfAnalyzeFiles() {
 
 # Prepare configuration and system state
 function AconfCompile() {
-	LogEnter "Collecting data...\n"
+	LogEnter 'Collecting data...\n'
 
 	# Configuration
 
@@ -754,7 +754,7 @@ function DetectAurHelper() {
 		return
 	fi
 
-	LogEnter "Detecting AUR helper...\n"
+	LogEnter 'Detecting AUR helper...\n'
 
 	local helper
 	for helper in "${aur_helpers[@]}"
@@ -762,13 +762,13 @@ function DetectAurHelper() {
 		if which "$helper" > /dev/null 2>&1
 		then
 			aur_helper=$helper
-			LogLeave "%s... Yes\n" "$(Color C %s "$helper")"
+			LogLeave '%s... Yes\n' "$(Color C %s "$helper")"
 			return
 		fi
-		Log "%s... No\n" "$(Color C %s "$helper")"
+		Log '%s... No\n' "$(Color C %s "$helper")"
 	done
 
-	Log "Can't find even makepkg!?\n"
+	Log 'Can'\''t find even makepkg!?\n'
 	Exit 1
 }
 
@@ -785,10 +785,10 @@ function AconfMakePkg() {
 	local package="$1"
 	local asdeps="${2:-false}"
 
-	LogEnter "Building foreign package %s from source.\n" "$(Color M %q "$package")"
+	LogEnter 'Building foreign package %s from source.\n' "$(Color M %q "$package")"
 
 	local pkg_dir="$tmp_dir"/aur/"$package"
-	Log "Using directory %s.\n" "$(Color C %q "$pkg_dir")"
+	Log 'Using directory %s.\n' "$(Color C %q "$pkg_dir")"
 
 	rm -rf "$pkg_dir"
 	mkdir --parents "$pkg_dir"
@@ -798,7 +798,7 @@ function AconfMakePkg() {
 
 	if [[ $base_devel_installed == n ]]
 	then
-		LogEnter "Making sure the %s group is installed...\n" "$(Color M base-devel)"
+		LogEnter 'Making sure the %s group is installed...\n' "$(Color M base-devel)"
 		ParanoidConfirm ''
 		local base_devel_all=($("$PACMAN" --sync --quiet --group base-devel))
 		local base_devel_missing=($("$PACMAN" --deptest "${base_devel_all[@]}" || true))
@@ -811,20 +811,20 @@ function AconfMakePkg() {
 		base_devel_installed=y
 	fi
 
-	LogEnter "Cloning...\n"
+	LogEnter 'Cloning...\n'
 	git clone "https://aur.archlinux.org/$package.git" "$pkg_dir"
 	LogLeave
 
 	if [[ ! -f "$pkg_dir"/PKGBUILD ]]
 	then
-		Log "No package description file found!\n"
-		LogEnter "Assuming this package is part of a package base:\n"
+		Log 'No package description file found!\n'
+		LogEnter 'Assuming this package is part of a package base:\n'
 
-		LogEnter "Retrieving package info...\n"
+		LogEnter 'Retrieving package info...\n'
 		AconfNeedProgram cower cower y
 		local pkg_base
 		pkg_base=$(cower --format %b --info "$package")
-		LogLeave "Done, package base is %s.\n" "$(Color M %q "$pkg_base")"
+		LogLeave 'Done, package base is %s.\n' "$(Color M %q "$pkg_base")"
 
 		AconfMakePkg "$pkg_base" "$asdeps" # recurse
 		LogLeave # Package base
@@ -842,7 +842,7 @@ function AconfMakePkg() {
 		infofile="$pkg_dir"/"$infofilename"
 		if test -f "$infofile"
 		then
-			LogEnter "Checking dependencies...\n"
+			LogEnter 'Checking dependencies...\n'
 
 			local depends missing_depends dependency arch
 			arch="$(uname -m)"
@@ -862,15 +862,15 @@ function AconfMakePkg() {
 				then
 					for dependency in "${missing_depends[@]}"
 					do
-						LogEnter "%s:\n" "$(Color M %q "$dependency")"
+						LogEnter '%s:\n' "$(Color M %q "$dependency")"
 						if "$PACMAN" --query --info "$dependency" > /dev/null 2>&1
 						then
-							Log "Already installed.\n" # Shouldn't happen, actually
+							Log 'Already installed.\n' # Shouldn't happen, actually
 						elif "$PACMAN" --sync --info "$dependency" > /dev/null 2>&1
 						then
-							Log "Installing from repositories...\n"
+							Log 'Installing from repositories...\n'
 							AconfInstallNative --asdeps "$dependency"
-							Log "Installed.\n"
+							Log 'Installed.\n'
 						else
 							local installed=false
 
@@ -886,18 +886,18 @@ function AconfMakePkg() {
 								providers=$(pacsift --sync --exact --satisfies="$dependency")
 								if [[ -n "$providers" ]]
 								then
-									Log "Installing provider package from repositories...\n"
+									Log 'Installing provider package from repositories...\n'
 									AconfInstallNative --asdeps "$dependency"
-									Log "Installed.\n"
+									Log 'Installed.\n'
 									installed=true
 								fi
 							fi
 
 							if ! $installed
 							then
-								Log "Installing from AUR...\n"
+								Log 'Installing from AUR...\n'
 								AconfMakePkg "$dependency" true
-								Log "Installed.\n"
+								Log 'Installed.\n'
 							fi
 						fi
 
@@ -912,7 +912,7 @@ function AconfMakePkg() {
 			keys=($( ( grep -E $'^\tvalidpgpkeys = ' "$infofile" || true ) | sed 's/^.* = \(.*\)$/\1/' ) )
 			if [[ ${#keys[@]} != 0 ]]
 			then
-				LogEnter "Checking PGP keys...\n"
+				LogEnter 'Checking PGP keys...\n'
 
 				local key
 				for key in "${keys[@]}"
@@ -924,7 +924,7 @@ function AconfMakePkg() {
 
 					if [[ ! -d "$GNUPGHOME" ]]
 					then
-						LogEnter "Creating %s...\n" "$(Color C %s "$GNUPGHOME")"
+						LogEnter 'Creating %s...\n' "$(Color C %s "$GNUPGHOME")"
 						mkdir --parents "$GNUPGHOME"
 						gpg --gen-key --batch <<EOF
 Key-Type: DSA
@@ -935,14 +935,14 @@ EOF
 						LogLeave
 					fi
 
-					LogEnter "Adding key %s...\n" "$(Color Y %q "$key")"
+					LogEnter 'Adding key %s...\n' "$(Color Y %q "$key")"
 					#ParanoidConfirm ''
 
-					LogEnter "Receiving key...\n"
+					LogEnter 'Receiving key...\n'
 					gpg --keyserver "$keyserver" --recv-key "$key"
 					LogLeave
 
-					LogEnter "Signing key...\n"
+					LogEnter 'Signing key...\n'
 					gpg --quick-lsign-key "$key"
 					LogLeave
 
@@ -960,7 +960,7 @@ EOF
 		fi
 	done
 
-	LogEnter "Building...\n"
+	LogEnter 'Building...\n'
 	(
 		cd "$pkg_dir"
 		mkdir --parents home
@@ -1048,7 +1048,7 @@ function AconfInstallForeign() {
 			done
 			;;
 		*)
-			Log "Error: unknown AUR helper %q\n" "$aur_helper"
+			Log 'Error: unknown AUR helper %q\n' "$aur_helper"
 			false
 			;;
 	esac
@@ -1063,15 +1063,15 @@ function AconfNeedProgram() {
 	then
 		if [[ $foreign == y ]]
 		then
-			LogEnter "Installing foreign dependency %s:\n" "$(Color M %q "$package")"
+			LogEnter 'Installing foreign dependency %s:\n' "$(Color M %q "$package")"
 			ParanoidConfirm ''
 			AconfInstallForeign --asdeps "$package"
 		else
-			LogEnter "Installing native dependency %s:\n" "$(Color M %q "$package")"
+			LogEnter 'Installing native dependency %s:\n' "$(Color M %q "$package")"
 			ParanoidConfirm ''
 			AconfInstallNative --asdeps "$package"
 		fi
-		LogLeave "Installed.\n"
+		LogLeave 'Installed.\n'
 	fi
 }
 
@@ -1150,7 +1150,7 @@ function AconfNeedPackageFile() {
 							dirs+=("$tmp_dir"/aur/"$package")
 							;;
 						*)
-							Log "Error: unknown AUR helper %q\n" "$aur_helper"
+							Log 'Error: unknown AUR helper %q\n' "$aur_helper"
 							false
 							;;
 					esac
@@ -1212,7 +1212,7 @@ function AconfNeedPackageFile() {
 
 				if $correct
 				then
-					printf "%s" "$file"
+					printf '%s' "$file"
 					return
 				fi
 			done
@@ -1220,12 +1220,12 @@ function AconfNeedPackageFile() {
 
 		if $downloaded
 		then
-			Log "Unable to find package file for package %s!\n" "$(Color M %q "$package")"
+			Log 'Unable to find package file for package %s!\n' "$(Color M %q "$package")"
 			Exit 1
 		else
 			if $foreign
 			then
-				LogEnter "Building foreign package %s\n" "$(Color M %q "$package")" "$(Color C %q "$filename")"
+				LogEnter 'Building foreign package %s\n' "$(Color M %q "$package")" "$(Color C %q "$filename")"
 				ParanoidConfirm ''
 
 				local helper
@@ -1249,7 +1249,7 @@ function AconfNeedPackageFile() {
 							break
 							;;
 						*)
-							Log "Error: unknown AUR helper %q\n" "$aur_helper"
+							Log 'Error: unknown AUR helper %q\n' "$aur_helper"
 							false
 							;;
 					esac
@@ -1257,7 +1257,7 @@ function AconfNeedPackageFile() {
 
 				LogLeave
 			else
-				LogEnter "Downloading package %s (%s) to pacman's cache\n" "$(Color M %q "$package")" "$(Color C %q "$filename")"
+				LogEnter "Downloading package %s (%s) to pacman's cache\\n" "$(Color M %q "$package")" "$(Color C %q "$filename")"
 				ParanoidConfirm ''
 				sudo "$PACMAN" --sync --download --nodeps --nodeps --noconfirm "$package" 1>&2
 				LogLeave
@@ -1325,9 +1325,9 @@ function Confirm() {
 	do
 		if [[ -n "$detail_func" ]]
 		then
-			Log "Proceed? [Y/n/d] "
+			Log 'Proceed? [Y/n/d] '
 		else
-			Log "Proceed? [Y/n] "
+			Log 'Proceed? [Y/n] '
 		fi
 		read -r -n 1 answer < /dev/tty
 		echo 1>&2
@@ -1336,7 +1336,7 @@ function Confirm() {
 				return
 				;;
 			N|n)
-				Log "%s\n" "$(Color R "User abort")"
+				Log '%s\n' "$(Color R "User abort")"
 				Exit 1
 				;;
 			D|d)
@@ -1390,7 +1390,7 @@ function LogEnter() {
 function LogLeave() {
 	if [[ $# == 0 ]]
 	then
-		Log "Done.\n"
+		Log 'Done.\n'
 	else
 		Log "$@"
 	fi
@@ -1402,7 +1402,7 @@ function FatalError() {
 	Log "$@"
 	false
 	# if we're here, errexit is not set
-	Log "Continuing after error. This is a bug, please report it.\n"
+	Log 'Continuing after error. This is a bug, please report it.\n'
 	Exit 1
 }
 
@@ -1434,16 +1434,16 @@ function DisableColor() {
 function OnError() {
 	trap '' EXIT ERR
 
-	LogEnter "%s! Stack trace:\n" "$(Color R "Fatal error")"
+	LogEnter '%s! Stack trace:\n' "$(Color R "Fatal error")"
 
 	local frame=0 str
 	while str=$(caller $frame)
 	do
 		if [[ $str =~ ^([^\ ]*)\ ([^\ ]*)\ (.*)$ ]]
 		then
-			Log "%s:%s [%s]\n" "$(Color C "%q" "${BASH_REMATCH[3]}")" "$(Color G "%q" "${BASH_REMATCH[1]}")" "$(Color Y "%q" "${BASH_REMATCH[2]}")"
+			Log '%s:%s [%s]\n' "$(Color C "%q" "${BASH_REMATCH[3]}")" "$(Color G "%q" "${BASH_REMATCH[1]}")" "$(Color Y "%q" "${BASH_REMATCH[2]}")"
 		else
-			Log "%s\n" "$str"
+			Log '%s\n' "$str"
 		fi
 
 		frame=$((frame+1))
@@ -1458,10 +1458,10 @@ function OnError() {
 		dir="$(realpath "$(dirname "$tmp_dir")")"
 		if [[ $df -lt $warn_tmp_df_threshold ]]
 		then
-			LogEnter "Probable cause: low disk space (%s bytes) in %s. Suggestions:\n" "$(Color G %s "$df")" "$(Color C %q "$dir")"
-			Log "- Ignore more files and directories using %s directives;\n" "$(Color Y IgnorePath)"
-			Log "- Free up more space in %s;\n" "$(Color C %q "$dir")"
-			Log "- Set %s to another location before invoking %s.\n" "$(Color Y \$TMPDIR)" "$(Color Y aconfmgr)"
+			LogEnter 'Probable cause: low disk space (%s bytes) in %s. Suggestions:\n' "$(Color G %s "$df")" "$(Color C %q "$dir")"
+			Log '- Ignore more files and directories using %s directives;\n' "$(Color Y IgnorePath)"
+			Log '- Free up more space in %s;\n' "$(Color C %q "$dir")"
+			Log '- Set %s to another location before invoking %s.\n' "$(Color Y \$TMPDIR)" "$(Color Y aconfmgr)"
 			LogLeave ''
 		fi
 	fi
@@ -1501,7 +1501,7 @@ function Print0Array() {
 		local item
 		for item in "\${${name}[@]}"
 		do
-			printf "%s\0" "\$item"
+			printf '%s\\0' "\$item"
 		done
 	fi
 EOF
