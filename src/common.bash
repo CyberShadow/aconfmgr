@@ -733,13 +733,14 @@ function AconfCompile() {
 ####################################################################################################
 
 pacman_opts=("$PACMAN")
+aurman_opts=(aurman)
 pacaur_opts=(pacaur)
 yaourt_opts=(yaourt)
 makepkg_opts=(makepkg)
 diff_opts=(diff '--color=auto')
 
 aur_helper=
-aur_helpers=(pacaur yaourt makepkg)
+aur_helpers=(aurman pacaur yaourt makepkg)
 
 # Only aconfmgr can use makepkg under root
 if [[ $EUID == 0 ]]
@@ -1031,6 +1032,9 @@ function AconfInstallForeign() {
 	DetectAurHelper
 
 	case "$aur_helper" in
+		aurman)
+			"${aurman_opts[@]}" --sync --aur "${asdeps_arr[@]}" "${target_packages[@]}"
+			;;
 		pacaur)
 			"${pacaur_opts[@]}" --sync --aur "${asdeps_arr[@]}" "${target_packages[@]}"
 			;;
@@ -1133,6 +1137,9 @@ function AconfNeedPackageFile() {
 					tried_helper[$helper]=y
 
 					case "$helper" in
+						aurman)
+							dirs+=("${XDG_CACHE_HOME:-$HOME/.cache}/aurman/$package")
+							;;
 						pacaur)
 							dirs+=("${XDG_CACHE_HOME:-$HOME/.cache}/pacaur/$package")
 							;;
@@ -1225,6 +1232,10 @@ function AconfNeedPackageFile() {
 				for helper in "$aur_helper" "${aur_helpers[@]}"
 				do
 					case "$helper" in
+						aurman)
+							"${aurman_opts[@]}" --makepkg --aur --makepkg "$package" 1>&2
+							break
+							;;
 						pacaur)
 							"${pacaur_opts[@]}" --makepkg --aur --makepkg "$package" 1>&2
 							break

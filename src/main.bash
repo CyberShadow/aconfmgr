@@ -104,6 +104,7 @@ function Main() {
 				fi
 				prompt_mode=never
 				pacman_opts+=(--noconfirm)
+				aurman_opts+=(--noconfirm --noedit)
 				pacaur_opts+=(--noconfirm --noedit)
 				yaourt_opts+=(--noconfirm)
 				makepkg_opts+=(--noconfirm)
@@ -122,6 +123,7 @@ function Main() {
 	case "$color" in
 		always)
 			pacman_opts+=(--color always)
+			aurman_opts+=(--color always)
 			pacaur_opts+=(--color always)
 			yaourt_opts+=(--color)
 			diff_opts+=('--color=always')
@@ -129,6 +131,7 @@ function Main() {
 		never)
 			DisableColor
 			pacman_opts+=(--color never)
+			aurman_opts+=(--color never)
 			pacaur_opts+=(--color never)
 			yaourt_opts+=(--nocolor)
 			makepkg_opts+=(--nocolor)
@@ -137,6 +140,7 @@ function Main() {
 		auto)
 			[ -t 1 ] || DisableColor
 			pacman_opts+=(--color auto)
+			aurman_opts+=(--color auto)
 			pacaur_opts+=(--color auto)
 			;;
 		'')
