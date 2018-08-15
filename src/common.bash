@@ -800,8 +800,9 @@ function AconfMakePkg() {
 	then
 		LogEnter 'Making sure the %s group is installed...\n' "$(Color M base-devel)"
 		ParanoidConfirm ''
-		"$PACMAN" --sync --quiet --group base-devel | mapfile -t local base_devel_all
-		"$PACMAN" --deptest "${base_devel_all[@]}" || true | mapfile -t local base_devel_missing
+		local base_devel_all base_devel_missing
+		"$PACMAN" --sync --quiet --group base-devel | mapfile -t base_devel_all
+		"$PACMAN" --deptest "${base_devel_all[@]}" || true | mapfile -t base_devel_missing
 		if [[ ${#base_devel_missing[@]} != 0 ]]
 		then
 			AconfInstallNative "${base_devel_missing[@]}"
