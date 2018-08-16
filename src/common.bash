@@ -802,7 +802,7 @@ function AconfMakePkg() {
 		ParanoidConfirm ''
 		local base_devel_all base_devel_missing
 		"$PACMAN" --sync --quiet --group base-devel | mapfile -t base_devel_all
-		"$PACMAN" --deptest "${base_devel_all[@]}" || true | mapfile -t base_devel_missing
+		( "$PACMAN" --deptest "${base_devel_all[@]}" || true ) | mapfile -t base_devel_missing
 		if [[ ${#base_devel_missing[@]} != 0 ]]
 		then
 			AconfInstallNative "${base_devel_missing[@]}"
