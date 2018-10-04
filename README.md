@@ -105,7 +105,7 @@ The list of provided helper functions:
 
 - `AddPackage [--foreign] PACKAGE...` - Adds a package to the list of packages to be installed.
 - `RemovePackage [--foreign] PACKAGE...` - Removes an earlier-added package to the list of packages to be installed.
-- `IgnorePackage [--foreign] PACKAGE...` - Adds a package to the list of packages to be ignored.
+- `IgnorePackage [--foreign] PACKAGE...` - Adds a package to the list of [packages to be ignored](#ignoring-packages).
 - `AddPackageGroup GROUP` - Adds all packages currently in the given group to the list of packages to be installed.
 - `CopyFile PATH [MODE [OWNER [GROUP]]]` - Copies a file from the `files` subdirectory to the output.
 - `CopyFileTo SRC-PATH DST-PATH [MODE [OWNER [GROUP]]]` - As above, but allows source and output paths to vary.
@@ -114,7 +114,7 @@ The list of provided helper functions:
 - `CreateLink PATH TARGET [OWNER [GROUP]]` - Creates a symbolic link with the specified target.
 - `RemoveFile PATH` - Removes an earlier-added file.
 - `SetFileProperty PATH TYPE VALUE` - Sets a file property.
-- `IgnorePath PATTERN` - Adds the specified pattern to the list of ignored paths.
+- `IgnorePath PATTERN` - Adds the specified pattern to the list of [ignored paths](#ignoring-files).
 
 You are free to define your own custom helper functions as part of your configuration, e.g. by placing them in a `00-helpers.sh` file.
 
