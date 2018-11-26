@@ -20,6 +20,18 @@ function AddPackage() {
 }
 
 #
+# AddPackageGroup GROUP
+#
+# Adds all packages belonging to a group to the list of packages to be installed.
+#
+
+function AddPackageGroup() {
+	local group=$1
+
+	pacman -Sqg "$group" >> "$output_dir"/packages.txt
+}
+
+#
 # RemovePackage [--foreign] PACKAGE...
 #
 # Removes an earlier-added package to the list of packages to be installed.

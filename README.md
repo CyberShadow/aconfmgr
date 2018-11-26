@@ -106,6 +106,7 @@ The list of provided helper functions:
 - `AddPackage [--foreign] PACKAGE...` - Adds a package to the list of packages to be installed.
 - `RemovePackage [--foreign] PACKAGE...` - Removes an earlier-added package to the list of packages to be installed.
 - `IgnorePackage [--foreign] PACKAGE...` - Adds a package to the list of packages to be ignored.
+- `AddPackageGroup GROUP` - Adds all packages currently in the given group to the list of packages to be installed.
 - `CopyFile PATH [MODE [OWNER [GROUP]]]` - Copies a file from the `files` subdirectory to the output.
 - `CopyFileTo SRC-PATH DST-PATH [MODE [OWNER [GROUP]]]` - As above, but allows source and output paths to vary.
 - `CreateFile PATH [MODE [OWNER [GROUP]]]` - Creates an empty file, to be included in the output. Prints its absolute path to standard output.
