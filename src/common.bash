@@ -736,11 +736,12 @@ pacman_opts=("$PACMAN")
 aurman_opts=(aurman)
 pacaur_opts=(pacaur)
 yaourt_opts=(yaourt)
+yay_opts=(yay)
 makepkg_opts=(makepkg)
 diff_opts=(diff '--color=auto')
 
 aur_helper=
-aur_helpers=(aurman pacaur yaourt makepkg)
+aur_helpers=(aurman pacaur yaourt yay makepkg)
 
 # Only aconfmgr can use makepkg under root
 if [[ $EUID == 0 ]]
@@ -1041,6 +1042,9 @@ function AconfInstallForeign() {
 		yaourt)
 			"${yaourt_opts[@]}" --sync --aur "${asdeps_arr[@]}" "${target_packages[@]}"
 			;;
+		yay)
+			"${yay_opts[@]}" --sync --aur "${asdeps_arr[@]}" "${target_packages[@]}"
+			;;
 		makepkg)
 			for package in "${target_packages[@]}"
 			do
@@ -1146,6 +1150,9 @@ function AconfNeedPackageFile() {
 						yaourt)
 							# yaourt does not save .pkg.xz files
 							;;
+						yay)
+							dirs+=("${XDG_CACHE_HOME:-$HOME/.cache}/yay/$package")
+							;;
 						makepkg)
 							dirs+=("$tmp_dir"/aur/"$package")
 							;;
@@ -1242,6 +1249,10 @@ function AconfNeedPackageFile() {
 							;;
 						yaourt)
 							# yaourt does not save .pkg.xz files
+							continue
+							;;
+						yay)
+							# yay does not have a --makepkg option
 							continue
 							;;
 						makepkg)
