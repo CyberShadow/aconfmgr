@@ -228,7 +228,7 @@ f="$(GetPackageOriginalFile filesystem /etc/hosts)"
 echo '1.2.3.4 home.example.net' >> "$f"
 if [[ "$HOSTNAME" == laptop.example.net ]]
 then
-	echo '127.0.1.1 laptop.example.net laptop >> "$f"
+	echo '127.0.1.1 laptop.example.net laptop' >> "$f"
 fi
 ```
 
