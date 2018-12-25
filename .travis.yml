@@ -2,9 +2,13 @@ language: bash
 
 sudo: false
 
+services:
+  - docker
+
 install:
   - gem install coveralls_reborn
   - gem install bashcov
 
 script:
  - make -C test ci BUILD_BASH=1
+ - docker run -v "$PWD:/aconfmgr:" base/archlinux:2018.01.01 /aconfmgr/test/docker.sh
