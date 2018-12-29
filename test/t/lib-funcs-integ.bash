@@ -56,7 +56,7 @@ function TestAddPackage() {
 	local inst_as=$3
 
 	# printf '%s\t%s\t%s\n' "$name" "$kind" "$inst_as" >> "$test_data_dir"/packages.txt
-	FatalError TODO
+	FatalError 'TODO\n'
 }
 
 function TestCreatePackageFile() {
@@ -64,7 +64,7 @@ function TestCreatePackageFile() {
 	local version=1.0 # $2
 	local arch=x86_64 # $3
 
-	FatalError TODO
+	FatalError 'TODO\n'
 }
 
 ###############################################################################
@@ -81,7 +81,7 @@ function TestAddFSObj() {
 
 	if [[ -n "$package" ]]
 	then
-		FatalError TODO
+		FatalError 'TODO\n'
 	else
 		case "$type" in
 			file)
