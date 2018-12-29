@@ -3,7 +3,6 @@ source ./lib.bash
 
 # Test RemoveFile helper.
 
-TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddConfig 'echo foo > $(CreateFile /testfile.txt)'
 TestAddConfig RemoveFile /testfile.txt

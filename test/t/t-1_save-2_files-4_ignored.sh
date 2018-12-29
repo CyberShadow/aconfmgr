@@ -3,7 +3,6 @@ source ./lib.bash
 
 # Test ignored files.
 
-TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddFile /lostfile.txt 'Lost file contents'
 TestAddConfig IgnorePath /lostfile.txt

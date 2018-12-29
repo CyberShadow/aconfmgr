@@ -3,7 +3,6 @@ source ./lib.bash
 
 # Test removing extra file properties (specified in the configuration, but not the system).
 
-TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddFile /lostfile.txt 'Lost file contents'
 
