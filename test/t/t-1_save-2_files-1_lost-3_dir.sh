@@ -3,7 +3,6 @@ source ./lib.bash
 
 # Test saving empty directories.
 
-TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddDir /emptydir
 

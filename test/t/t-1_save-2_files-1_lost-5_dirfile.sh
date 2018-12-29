@@ -4,7 +4,6 @@ source ./lib.bash
 # Test saving lost files inside a directory.
 # This test verifies that aconfmgr is not emitting unnecessary CreateDir lines.
 
-TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddFile /dir/lostfile.txt 'Lost file contents'
 

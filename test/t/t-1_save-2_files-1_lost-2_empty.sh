@@ -3,7 +3,6 @@ source ./lib.bash
 
 # Test saving empty files.
 
-TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddFile /emptyfile.txt ''
 
