@@ -25,7 +25,7 @@ touch "$test_data_dir"/packages.txt
 mkdir -p "$test_data_dir"/packages
 
 source ./lib-funcs-common.bash
-if [[ -v ACONFMGR_INTEGRATION ]]
+if ((${ACONFMGR_INTEGRATION:-0}))
 then
 	source ./lib-funcs-integ.bash
 else

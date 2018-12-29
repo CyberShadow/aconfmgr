@@ -4,7 +4,7 @@
 # Test preconditions
 
 function TestMockOnly() {
-	if [[ -v ACONFMGR_INTEGRATION ]]
+	if ((${ACONFMGR_INTEGRATION:-0}))
 	then
 		LogLeave
 		LogLeave 'Skipping (mock-only test).\n'
@@ -13,7 +13,7 @@ function TestMockOnly() {
 }
 
 function TestIntegrationOnly() {
-	if [[ ! -v ACONFMGR_INTEGRATION ]]
+	if ! ((${ACONFMGR_INTEGRATION:-0}))
 	then
 		LogLeave
 		LogLeave 'Skipping (integration-only test).\n'
