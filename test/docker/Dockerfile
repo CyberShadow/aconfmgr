@@ -3,7 +3,8 @@ FROM scratch AS rootfs
 ARG arch_tar
 ADD ${arch_tar} /
 
-FROM scratch
+
+FROM scratch AS arch
 
 COPY --from=rootfs /root.x86_64/ /
 
@@ -16,8 +17,16 @@ RUN echo 'Server=https://archive.archlinux.org/repos/'"${arch_date}"'/$repo/os/$
 RUN pacman -Syyuu --noconfirm
 RUN pacman -S --needed --noconfirm base-devel git
 
-RUN useradd billy
+
+FROM arch AS builder
 
 ADD . /aconfmgr
+RUN /aconfmgr/test/docker/build-packages.sh
 
-RUN /aconfmgr/test/docker/prepare-image.sh
+
+FROM arch
+
+COPY --from=builder /aconfmgr-packages/ /aconfmgr-packages/
+
+RUN pacman --noconfirm -U /aconfmgr-packages/pacutils.pkg.tar.xz
+RUN useradd billy

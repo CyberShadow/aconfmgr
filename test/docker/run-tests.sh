@@ -18,9 +18,19 @@ else
 	tests=(t-*.sh)
 fi
 
+# Integration tmp directory
+mkdir -p ../tmp/integ
+
 for t in "${tests[@]}"
 do
-	docker run --rm aconfmgr /aconfmgr/test/docker/run-one.sh "$t"
+	args=(
+		docker run
+		--rm
+		-v "$PWD/../..:/aconfmgr:ro"
+		-v "$PWD/../tmp/integ:/aconfmgr/test/tmp:rw"
+		aconfmgr
+		/aconfmgr/test/docker/run-one.sh "$t"
+	) ; "${args[@]}"
 done
 
 printf '\n''Integration tests OK!''\n' 1>&2

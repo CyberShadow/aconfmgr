@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Perform some final Docker image preparations.
+# Build some packages used in the test suite.
 # Invoked from the Dockerfile.
 
 # Set up paths
@@ -19,5 +19,14 @@ tmp_dir=/tmp/aconfmgr-setup
 source ../../src/common.bash
 
 pacman_opts+=(--noconfirm)
-AconfNeedProgram paccheck pacutils y
+
+mkdir /aconfmgr-packages
+
+packages=(pacutils)
+for package in "${packages[@]}"
+do
+	file=$(AconfNeedPackageFile "$package")
+	cp "$file" /aconfmgr-packages/"$package".pkg.tar.xz
+done
+
 Exit 0

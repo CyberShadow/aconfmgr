@@ -157,7 +157,7 @@ $(ARCH_TAR) : | $(TMP)
 
 DOCKER=docker
 
-$(TMP)/.docker-image-ok : $(ARCH_TAR) $(SRC) $(TESTSUITE) docker/Dockerfile docker/run-one.sh ../.dockerignore
+$(TMP)/.docker-image-ok : $(ARCH_TAR) docker/Dockerfile docker/build-packages.sh ../.dockerignore
 	$(DOCKER) build \
 		-t aconfmgr \
 		-f docker/Dockerfile \

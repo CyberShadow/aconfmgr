@@ -20,7 +20,6 @@ AddPackage flex
 AddPackage gawk
 AddPackage gcc
 AddPackage gettext
-AddPackage git
 AddPackage grep
 AddPackage groff
 AddPackage gzip
@@ -35,9 +34,14 @@ AddPackage systemd
 AddPackage texinfo
 AddPackage which
 
+AddPackage git
+AddPackage pacutils
+
 IgnorePath /.dockerenv
 IgnorePath /README
 IgnorePath /aconfmgr/\*
+IgnorePath /aconfmgr-packages/\*
+
 IgnorePath /etc/\*
 IgnorePath /usr/\*
 IgnorePath /srv/\*
