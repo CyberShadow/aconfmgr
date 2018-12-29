@@ -9,7 +9,7 @@ cd "$(dirname "$0")"
 if ((${ACONFMGR_INTEGRATION:-0}))
 then
 	# Run integration tests
-	docker/test-all.sh
+	docker/run-tests.sh
 else
 	# Run shellcheck, unit / mock tests, coverage ...
 	make ci BUILD_BASH=1

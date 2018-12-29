@@ -10,7 +10,15 @@ docker build -t aconfmgr -f Dockerfile ../..
 
 cd ../t
 
-for t in ./t-*.sh
+tests=()
+if [[ $# -gt 0 ]]
+then
+	tests=("$@")
+else
+	tests=(t-*.sh)
+fi
+
+for t in "${tests[@]}"
 do
 	docker run aconfmgr /aconfmgr/test/docker/run-one.sh "$t"
 done

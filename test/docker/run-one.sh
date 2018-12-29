@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Runs one integration test.
-# Invoked inside the Docker container by ./test-all.sh.
+# Invoked inside the Docker container by ./run-tests.sh.
 
 test=$1
 
