@@ -21,9 +21,6 @@ LogEnter 'Setting up test suite...\n'
 rm -rf   "$config_dir" "$tmp_dir" "$test_data_dir"
 mkdir -p "$config_dir" "$tmp_dir" "$test_data_dir"
 
-touch "$test_data_dir"/packages.txt
-mkdir -p "$test_data_dir"/packages
-
 source ./lib-funcs-common.bash
 if ((${ACONFMGR_INTEGRATION:-0}))
 then

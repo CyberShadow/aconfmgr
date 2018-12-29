@@ -16,7 +16,7 @@ AconfApply
 TestPhase_Check ###############################################################
 
 # XFAIL - FIXME!
-# diff -u "$test_data_dir"/files/testfile.txt /dev/stdin <<<bar
-diff -u "$test_data_dir"/files/testfile.txt <(printf foo)
+# diff -u "$test_fs_root"/testfile.txt /dev/stdin <<<bar
+diff -u "$test_fs_root"/testfile.txt <(printf foo)
 
 TestDone ######################################################################

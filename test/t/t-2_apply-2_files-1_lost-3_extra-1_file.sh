@@ -3,7 +3,6 @@ source ./lib.bash
 
 # Test deleting an extra file.
 
-TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddFile /testfile.txt foo
 
@@ -11,6 +10,6 @@ TestPhase_Run #################################################################
 AconfApply
 
 TestPhase_Check ###############################################################
-test ! -e "$test_data_dir"/files/testfile.txt
+test ! -e "$test_fs_root"/testfile.txt
 
 TestDone ######################################################################

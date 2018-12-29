@@ -12,6 +12,6 @@ TestPhase_Run #################################################################
 AconfApply
 
 TestPhase_Check ###############################################################
-diff -u "$test_data_dir"/files/a/b/testfile.txt <(printf foo)
+diff -u "$test_fs_root"/a/b/testfile.txt <(printf foo)
 
 TestDone ######################################################################

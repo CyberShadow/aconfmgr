@@ -4,7 +4,10 @@
 # Initialization
 
 function TestInit() {
-	:
+	touch "$test_data_dir"/packages.txt
+	mkdir -p "$test_data_dir"/packages
+
+	test_fs_root="$test_data_dir"/files
 }
 
 ###############################################################################

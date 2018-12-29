@@ -16,6 +16,8 @@ RUN echo 'Server=https://archive.archlinux.org/repos/'"${arch_date}"'/$repo/os/$
 RUN pacman -Syyuu --noconfirm
 RUN pacman -S --needed --noconfirm base-devel git
 
+RUN useradd billy
+
 ADD . /aconfmgr
 
 RUN /aconfmgr/test/docker/prepare-image.sh

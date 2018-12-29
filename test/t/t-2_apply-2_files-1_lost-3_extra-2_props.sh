@@ -3,7 +3,6 @@ source ./lib.bash
 
 # Test clearing file properties.
 
-TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddFile /testfile.txt foo 666 billy wheel
 TestAddConfig 'printf foo > $(CreateFile /testfile.txt)'

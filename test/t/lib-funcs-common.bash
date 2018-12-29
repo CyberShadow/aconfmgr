@@ -127,3 +127,18 @@ function TestExpectConfig() {
 	touch "$config_dir"/99-unsorted.sh
 	diff -u <(grep '^[^#]' "$config_dir"/99-unsorted.sh || true) /dev/stdin
 }
+
+###############################################################################
+# Test suite overrides
+
+prompt_mode=paranoid
+function Confirm() {
+	local detail_func="$1"
+
+	if [[ -n "$detail_func" ]]
+	then
+		"$detail_func"
+	fi
+
+	return 0
+}

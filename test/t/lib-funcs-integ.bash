@@ -43,6 +43,8 @@ IgnorePath /usr/\*
 IgnorePath /srv/\*
 IgnorePath /var/\*
 EOF
+
+	test_fs_root=/
 }
 
 ###############################################################################
