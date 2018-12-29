@@ -2,4 +2,5 @@
 !/src
 !/test/t
 !/test/docker/run-one.sh
+!/test/docker/prepare-image.sh
 !/test/tmp/archlinux-bootstrap-*-x86_64.tar.gz

@@ -17,3 +17,5 @@ RUN pacman -Syyuu --noconfirm
 RUN pacman -S --needed --noconfirm base-devel git
 
 ADD . /aconfmgr
+
+RUN /aconfmgr/test/docker/prepare-image.sh
