@@ -1,4 +1,4 @@
 *
 !/src
 !/test/t
-!/test/docker/run.sh
+!/test/docker/run-one.sh

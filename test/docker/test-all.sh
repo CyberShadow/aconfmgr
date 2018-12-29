@@ -8,6 +8,11 @@ cd "$(dirname "$0")"
 
 docker build -t aconfmgr -f Dockerfile ../..
 
-docker run aconfmgr /aconfmgr/test/docker/run.sh
+cd ../t
+
+for t in ./t-*.sh
+do
+	docker run aconfmgr /aconfmgr/test/docker/run-one.sh "$t"
+done
 
 printf '\n''Integration tests OK!''\n' 1>&2
