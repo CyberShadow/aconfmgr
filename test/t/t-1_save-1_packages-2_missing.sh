@@ -3,7 +3,6 @@ source ./lib.bash
 
 # Test saving missing packages.
 
-TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddConfig AddPackage           test-native-package
 TestAddConfig AddPackage --foreign test-foreign-package
