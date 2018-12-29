@@ -20,7 +20,7 @@ fi
 
 for t in "${tests[@]}"
 do
-	docker run aconfmgr /aconfmgr/test/docker/run-one.sh "$t"
+	docker run --rm aconfmgr /aconfmgr/test/docker/run-one.sh "$t"
 done
 
 printf '\n''Integration tests OK!''\n' 1>&2
