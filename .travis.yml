@@ -9,7 +9,9 @@ install:
   - gem install coveralls_reborn
   - gem install bashcov
 
+env:
+  - ACONFMGR_INTEGRATION=0
+  - ACONFMGR_INTEGRATION=1
+
 script:
- - make -C test ci BUILD_BASH=1
- - docker build -t aconfmgr -f test/docker/Dockerfile .
- - docker run aconfmgr /aconfmgr/test/docker/run.sh
+ - test/travis.sh
