@@ -1,6 +1,51 @@
 # Test case configuration functions (integration tests)
 
 ###############################################################################
+# Initialization
+
+function TestInit() {
+	# No TTY for confirmations
+	pacman_opts+=(--noconfirm)
+
+	# Configuration matching the Docker image
+	cat > "$config_dir"/10-system.sh <<'EOF'
+AddPackage arch-install-scripts
+AddPackage autoconf
+AddPackage automake
+AddPackage binutils
+AddPackage bison
+AddPackage fakeroot
+AddPackage file
+AddPackage flex
+AddPackage gawk
+AddPackage gcc
+AddPackage gettext
+AddPackage git
+AddPackage grep
+AddPackage groff
+AddPackage gzip
+AddPackage libtool
+AddPackage m4
+AddPackage make
+AddPackage patch
+AddPackage pkg-config
+AddPackage sed
+AddPackage sudo
+AddPackage systemd
+AddPackage texinfo
+AddPackage which
+
+IgnorePath /.dockerenv
+IgnorePath /README
+IgnorePath /aconfmgr/\*
+IgnorePath /etc/\*
+IgnorePath /usr/\*
+IgnorePath /srv/\*
+IgnorePath /var/\*
+EOF
+}
+
+###############################################################################
 # Packages
 
 function TestAddPackage() {

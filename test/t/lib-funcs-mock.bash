@@ -1,6 +1,13 @@
 # Test case configuration functions (mock tests)
 
 ###############################################################################
+# Initialization
+
+function TestInit() {
+	:
+}
+
+###############################################################################
 # Packages
 
 function TestAddPackage() {

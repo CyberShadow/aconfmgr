@@ -38,3 +38,5 @@ if test -v BUILD_BASH && ! diff --color=auto /dev/null /dev/null 2>/dev/null
 then
 	diff_opts=(diff)
 fi
+
+TestInit
