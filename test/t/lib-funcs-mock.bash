@@ -74,7 +74,7 @@ function TestAddFSObj() {
 			mkdir -p "$root"/files/"$path"
 			;;
 		link)
-			local fn="$test_data_dir"/files/"$path"
+			local fn="$root"/files/"$path"
 			mkdir -p "$(dirname "$fn")"
 			ln -s "$contents" "$fn"
 			;;
