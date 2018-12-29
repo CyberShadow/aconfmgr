@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test pinning a package.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddPackage test-package native dependency
 TestAddConfig AddPackage test-package

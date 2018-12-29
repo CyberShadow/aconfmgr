@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test deleting extra directories containing some ignored paths.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddDir /a/b/c
 TestAddDir /a/testfile.txt

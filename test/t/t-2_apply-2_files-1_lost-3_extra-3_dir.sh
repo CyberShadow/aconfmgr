@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test deleting extra directories.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddDir /a/b/c
 

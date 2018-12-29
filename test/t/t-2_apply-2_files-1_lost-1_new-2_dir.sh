@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test installing a directory.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddConfig CreateDir /emptydir
 

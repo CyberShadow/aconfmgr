@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test saving extra files (lost files in the configuration, but not the system).
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddConfig 'echo foo > $(CreateFile /extrafile.txt)'
 

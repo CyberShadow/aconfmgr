@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test modifying a lost file.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddFile /testfile.txt foo
 TestAddConfig 'echo bar > $(CreateFile /testfile.txt)'

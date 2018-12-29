@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test basic package list saving.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddPackage test-native-explicit-package    native  explicit
 TestAddPackage test-native-dependency-package  native  dependency

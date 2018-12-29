@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test for ignored packages.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddPackage foo native explicit
 TestAddConfig IgnorePackage foo

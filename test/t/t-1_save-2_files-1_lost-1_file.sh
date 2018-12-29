@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test saving lost files.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddFile /lostfile.txt 'Lost file contents'
 

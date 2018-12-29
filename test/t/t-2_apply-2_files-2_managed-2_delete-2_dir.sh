@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test deleting some package directories.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddDir /a/b/c
 TestAddPackageDir test-package /a/b/c

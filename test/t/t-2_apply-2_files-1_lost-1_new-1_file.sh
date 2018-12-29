@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test installing a file.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddConfig 'echo foo > $(CreateFile /extrafile.txt)'
 

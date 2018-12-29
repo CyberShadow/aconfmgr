@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test basic 'aconfmgr check' functionality.
 
+TestMockOnly
 TestPhase_Run #################################################################
 AconfCheck
 

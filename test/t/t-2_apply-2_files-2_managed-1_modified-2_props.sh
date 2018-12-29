@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test applying file properties.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddFile /testfile.txt 'Test file contents'
 TestAddPackageFile test-package /testfile.txt 'Test file contents'

@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test successful 'aconfmgr check' invocation.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddConfig CopyFile /testfile.txt
 TestWriteFile "$config_dir"/files/testfile.txt 'Test file contents'

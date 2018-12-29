@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test removing an orphan package.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddPackage test-explicit-package native explicit
 TestAddPackage test-dependency-package native dependency

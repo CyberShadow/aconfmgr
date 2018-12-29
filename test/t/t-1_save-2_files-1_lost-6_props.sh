@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test saving lost files with unusual properties.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddFile /lostfile.txt 'Lost file contents' 777 billy wheel
 

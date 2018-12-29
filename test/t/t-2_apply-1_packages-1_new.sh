@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test installing a package.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddConfig AddPackage test-package
 

@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test applying modified priority files.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddFile /etc/pacman.conf 'Original file contents'
 TestAddPackageFile pacman /etc/pacman.conf 'Original file contents'

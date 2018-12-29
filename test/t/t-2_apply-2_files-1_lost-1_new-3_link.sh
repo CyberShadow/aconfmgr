@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test installing a symbolic link.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddConfig CreateLink /symlink target
 

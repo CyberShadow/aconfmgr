@@ -24,8 +24,14 @@ mkdir -p "$config_dir" "$tmp_dir" "$test_data_dir"
 touch "$test_data_dir"/packages.txt
 mkdir -p "$test_data_dir"/packages
 
-source ./lib-mocks.bash
-source ./lib-funcs.bash
+source ./lib-funcs-common.bash
+if [[ -v ACONFMGR_INTEGRATION ]]
+then
+	source ./lib-funcs-integ.bash
+else
+	source ./lib-mocks.bash
+	source ./lib-funcs-mock.bash
+fi
 
 # Don't use diff --color=auto when it's not available
 if test -v BUILD_BASH && ! diff --color=auto /dev/null /dev/null 2>/dev/null

@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test unpinning a package.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddPackage test-package native explicit
 

@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test RemovePackage helper.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddConfig AddPackage foo
 TestAddConfig RemovePackage foo

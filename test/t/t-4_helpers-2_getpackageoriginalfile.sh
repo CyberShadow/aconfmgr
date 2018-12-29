@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test GetPackageOriginalFile helper.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddFile /testfile.txt baz
 TestAddPackageFile test-package /testfile.txt foo

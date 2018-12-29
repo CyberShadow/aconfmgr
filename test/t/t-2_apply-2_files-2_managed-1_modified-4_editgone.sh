@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test modifying a file that's not on the filesystem.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddPackageFile test-package /testfile.txt foo
 TestCreatePackageFile test-package

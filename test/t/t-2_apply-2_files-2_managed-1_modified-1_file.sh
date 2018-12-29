@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test applying modified files.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddFile /testfile.txt 'Original file contents'
 TestAddPackageFile test-package /testfile.txt 'Original file contents'

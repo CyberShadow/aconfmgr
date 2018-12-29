@@ -3,6 +3,7 @@ source ./lib.bash
 
 # Test saving modified file properties.
 
+TestMockOnly
 TestPhase_Setup ###############################################################
 
 TestAddPackage test-package native explicit
