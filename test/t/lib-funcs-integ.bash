@@ -77,5 +77,29 @@ function TestAddFSObj() {
 	local owner=${6:-}
 	local group=${7:-}
 
-	FatalError TODO
+	if [[ -n "$package" ]]
+	then
+		FatalError TODO
+	else
+		case "$type" in
+			file)
+				TestWriteFile "$path" "$contents"
+				;;
+			dir)
+				test -z "$contents" || FatalError 'Attempting to create directory with non-empty contents\n'
+				mkdir -p "$path"
+				;;
+			link)
+				mkdir -p "$(dirname "$path")"
+				ln -s "$contents" "$path"
+				;;
+			*)
+				FatalError 'Unknown filesystem object type %s\n' "$type"
+				;;
+		esac
+
+		if [[ -n "$mode"  ]] ; then chmod "$mode"  "$path" ; fi
+		if [[ -n "$owner" ]] ; then chown "$owner" "$path" ; fi
+		if [[ -n "$group" ]] ; then chgrp "$group" "$path" ; fi
+	fi
 }
