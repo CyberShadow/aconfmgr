@@ -1,0 +1,4 @@
+*
+!/src
+!/test/t
+!/test/docker/run.sh

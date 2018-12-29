@@ -11,5 +11,5 @@ install:
 
 script:
  - make -C test ci BUILD_BASH=1
- - docker build -t aconfmgr test/docker
- - docker run -v "$PWD:/aconfmgr:" aconfmgr /aconfmgr/test/docker/run.sh
+ - docker build -t aconfmgr -f test/docker/Dockerfile .
+ - docker run aconfmgr /aconfmgr/test/docker/run.sh
