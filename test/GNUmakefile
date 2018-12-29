@@ -142,6 +142,32 @@ coverage : $(COVERAGE_REPORT)
 $(COVERAGE_REPORT) : $(SRC) $(TESTSUITE) $(BASH_DEP) .simplecov
 	PATH=$(PATH_PREFIX)$(PATH) bashcov --bash-path $(BASH) --root=.. t/all.sh
 
+# Docker image (integration testing)
+
+ARCH_DATE=2018.01.01
+ARCH_TAR_FN=archlinux-bootstrap-$(ARCH_DATE)-x86_64.tar.gz
+ARCH_TAR_URL=https://archive.archlinux.org/iso/$(ARCH_DATE)/$(ARCH_TAR_FN)
+ARCH_TAR_SHA1=1bbb612619337263cfc03cc6720ef3b8870e3503
+ARCH_TAR=$(TMP)/$(ARCH_TAR_FN)
+
+$(ARCH_TAR) : | $(TMP)
+	curl --fail --output $@.tmp $(ARCH_TAR_URL)
+	printf "%s %s\n" $(ARCH_TAR_SHA1) $@.tmp | sha1sum -c
+	mv $@.tmp $@
+
+DOCKER=docker
+
+$(TMP)/.docker-image-ok : $(ARCH_TAR) $(SRC) $(TESTSUITE) docker/Dockerfile docker/run-one.sh ../.dockerignore
+	$(DOCKER) build \
+		-t aconfmgr \
+		-f docker/Dockerfile \
+		--build-arg arch_tar=test/"$(ARCH_TAR)" \
+		--build-arg arch_date=$(subst .,/,$(ARCH_DATE)) \
+		..
+	touch "$@"
+
+docker-image : $(TMP)/.docker-image-ok
+
 # Clean-up
 
 clean :

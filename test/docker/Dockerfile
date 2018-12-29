@@ -1,9 +1,19 @@
-# https://github.com/archlinux/archlinux-docker/issues/11
-FROM base/archlinux:2018.01.01
+FROM scratch AS rootfs
 
-# https://github.com/archimg/archlinux/issues/28
-RUN echo 'Server=https://archive.archlinux.org/repos/2018/01/31/$repo/os/$arch' > /etc/pacman.d/mirrorlist
+ARG arch_tar
+ADD ${arch_tar} /
+
+FROM scratch
+
+COPY --from=rootfs /root.x86_64/ /
+
+RUN pacman-key --init
+RUN pacman-key --populate
+
+ARG arch_date
+RUN echo 'Server=https://archive.archlinux.org/repos/'"${arch_date}"'/$repo/os/$arch' > /etc/pacman.d/mirrorlist
 
 RUN pacman -Syyuu --noconfirm
+RUN pacman -S --needed --noconfirm base-devel git
 
 ADD . /aconfmgr

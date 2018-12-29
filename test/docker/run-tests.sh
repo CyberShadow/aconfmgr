@@ -6,7 +6,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-docker build -t aconfmgr -f Dockerfile ../..
+make -C .. docker-image
 
 cd ../t
 
