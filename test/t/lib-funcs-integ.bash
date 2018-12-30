@@ -37,6 +37,8 @@ AddPackage which
 AddPackage git
 AddPackage pacutils
 
+IgnorePackage --foreign parent-package
+
 IgnorePath /.dockerenv
 IgnorePath /README
 IgnorePath /aconfmgr/\*
@@ -50,6 +52,15 @@ IgnorePath /var/\*
 EOF
 
 	test_fs_root=/
+}
+
+function TestPhase_RunHook() {
+	if [[ "${#test_adopted_packages[@]}" -gt 0 ]]
+	then
+		TestCreateParentPackage
+	fi
+
+	rm -f /var/log/pacman.log
 }
 
 ###############################################################################
@@ -154,6 +165,38 @@ EOF
 	fi
 }
 
+# Create dummy parent package to distinguish dependency from orphan packages.
+function TestCreateParentPackage() {
+	local dir="$test_data_dir"/parent-package
+	mkdir -p "$dir"
+
+	mkdir "$dir"/build
+	# shellcheck disable=SC2059
+	printf "$(cat <<EOF
+pkgname=parent-package
+pkgver=1.0
+pkgrel=1
+pkgdesc="Dummy aconfmgr test suite parent package"
+depends=(%s)
+arch=(any)
+
+EOF
+)" "$(printf '%q ' "${test_adopted_packages[@]}")" > "$dir"/build/PKGBUILD
+
+	mkdir -p "$dir"/files
+	tar cf "$dir"/build/files.tar -C "$dir"/files .
+
+	rm -rf /tmp/aconfmgr-build
+	cp -a "$dir"/build /tmp/aconfmgr-build
+	chown -R nobody: /tmp/aconfmgr-build
+	env -i -C /tmp/aconfmgr-build su nobody -s /bin/sh -c makepkg
+	pacman -U --noconfirm /tmp/aconfmgr-build/parent-package-1.0-1-any.pkg.tar.xz
+}
+
+# Packages to give a parent to,
+# so that they're not considered orphaned.
+test_adopted_packages=()
+
 function TestInstallPackage() {
 	local package=$1
 	local inst_as=$2
@@ -170,6 +213,10 @@ function TestInstallPackage() {
 			;;
 		dependency)
 			args+=(--asdeps)
+			test_adopted_packages+=("$package")
+			;;
+		orphan)
+			args+=(--asdeps)
 			;;
 		*)
 			FatalError "Unknown inst_as parameter: %s\n" "$inst_as"
@@ -182,4 +229,9 @@ function TestInstallPackage() {
 		"${args[@]}" -U "$dir"/package.pkg.tar.xz
 	fi
 
+}
+
+function TestExpectPacManLog() {
+	touch /var/log/pacman.log
+	diff -u /dev/stdin <( sed -n 's/^.*\[PACMAN\] Running '\''pacman \(--noconfirm \)\?\(.*\)'\''$/\2/p' /var/log/pacman.log )
 }

@@ -10,6 +10,10 @@ function TestInit() {
 	test_fs_root="$test_data_dir"/files
 }
 
+function TestPhase_RunHook() {
+	:
+}
+
 ###############################################################################
 # Files
 
@@ -108,4 +112,9 @@ function TestInstallPackage() {
 		do
 			cp -a "$path" "$test_data_dir"/files/
 		done
+}
+
+function TestExpectPacManLog() {
+	touch "$test_data_dir"/pacman.log
+	diff -u /dev/stdin <( sed -E 's/^pacman (--noconfirm )?//g' "$test_data_dir"/pacman.log )
 }

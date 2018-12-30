@@ -32,6 +32,7 @@ function TestPhase_Setup() {
 function TestPhase_Run() {
 	LogLeave
 	LogEnter 'Running test...\n'
+	TestPhase_RunHook
 }
 
 function TestPhase_Check() {

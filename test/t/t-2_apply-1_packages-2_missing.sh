@@ -3,7 +3,6 @@ source ./lib.bash
 
 # Test unpinning a package.
 
-TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddPackage test-package native explicit
 
@@ -11,8 +10,9 @@ TestPhase_Run #################################################################
 AconfApply
 
 TestPhase_Check ###############################################################
-diff -u "$test_data_dir"/pacman-actions.txt /dev/stdin <<EOF
-unpin test-package
+TestExpectPacManLog <<EOF
+--database --asdeps test-package
+--remove test-package
 EOF
 
 TestDone ######################################################################
