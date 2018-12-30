@@ -201,6 +201,9 @@ function chmod() {
 		case "$arg" in
 			# --no-dereference)
 			# 	;;
+			--reference=*)
+				args+=($(stat --format=%a "${arg#*=}"))
+				;;
 			-*)
 				FatalError 'Unrecognized chmod option: %q\n' "$arg"
 				;;
@@ -227,6 +230,9 @@ function chown() {
 	do
 		case "$arg" in
 			--no-dereference)
+				;;
+			--reference=*)
+				args+=($(stat --format=%U "${arg#*=}"))
 				;;
 			-*)
 				FatalError 'Unrecognized chown option: %q\n' "$arg"

@@ -3,10 +3,9 @@ source ./lib.bash
 
 # Test modifying a file that's not on the filesystem.
 
-TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddPackageFile test-package /testfile.txt foo
-TestCreatePackageFile test-package
+TestCreatePackage test-package native
 
 TestAddConfig 'echo bar >> $(CreateFile /testfile.txt)'
 
@@ -15,8 +14,12 @@ AconfApply
 
 TestPhase_Check ###############################################################
 
-# XFAIL - FIXME!
-# diff -u "$test_fs_root"/testfile.txt /dev/stdin <<<bar
-diff -u "$test_fs_root"/testfile.txt <(printf foo)
+if ((${ACONFMGR_INTEGRATION:-0}))
+then
+	diff -u "$test_fs_root"/testfile.txt /dev/stdin <<<bar
+else
+	# XFAIL (test suite bug) - FIXME!
+	diff -u "$test_fs_root"/testfile.txt <(printf foo)
+fi
 
 TestDone ######################################################################

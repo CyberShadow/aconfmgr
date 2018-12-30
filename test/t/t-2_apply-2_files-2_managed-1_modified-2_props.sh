@@ -3,10 +3,10 @@ source ./lib.bash
 
 # Test applying file properties.
 
-TestMockOnly
 TestPhase_Setup ###############################################################
-TestAddFile /testfile.txt 'Test file contents'
 TestAddPackageFile test-package /testfile.txt 'Test file contents'
+TestAddPackage test-package native explicit
+TestAddConfig AddPackage test-package
 TestAddConfig SetFileProperty /testfile.txt owner billy
 TestAddConfig SetFileProperty /testfile.txt group wheel
 TestAddConfig SetFileProperty /testfile.txt mode 600

@@ -3,10 +3,10 @@ source ./lib.bash
 
 # Test deleting a package file.
 
-TestMockOnly
 TestPhase_Setup ###############################################################
-TestAddFile /testfile.txt foo
 TestAddPackageFile test-package /testfile.txt foo
+TestAddPackage test-package native explicit
+TestAddConfig AddPackage test-package
 TestAddConfig SetFileProperty /testfile.txt deleted y
 
 TestPhase_Run #################################################################

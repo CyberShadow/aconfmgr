@@ -11,44 +11,6 @@ function TestInit() {
 }
 
 ###############################################################################
-# Packages
-
-function TestAddPackage() {
-	local name=$1
-	local kind=$2
-	local inst_as=$3
-
-	printf '%s\t%s\t%s\n' "$name" "$kind" "$inst_as" >> "$test_data_dir"/packages.txt
-}
-
-function TestCreatePackageFile() {
-	local package=$1
-	local version=1.0 # $2
-	local arch=x86_64 # $3
-
-	local package_file="$test_data_dir"/files/var/cache/pacman/pkg/"$package"-"$version"-"$arch".pkg.tar.xz
-	mkdir -p "$test_data_dir"/files/var/cache/pacman/pkg
-
-	printf 'pkgname = %s\n' "$package" > "$test_data_dir"/packages/"$package"/.PKGINFO
-	tar --create -f "$package_file" -C "$test_data_dir"/packages/"$package" .PKGINFO
-
-	local path
-	find "$test_data_dir"/packages/"$package"/files -mindepth 1 -maxdepth 1 -printf '%P\0' | \
-		while read -r -d $'\0' path
-		do
-			# local package_path="$test_data_dir"/packages/"$package"/files/"$path"
-			local package_prop_path="$test_data_dir"/packages/"$package"/file-props/"$path"
-
-			local opts=()
-			if [[ -e "$package_prop_path".owner ]] ; then opts+=(--owner "$(cat "$package_prop_path".owner)") ; fi
-			if [[ -e "$package_prop_path".group ]] ; then opts+=(--group "$(cat "$package_prop_path".group)") ; fi
-			if [[ -e "$package_prop_path".mode  ]] ; then opts+=(--mode  "$(cat "$package_prop_path".mode )") ; fi
-
-			tar --append -f "$package_file" "${opts[@]}" -C "$test_data_dir"/packages/"$package"/files "$path"
-		done
-}
-
-###############################################################################
 # Files
 
 function TestAddFSObj() {
@@ -89,4 +51,61 @@ function TestAddFSObj() {
 	if [[ -n "$mode"  ]] ; then TestWriteFile "$root"/file-props/"$path".mode  "$mode"  ; fi
 	if [[ -n "$owner" ]] ; then TestWriteFile "$root"/file-props/"$path".owner "$owner" ; fi
 	if [[ -n "$group" ]] ; then TestWriteFile "$root"/file-props/"$path".group "$group" ; fi
+}
+
+function TestDeleteFile() {
+	local path=$1
+
+	rm -rf "$test_data_dir"/files/"$path"
+	rm -f "$test_data_dir"/file-props/"$path".{mode,owner,group}
+}
+
+###############################################################################
+# Packages
+
+function TestCreatePackage() {
+	local package=$1
+	local kind=$2
+	local version=1.0 # $3
+	local arch=x86_64 # $4
+
+	local package_file="$test_data_dir"/files/var/cache/pacman/pkg/"$package"-"$version"-"$arch".pkg.tar.xz
+	mkdir -p "$test_data_dir"/files/var/cache/pacman/pkg
+
+	mkdir -p "$test_data_dir"/packages/"$package"/files
+	printf '%s' "$kind" > "$test_data_dir"/packages/"$package"/kind
+
+	printf 'pkgname = %s\n' "$package" > "$test_data_dir"/packages/"$package"/.PKGINFO
+	tar --create -f "$package_file" -C "$test_data_dir"/packages/"$package" .PKGINFO
+
+	local path
+	find "$test_data_dir"/packages/"$package"/files -mindepth 1 -maxdepth 1 -printf '%P\0' | \
+		while read -r -d $'\0' path
+		do
+			# local package_path="$test_data_dir"/packages/"$package"/files/"$path"
+			local package_prop_path="$test_data_dir"/packages/"$package"/file-props/"$path"
+
+			local opts=()
+			if [[ -e "$package_prop_path".owner ]] ; then opts+=(--owner "$(cat "$package_prop_path".owner)") ; fi
+			if [[ -e "$package_prop_path".group ]] ; then opts+=(--group "$(cat "$package_prop_path".group)") ; fi
+			if [[ -e "$package_prop_path".mode  ]] ; then opts+=(--mode  "$(cat "$package_prop_path".mode )") ; fi
+
+			tar --append -f "$package_file" "${opts[@]}" -C "$test_data_dir"/packages/"$package"/files "$path"
+		done
+}
+
+function TestInstallPackage() {
+	local package=$1
+	local inst_as=$2
+
+	local kind
+	kind=$(cat "$test_data_dir"/packages/"$package"/kind)
+
+	printf '%s\t%s\t%s\n' "$package" "$kind" "$inst_as" >> "$test_data_dir"/packages.txt
+
+	find "$test_data_dir"/packages/"$package"/files -mindepth 1 -maxdepth 1 -print0 | \
+		while read -r -d $'\0' path
+		do
+			cp -a "$path" "$test_data_dir"/files/
+		done
 }

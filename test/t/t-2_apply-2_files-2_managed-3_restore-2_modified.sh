@@ -3,10 +3,10 @@ source ./lib.bash
 
 # Test restoring a modified package file.
 
-TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddPackageFile test-package /testfile.txt foo
-TestCreatePackageFile test-package
+TestAddPackage test-package native explicit
+TestAddConfig AddPackage test-package
 TestAddFile /testfile.txt bar
 
 TestPhase_Run #################################################################

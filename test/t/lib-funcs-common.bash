@@ -111,6 +111,20 @@ function TestAddPackageDir() {
 }
 
 ###############################################################################
+# Packages
+
+# Helper function - shorthand for creating and "installing" a package.
+function TestAddPackage() {
+	local package=$1
+	local kind=$2
+	local inst_as=$3
+
+	TestCreatePackage "$package" "$kind"
+	TestInstallPackage "$package" "$inst_as"
+}
+
+
+###############################################################################
 # Configuration
 
 # Add a line to the configuration

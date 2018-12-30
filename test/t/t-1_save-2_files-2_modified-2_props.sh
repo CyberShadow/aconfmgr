@@ -3,14 +3,14 @@ source ./lib.bash
 
 # Test saving modified file properties.
 
-TestMockOnly
 TestPhase_Setup ###############################################################
 
+TestAddPackageFile test-package /badfile.txt 'This is a bad file'
 TestAddPackage test-package native explicit
 TestAddConfig AddPackage test-package
 
+#TestDeleteFile /badfile.txt
 TestAddFile /badfile.txt 'This is a bad file' 666 billy wheel
-TestAddPackageFile test-package /badfile.txt 'This is a bad file'
 
 TestPhase_Run #################################################################
 AconfSave

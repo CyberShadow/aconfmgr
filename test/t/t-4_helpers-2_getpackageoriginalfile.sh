@@ -3,11 +3,10 @@ source ./lib.bash
 
 # Test GetPackageOriginalFile helper.
 
-TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddFile /testfile.txt baz
 TestAddPackageFile test-package /testfile.txt foo
-TestCreatePackageFile test-package
+TestCreatePackage test-package native
 
 TestAddConfig 'echo bar >> $(GetPackageOriginalFile test-package /testfile.txt)'
 

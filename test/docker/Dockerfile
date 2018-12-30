@@ -28,5 +28,10 @@ FROM arch
 
 COPY --from=builder /aconfmgr-packages/ /aconfmgr-packages/
 
+RUN mkdir /aconfmgr-repo/
+RUN repo-add /aconfmgr-repo/aconfmgr.db.tar
+RUN printf '[aconfmgr]''\n''SigLevel = Optional TrustAll''\n''Server = file:///aconfmgr-repo/''\n' >> /etc/pacman.conf
+RUN pacman -Sy
+
 RUN pacman --noconfirm -U /aconfmgr-packages/pacutils.pkg.tar.xz
 RUN useradd billy

@@ -3,10 +3,11 @@ source ./lib.bash
 
 # Test restoring a deleted package file.
 
-TestMockOnly
 TestPhase_Setup ###############################################################
 TestAddPackageFile test-package /testfile.txt foo
-TestCreatePackageFile test-package
+TestAddPackage test-package native explicit
+TestAddConfig AddPackage test-package
+TestDeleteFile /testfile
 
 TestPhase_Run #################################################################
 AconfApply

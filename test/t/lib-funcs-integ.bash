@@ -41,6 +41,7 @@ IgnorePath /.dockerenv
 IgnorePath /README
 IgnorePath /aconfmgr/\*
 IgnorePath /aconfmgr-packages/\*
+IgnorePath /aconfmgr-repo/\*
 
 IgnorePath /etc/\*
 IgnorePath /usr/\*
@@ -49,26 +50,6 @@ IgnorePath /var/\*
 EOF
 
 	test_fs_root=/
-}
-
-###############################################################################
-# Packages
-
-function TestAddPackage() {
-	local name=$1
-	local kind=$2
-	local inst_as=$3
-
-	# printf '%s\t%s\t%s\n' "$name" "$kind" "$inst_as" >> "$test_data_dir"/packages.txt
-	FatalError 'TODO\n'
-}
-
-function TestCreatePackageFile() {
-	local package=$1
-	local version=1.0 # $2
-	local arch=x86_64 # $3
-
-	FatalError 'TODO\n'
 }
 
 ###############################################################################
@@ -83,29 +64,122 @@ function TestAddFSObj() {
 	local owner=${6:-}
 	local group=${7:-}
 
-	if [[ -n "$package" ]]
+	local root
+	if [[ -z "$package" ]]
 	then
-		FatalError 'TODO\n'
+		root=
 	else
-		case "$type" in
-			file)
-				TestWriteFile "$path" "$contents"
-				;;
-			dir)
-				test -z "$contents" || FatalError 'Attempting to create directory with non-empty contents\n'
-				mkdir -p "$path"
-				;;
-			link)
-				mkdir -p "$(dirname "$path")"
-				ln -s "$contents" "$path"
-				;;
-			*)
-				FatalError 'Unknown filesystem object type %s\n' "$type"
-				;;
-		esac
-
-		if [[ -n "$mode"  ]] ; then chmod "$mode"  "$path" ; fi
-		if [[ -n "$owner" ]] ; then chown "$owner" "$path" ; fi
-		if [[ -n "$group" ]] ; then chgrp "$group" "$path" ; fi
+		root="$test_data_dir"/packages/"$package"/files
 	fi
+
+	case "$type" in
+		file)
+			TestWriteFile "$root"/"$path" "$contents"
+			;;
+		dir)
+			test -z "$contents" || FatalError 'Attempting to create directory with non-empty contents\n'
+			mkdir -p "$root"/"$path"
+			;;
+		link)
+			mkdir -p "$(dirname "$path")"
+			ln -s "$contents" "$root"/"$path"
+			;;
+		*)
+			FatalError 'Unknown filesystem object type %s\n' "$type"
+			;;
+	esac
+	touch --no-dereference --date @0 "$root"/"$path"
+
+	if [[ -n "$mode"  ]] ; then chmod "$mode"  "$path" ; fi
+	if [[ -n "$owner" ]] ; then chown "$owner" "$path" ; fi
+	if [[ -n "$group" ]] ; then chgrp "$group" "$path" ; fi
+}
+
+function TestDeleteFile() {
+	local path=$1
+
+	rm -rf "$path"
+}
+
+###############################################################################
+# Packages
+
+function TestCreatePackage() {
+	local package=$1
+	local kind=$2
+	local pkgver=1.0 # $3
+	local pkgrel=1
+	local arch=x86_64 # $4
+
+	local dir="$test_data_dir"/packages/"$package"
+	mkdir -p "$dir"
+	printf '%s' "$kind" > "$dir"/kind
+
+	mkdir "$dir"/build
+	# shellcheck disable=SC2059
+	printf "$(cat <<EOF
+pkgname=%q
+pkgver=%q
+pkgrel=%q
+pkgdesc="Dummy aconfmgr test suite package"
+arch=(%q)
+source=(files.tar)
+md5sums=(SKIP)
+
+package() {
+	tar xf "\$srcdir"/files.tar -C "\$pkgdir"
+}
+
+EOF
+)" "$package" "$pkgver" "$pkgrel" "$arch" > "$dir"/build/PKGBUILD
+
+	mkdir -p "$dir"/files
+	tar cf "$dir"/build/files.tar -C "$dir"/files .
+
+	rm -rf /tmp/aconfmgr-build
+	cp -a "$dir"/build /tmp/aconfmgr-build
+	chown -R nobody: /tmp/aconfmgr-build
+	env -i -C /tmp/aconfmgr-build su nobody -s /bin/sh -c makepkg
+
+	local pkg_fn="$package"-"$pkgver"-"$pkgrel"-"$arch".pkg.tar.xz
+	local pkg_path=/tmp/aconfmgr-build/"$pkg_fn"
+	test -e "$pkg_path" || FatalError 'Package expected to exist: %q\n' "$pkg_path"
+	cp "$pkg_path" "$dir"/package.pkg.tar.xz
+
+	if [[ "$kind" == native ]]
+	then
+		repo-add /aconfmgr-repo/aconfmgr.db.tar "$pkg_path"
+		cp "$pkg_path" /aconfmgr-repo/
+		pacman -Sy
+	fi
+}
+
+function TestInstallPackage() {
+	local package=$1
+	local inst_as=$2
+
+	local dir="$test_data_dir"/packages/"$package"
+
+	local kind
+	kind=$(cat "$dir"/kind)
+
+	local args=(pacman --noconfirm)
+	case "$inst_as" in
+		explicit)
+			args+=(--asexplicit)
+			;;
+		dependency)
+			args+=(--asdeps)
+			;;
+		*)
+			FatalError "Unknown inst_as parameter: %s\n" "$inst_as"
+	esac
+
+	if [[ "$kind" == native ]]
+	then
+		"${args[@]}" -S "$package"
+	else
+		"${args[@]}" -U "$dir"/package.pkg.tar.xz
+	fi
+
 }

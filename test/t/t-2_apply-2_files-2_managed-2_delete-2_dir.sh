@@ -3,10 +3,10 @@ source ./lib.bash
 
 # Test deleting some package directories.
 
-TestMockOnly
 TestPhase_Setup ###############################################################
-TestAddDir /a/b/c
 TestAddPackageDir test-package /a/b/c
+TestAddPackage test-package native explicit
+TestAddConfig AddPackage test-package
 TestAddConfig SetFileProperty /a deleted y
 TestAddConfig SetFileProperty /a/b deleted y
 TestAddConfig SetFileProperty /a/b/c deleted y

@@ -5,6 +5,7 @@ source ./lib.bash
 
 TestMockOnly
 TestPhase_Setup ###############################################################
+TestCreatePackage test-package native
 TestAddConfig AddPackage test-package
 
 TestPhase_Run #################################################################
