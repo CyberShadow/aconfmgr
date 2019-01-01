@@ -341,40 +341,39 @@ function TestFileMd5sum() {
 
 function paccheck() {
 	local package
-	find "$test_data_dir"/packages -mindepth 1 -maxdepth 1 -printf '%P\0' | \
-		while read -r -d $'\0' package
-		do
-			local modified=false
+	while read -r -d $'\t' package _
+	do
+		local modified=false
 
-			local path
-			find "$test_data_dir"/packages/"$package"/files -mindepth 1 -printf '%P\0' | \
-				while read -r -d $'\0' path
-				do
-					# local package_path="$test_data_dir"/packages/"$package"/files/"$path"
-					# local package_prop_path="$test_data_dir"/packages/"$package"/file-props/"$path"
-					local fs_path="$test_data_dir"/files/"$path"
-					# local fs_prop_path="$test_data_dir"/file-props/"$path"
+		local path
+		find "$test_data_dir"/packages/"$package"/files -mindepth 1 -printf '%P\0' | \
+			while read -r -d $'\0' path
+			do
+				# local package_path="$test_data_dir"/packages/"$package"/files/"$path"
+				# local package_prop_path="$test_data_dir"/packages/"$package"/file-props/"$path"
+				local fs_path="$test_data_dir"/files/"$path"
+				# local fs_prop_path="$test_data_dir"/file-props/"$path"
 
-					if [[ -e "$fs_path" ]]
-					then
-						TestPacCheckCompare "$package" "$path" type                type  stat --format=%F || modified=true
-						TestPacCheckCompare "$package" "$path" size                size  stat --format=%s || modified=true
+				if [[ -e "$fs_path" ]]
+				then
+					TestPacCheckCompare "$package" "$path" type                type  stat --format=%F || modified=true
+					TestPacCheckCompare "$package" "$path" size                size  stat --format=%s || modified=true
 					#	TestPacCheckCompare "$package" "$path" 'modification time' ''    stat --format=%y || modified=true
-						TestPacCheckCompare "$package" "$path" md5sum              ''    TestFileMd5sum   || modified=true
-						TestPacCheckCompare "$package" "$path" UID                 owner stat --format=%U || modified=true
-						TestPacCheckCompare "$package" "$path" GID                 group stat --format=%G || modified=true
-						TestPacCheckCompare "$package" "$path" permission          mode  stat --format=%a || modified=true
-						TestPacCheckCompare "$package" "$path" 'symlink target'    ''    readlink         || modified=true
-					else
-						printf '%s: '\''%s'\'' missing file\n' "$package" /"$path"
-					fi
-				done
+					TestPacCheckCompare "$package" "$path" md5sum              ''    TestFileMd5sum   || modified=true
+					TestPacCheckCompare "$package" "$path" UID                 owner stat --format=%U || modified=true
+					TestPacCheckCompare "$package" "$path" GID                 group stat --format=%G || modified=true
+					TestPacCheckCompare "$package" "$path" permission          mode  stat --format=%a || modified=true
+					TestPacCheckCompare "$package" "$path" 'symlink target'    ''    readlink         || modified=true
+				else
+					printf '%s: '\''%s'\'' missing file\n' "$package" /"$path"
+				fi
+			done
 
-			if ! $modified
-			then
-				printf '%s: all files match database\n' "$package"
-			fi
-		done
+		if ! $modified
+		then
+			printf '%s: all files match database\n' "$package"
+		fi
+	done < "$test_data_dir"/packages.txt
 }
 
 function AconfNeedProgram() {
