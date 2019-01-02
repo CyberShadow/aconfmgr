@@ -6,8 +6,8 @@ services:
   - docker
 
 install:
-  - gem install coveralls_reborn
-  - gem install bashcov
+  - gem install coveralls_reborn -v 0.10.0
+  - gem install bashcov -v 1.8.2
 
 env:
   - ACONFMGR_INTEGRATION=0
