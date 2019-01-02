@@ -24,6 +24,11 @@ mkdir -p "$config_dir" "$tmp_dir" "$test_data_dir"
 source ./lib-funcs-common.bash
 if ((${ACONFMGR_INTEGRATION:-0}))
 then
+	if ! ((${ACONFMGR_IN_CONTAINER:-0}))
+	then
+		FatalError 'aconfmgr integration tests should only ever be run inside a throw-away container!''\n'
+	fi
+
 	source ./lib-funcs-integ.bash
 else
 	source ./lib-mocks.bash

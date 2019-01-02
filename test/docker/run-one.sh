@@ -10,5 +10,6 @@ cd "$(dirname "$0")"
 cd ../t
 
 export ACONFMGR_INTEGRATION=1
+export ACONFMGR_IN_CONTAINER=1
 
 ./"$test"
