@@ -33,7 +33,8 @@ RUN repo-add /aconfmgr-repo/aconfmgr.db.tar
 RUN printf '[aconfmgr]''\n''SigLevel = Optional TrustAll''\n''Server = file:///aconfmgr-repo/''\n' >> /etc/pacman.conf
 RUN pacman -Sy
 
-RUN useradd -m aconfmgr
+ARG aconfmgr_uid
+RUN useradd -u ${aconfmgr_uid} -m aconfmgr
 RUN echo 'aconfmgr ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/nopasswd
 
 RUN pacman --noconfirm -U /aconfmgr-packages/pacutils.pkg.tar.xz

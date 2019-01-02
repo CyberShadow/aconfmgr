@@ -163,6 +163,7 @@ $(TMP)/.docker-image-ok : $(ARCH_TAR) docker/Dockerfile docker/build-packages.sh
 		-f docker/Dockerfile \
 		--build-arg arch_tar=test/"$(ARCH_TAR)" \
 		--build-arg arch_date=$(subst .,/,$(ARCH_DATE)) \
+		--build-arg aconfmgr_uid=$(shell id -u) \
 		..
 	touch "$@"
 
