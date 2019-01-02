@@ -36,6 +36,7 @@ AddPackage which
 
 AddPackage git
 AddPackage pacutils
+AddPackage ruby
 
 IgnorePackage --foreign parent-package
 

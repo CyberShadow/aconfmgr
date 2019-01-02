@@ -15,4 +15,5 @@ then
 	exit 1
 fi
 
-./"$test"
+PATH="$PATH:$(ruby -e 'print Gem.user_dir')/bin"
+bashcov --root=../.. ./"$test"

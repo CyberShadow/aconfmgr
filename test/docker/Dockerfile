@@ -37,5 +37,8 @@ ARG aconfmgr_uid
 RUN useradd -u ${aconfmgr_uid} -m aconfmgr
 RUN echo 'aconfmgr ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/nopasswd
 
+RUN pacman --noconfirm -S rubygems
+RUN sudo -u aconfmgr gem install bashcov
+
 RUN pacman --noconfirm -U /aconfmgr-packages/pacutils.pkg.tar.xz
 RUN useradd billy
