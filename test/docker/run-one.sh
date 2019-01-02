@@ -9,7 +9,10 @@ test=$1
 cd "$(dirname "$0")"
 cd ../t
 
-export ACONFMGR_INTEGRATION=1
-export ACONFMGR_IN_CONTAINER=1
+if ! ((${ACONFMGR_IN_CONTAINER:-0}))
+then
+	printf 'This script should be run from inside the Docker container.''\n' 1>&2
+	exit 1
+fi
 
 ./"$test"

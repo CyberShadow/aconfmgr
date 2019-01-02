@@ -28,6 +28,8 @@ do
 		--rm
 		-v "$PWD/../..:/aconfmgr:ro"
 		-v "$PWD/../tmp/integ:/aconfmgr/test/tmp:rw"
+		--env 'ACONFMGR_INTEGRATION=1'
+		--env 'ACONFMGR_IN_CONTAINER=1'
 		aconfmgr
 		/aconfmgr/test/docker/run-one.sh "$t"
 	) ; "${args[@]}"
