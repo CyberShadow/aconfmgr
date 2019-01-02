@@ -60,7 +60,7 @@ function TestPhase_RunHook() {
 		TestCreateParentPackage
 	fi
 
-	rm -f /var/log/pacman.log
+	sudo rm -f /var/log/pacman.log
 }
 
 ###############################################################################
@@ -75,45 +75,77 @@ function TestAddFSObj() {
 	local owner=${6:-}
 	local group=${7:-}
 
-	local root
+	local root prefix
 	if [[ -z "$package" ]]
 	then
 		root=
+		prefix=(sudo)
 	else
 		root="$test_data_dir"/packages/"$package"/files
+		mkdir -p "$root"
+		prefix=()
 	fi
+	local fn="$root"/"$path"
 
 	case "$type" in
 		file)
-			TestWriteFile "$root"/"$path" "$contents"
+			"${prefix[@]}" mkdir -p "$(dirname "$fn")"
+			printf -- "%s" "$contents" | "${prefix[@]}" sh -c "$(printf 'cat > %q' "$fn")"
 			;;
 		dir)
 			test -z "$contents" || FatalError 'Attempting to create directory with non-empty contents\n'
-			mkdir -p "$root"/"$path"
+			"${prefix[@]}" mkdir -p "$fn"
 			;;
 		link)
-			mkdir -p "$(dirname "$path")"
-			ln -s "$contents" "$root"/"$path"
+			"${prefix[@]}" mkdir -p "$(dirname "$fn")"
+			"${prefix[@]}" ln -s "$contents" "$fn"
 			;;
 		*)
 			FatalError 'Unknown filesystem object type %s\n' "$type"
 			;;
 	esac
-	touch --no-dereference --date @0 "$root"/"$path"
+	"${prefix[@]}" touch --no-dereference --date @0 "$fn"
 
-	if [[ -n "$mode"  ]] ; then chmod "$mode"  "$path" ; fi
-	if [[ -n "$owner" ]] ; then chown "$owner" "$path" ; fi
-	if [[ -n "$group" ]] ; then chgrp "$group" "$path" ; fi
+	if [[ -n "$mode"  ]] ; then "${prefix[@]}" chmod "$mode"  "$fn" ; fi
+
+	if [[ -z "$package" ]]
+	then
+		if [[ -n "$owner" ]] ; then "${prefix[@]}" chown "$owner" "$fn" ; fi
+		if [[ -n "$group" ]] ; then "${prefix[@]}" chgrp "$group" "$fn" ; fi
+	else
+		tar rf "$test_data_dir"/packages/"$package"/files.tar \
+			-C "$root" \
+			--owner="${owner:-root}" \
+			--group="${owner:-root}" \
+			./"$path"
+		rm -rf "$root"
+	fi
 }
 
 function TestDeleteFile() {
 	local path=$1
 
-	rm -rf "$path"
+	sudo rm -rf "$path"
 }
 
 ###############################################################################
 # Packages
+
+# Helper
+function TestMakePkg() {
+	local dir=$1
+
+	rm -rf /tmp/aconfmgr-build
+	cp -a "$dir" /tmp/aconfmgr-build
+
+	if [[ "$EUID" -eq 0 ]]
+	then
+		chown -R nobody: /tmp/aconfmgr-build
+		env -i -C /tmp/aconfmgr-build su nobody -s /bin/sh -c makepkg
+	else
+		env -i -C /tmp/aconfmgr-build makepkg
+	fi
+}
 
 function TestCreatePackage() {
 	local package=$1
@@ -128,29 +160,31 @@ function TestCreatePackage() {
 
 	mkdir "$dir"/build
 	# shellcheck disable=SC2059
-	printf "$(cat <<EOF
-pkgname=%q
-pkgver=%q
-pkgrel=%q
+	(
+		cat <<EOF
+pkgname=$package
+pkgver=$pkgver
+pkgrel=$pkgrel
 pkgdesc="Dummy aconfmgr test suite package"
-arch=(%q)
+arch=($arch)
+EOF
+
+		local tar="$dir"/files.tar
+		if [[ -f "$tar" ]]
+		then
+			cp "$tar" "$dir"/build/
+			cat <<'EOF'
 source=(files.tar)
 md5sums=(SKIP)
 
 package() {
-	tar xf "\$srcdir"/files.tar -C "\$pkgdir"
+	tar xf "$srcdir"/files.tar -C "$pkgdir"
 }
-
 EOF
-)" "$package" "$pkgver" "$pkgrel" "$arch" > "$dir"/build/PKGBUILD
+		fi
+	) > "$dir"/build/PKGBUILD
 
-	mkdir -p "$dir"/files
-	tar cf "$dir"/build/files.tar -C "$dir"/files .
-
-	rm -rf /tmp/aconfmgr-build
-	cp -a "$dir"/build /tmp/aconfmgr-build
-	chown -R nobody: /tmp/aconfmgr-build
-	env -i -C /tmp/aconfmgr-build su nobody -s /bin/sh -c makepkg
+	TestMakePkg "$dir"/build
 
 	local pkg_fn="$package"-"$pkgver"-"$pkgrel"-"$arch".pkg.tar.xz
 	local pkg_path=/tmp/aconfmgr-build/"$pkg_fn"
@@ -159,18 +193,17 @@ EOF
 
 	if [[ "$kind" == native ]]
 	then
-		repo-add /aconfmgr-repo/aconfmgr.db.tar "$pkg_path"
-		cp "$pkg_path" /aconfmgr-repo/
-		pacman -Sy
+		sudo repo-add /aconfmgr-repo/aconfmgr.db.tar "$pkg_path"
+		sudo cp "$pkg_path" /aconfmgr-repo/
+		sudo pacman -Sy
 	fi
 }
 
 # Create dummy parent package to distinguish dependency from orphan packages.
 function TestCreateParentPackage() {
 	local dir="$test_data_dir"/parent-package
-	mkdir -p "$dir"
+	mkdir "$dir"
 
-	mkdir "$dir"/build
 	# shellcheck disable=SC2059
 	printf "$(cat <<EOF
 pkgname=parent-package
@@ -181,16 +214,11 @@ depends=(%s)
 arch=(any)
 
 EOF
-)" "$(printf '%q ' "${test_adopted_packages[@]}")" > "$dir"/build/PKGBUILD
+)" "$(printf '%q ' "${test_adopted_packages[@]}")" > "$dir"/PKGBUILD
 
-	mkdir -p "$dir"/files
-	tar cf "$dir"/build/files.tar -C "$dir"/files .
+	TestMakePkg "$dir"
 
-	rm -rf /tmp/aconfmgr-build
-	cp -a "$dir"/build /tmp/aconfmgr-build
-	chown -R nobody: /tmp/aconfmgr-build
-	env -i -C /tmp/aconfmgr-build su nobody -s /bin/sh -c makepkg
-	pacman -U --noconfirm /tmp/aconfmgr-build/parent-package-1.0-1-any.pkg.tar.xz
+	sudo pacman -U --noconfirm /tmp/aconfmgr-build/parent-package-1.0-1-any.pkg.tar.xz
 }
 
 # Packages to give a parent to,
@@ -206,7 +234,7 @@ function TestInstallPackage() {
 	local kind
 	kind=$(cat "$dir"/kind)
 
-	local args=(pacman --noconfirm)
+	local args=(sudo pacman --noconfirm)
 	case "$inst_as" in
 		explicit)
 			args+=(--asexplicit)
@@ -232,6 +260,6 @@ function TestInstallPackage() {
 }
 
 function TestExpectPacManLog() {
-	touch /var/log/pacman.log
+	sudo touch /var/log/pacman.log
 	diff -u /dev/stdin <( sed -n 's/^.*\[PACMAN\] Running '\''pacman \(--noconfirm \)\?\(.*\)'\''$/\2/p' /var/log/pacman.log )
 }

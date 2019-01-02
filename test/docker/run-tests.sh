@@ -30,6 +30,7 @@ do
 		-v "$PWD/../tmp/integ:/aconfmgr/test/tmp:rw"
 		--env 'ACONFMGR_INTEGRATION=1'
 		--env 'ACONFMGR_IN_CONTAINER=1'
+		--user aconfmgr
 		aconfmgr
 		/aconfmgr/test/docker/run-one.sh "$t"
 	) ; "${args[@]}"
