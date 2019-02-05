@@ -1167,7 +1167,7 @@ function AconfNeedPackageFile() {
 				( LC_ALL=C pacman --verbose 2>/dev/null || true ) \
 					| sed -n 's/^Cache Dirs: \(.*\)$/\1/p' \
 					| sed 's/  /\n/g' \
-					| while IFS=$'\n' read -r dir
+					| while read -r dir
 				do
 					if [[ -n "$dir" ]]
 					then
@@ -1182,14 +1182,14 @@ function AconfNeedPackageFile() {
 			do
 				if $precise
 				then
-					if test -f "$dir"/"$filename"
+					if sudo test -f "$dir"/"$filename"
 					then
 						files+=("$dir"/"$filename")
 					fi
 				else
-					if test -d "$dir"
+					if sudo test -d "$dir"
 					then
-						find "$dir" -type f -name "$filemask" -print0 | \
+						sudo find "$dir" -type f -name "$filemask" -print0 | \
 							while read -r -d $'\0' file
 							do
 								files+=("$file")
