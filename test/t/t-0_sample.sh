@@ -22,5 +22,8 @@ TestPhase_Check ###############################################################
 # Check phase (verify that the resulting state is as expected).
 test $c -eq 4
 
+# Tell the test suite we intentionally declared some globals.
+test_globals_whitelist+=(a b c)
+
 # Tests must end with an invocation of TestDone.
 TestDone ######################################################################

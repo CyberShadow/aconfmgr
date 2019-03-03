@@ -3,8 +3,8 @@
 # This file contains the implementation of aconfmgr's 'save' command.
 
 function AconfSave() {
-	config_save_target=$config_dir/99-unsorted.sh
-	modified=n
+	local config_save_target=$config_dir/99-unsorted.sh
+	local modified=n
 
 	AconfCompile
 
@@ -18,12 +18,14 @@ function AconfSave() {
 
 	# Unknown native packages (installed but not listed)
 
+	local -a unknown_packages
 	comm -13 <(PrintArray packages) <(PrintArray installed_packages) | mapfile -t unknown_packages
 
 	if [[ ${#unknown_packages[@]} != 0 ]]
 	then
 		LogEnter 'Found %s unknown packages. Registering...\n' "$(Color G ${#unknown_packages[@]})"
 		printf '\n\n# %s - Unknown packages\n\n\n' "$(date)" >> "$config_save_target"
+		local package
 		for package in "${unknown_packages[@]}"
 		do
 			Log '%s...\r' "$(Color M "%q" "$package")"
@@ -37,12 +39,14 @@ function AconfSave() {
 
 	# Missing native packages (listed but not installed on current system)
 
+	local -a missing_packages
 	comm -23 <(PrintArray packages) <(PrintArray installed_packages) | mapfile -t missing_packages
 
 	if [[ ${#missing_packages[@]} != 0 ]]
 	then
 		LogEnter 'Found %s missing packages. Un-registering.\n' "$(Color G ${#missing_packages[@]})"
 		printf '\n\n# %s - Missing packages\n\n\n' "$(date)" >> "$config_save_target"
+		local package
 		for package in "${missing_packages[@]}"
 		do
 			printf 'RemovePackage %q\n' "$package" >> "$config_save_target"
@@ -53,12 +57,14 @@ function AconfSave() {
 
 	# Unknown foreign packages (installed but not listed)
 
+	local -a unknown_foreign_packages
 	comm -13 <(PrintArray foreign_packages) <(PrintArray installed_foreign_packages) | mapfile -t unknown_foreign_packages
 
 	if [[ ${#unknown_foreign_packages[@]} != 0 ]]
 	then
 		LogEnter 'Found %s unknown foreign packages. Registering...\n' "$(Color G ${#unknown_foreign_packages[@]})"
 		printf '\n\n# %s - Unknown foreign packages\n\n\n' "$(date)" >> "$config_save_target"
+		local package
 		for package in "${unknown_foreign_packages[@]}"
 		do
 			Log '%s...\r' "$(Color M "%q" "$package")"
@@ -72,12 +78,14 @@ function AconfSave() {
 
 	# Missing foreign packages (listed but not installed on current system)
 
+	local -a missing_foreign_packages
 	comm -23 <(PrintArray foreign_packages) <(PrintArray installed_foreign_packages) | mapfile -t missing_foreign_packages
 
 	if [[ ${#missing_foreign_packages[@]} != 0 ]]
 	then
 		LogEnter 'Found %s missing foreign packages. Un-registering.\n' "$(Color G ${#missing_foreign_packages[@]})"
 		printf '\n\n# %s - Missing foreign packages\n\n\n' "$(date)" >> "$config_save_target"
+		local package
 		for package in "${missing_foreign_packages[@]}"
 		do
 			printf 'RemovePackage --foreign %q\n' "$package" >> "$config_save_target"
@@ -119,6 +127,7 @@ function AconfSave() {
 
 	# Don't emit redundant CreateDir lines
 	local -A skip_dirs
+	local file
 	( Print0Array system_only_files ; Print0Array changed_files ) | \
 		while read -r -d $'\0' file
 		do
@@ -162,6 +171,7 @@ function AconfSave() {
 					args=("$file")
 					props=(mode owner group)
 				else
+					local size
 					size=$(LC_ALL=C stat --format=%s "$system_file")
 					if [[ $size == 0 ]]
 					then
@@ -229,6 +239,7 @@ function AconfSave() {
 	if [[ ${#system_only_file_props[@]} != 0 || ${#changed_file_props[@]} != 0 ]]
 	then
 		printf '\n\n# %s - New file properties\n\n\n' "$(date)" >> "$config_save_target"
+		local key
 		( ( Print0Array system_only_file_props ; Print0Array changed_file_props ) | sort --zero-terminated ) | \
 			while read -r -d $'\0' key
 			do
@@ -240,6 +251,7 @@ function AconfSave() {
 	if [[ ${#config_only_file_props[@]} != 0 ]]
 	then
 		printf '\n\n# %s - Extra file properties\n\n\n' "$(date)" >> "$config_save_target"
+		local key
 		( Print0Array config_only_file_props | sort --zero-terminated ) | \
 			while read -r -d $'\0' key
 			do

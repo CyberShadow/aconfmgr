@@ -8,6 +8,8 @@ shopt -s lastpipe
 IFS=$'\n'
 export LC_COLLATE=C
 
+test_globals_initial=$(comm -13 <(compgen -e | sort) <(compgen -v | sort))
+
 if [[ -n ${ACONFMGR_CURRENT_TEST+x} ]]
 then
 	test_name=$ACONFMGR_CURRENT_TEST

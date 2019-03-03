@@ -91,6 +91,7 @@ function AconfCompileOutput() {
 	typeset -Ag used_files
 
 	local found=n
+	local file
 	for file in "$config_dir"/*.sh
 	do
 		if [[ -e "$file" ]]
@@ -112,6 +113,7 @@ function AconfCompileOutput() {
 		# simply be used under certain conditions.
 		if [[ -d "$config_dir/files" ]]
 		then
+			local line
 			find "$config_dir/files" -type f -print0 | \
 				while read -r -d $'\0' line
 				do
@@ -189,6 +191,7 @@ function AconfCompileSystem() {
 	local -Ag ignored_dirs
 
 	# Progress display - only show file names once per second
+	local progress_fd
 	exec {progress_fd}> \
 		 >( gawk '
 BEGIN {
@@ -241,7 +244,7 @@ BEGIN {
 	) |												\
 		while read -r -d $'\0' line
 		do
-			local file
+			local file action
 			file=${line:1}
 			action=${line:0:1}
 
@@ -304,6 +307,7 @@ BEGIN {
 
 	LogEnter 'Cleaning up ignored files'\'' directories...\n'
 
+	local file
 	for file in "${found_files[@]}"
 	do
 		if [[ -z "${ignored_dirs[$file]+x}" ]]
@@ -472,6 +476,7 @@ BEGIN {
 		fi
 
 		{
+			local prop
 			for prop in mode owner group
 			do
 				local value
@@ -591,6 +596,7 @@ function AconfCompareFileProps() {
 	typeset -ag changed_file_props=()
 	typeset -ag config_only_file_props=()
 
+	local key
 	for key in "${!system_file_props[@]}"
 	do
 		if [[ -z "${output_file_props[$key]+x}" ]]
@@ -636,6 +642,7 @@ function AconfAnalyzeFiles() {
 	Log 'Comparing file data...\n'
 
 	typeset -ag system_only_files=()
+	local file
 
 	( comm -13 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files ) | \
 		while read -r -d $'\0' file

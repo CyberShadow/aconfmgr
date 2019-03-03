@@ -107,6 +107,7 @@ function TestInstallPackage() {
 
 	printf '%s\t%s\t%s\n' "$package" "$kind" "$inst_as" >> "$test_data_dir"/packages.txt
 
+	local path
 	find "$test_data_dir"/packages/"$package"/files -mindepth 1 -maxdepth 1 -print0 | \
 		while read -r -d $'\0' path
 		do

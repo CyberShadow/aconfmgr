@@ -3,7 +3,7 @@
 # This file contains the implementation of aconfmgr's 'apply' command.
 
 function AconfApply() {
-	modified=n
+	local modified=n
 
 	function PrintFileProperty() {
 		local kind="$1"
@@ -160,6 +160,7 @@ function AconfApply() {
 	#	yes		yes		yes		yes		nothing
 
 	# Unknown packages (native and foreign packages that are explicitly installed but not listed)
+	local -a unknown_packages
 	comm -13                                                                               \
 		 <((PrintArray           packages ; PrintArray           foreign_packages) | sort) \
 		 <((PrintArray installed_packages ; PrintArray installed_foreign_packages) | sort) \
@@ -179,6 +180,7 @@ function AconfApply() {
 	fi
 
 	# Missing packages (native and foreign packages that are listed in the configuration, but not marked as explicitly installed)
+	local -a missing_packages
 	comm -23																			   \
 		 <((PrintArray           packages ; PrintArray           foreign_packages) | sort) \
 		 <((PrintArray installed_packages ; PrintArray installed_foreign_packages) | sort) \
@@ -186,6 +188,7 @@ function AconfApply() {
 
 	# Missing installed/unpinned packages (native and foreign packages that are implicitly installed,
 	# and listed in the configuration, but not marked as explicitly installed)
+	local -a missing_unpinned_packages
 	comm -12 <(PrintArray missing_packages) <(("$PACMAN" --query --quiet || true) | sort) | mapfile -t missing_unpinned_packages
 
 	if [[ ${#missing_unpinned_packages[@]} != 0 ]]
@@ -203,6 +206,7 @@ function AconfApply() {
 
 
 	# Missing native packages (native packages that are listed in the configuration, but not installed)
+	local -a missing_native_packages
 	comm -23 <(PrintArray packages) <(("$PACMAN" --query --quiet || true) | sort) | mapfile -t missing_native_packages
 
 	if [[ ${#missing_native_packages[@]} != 0 ]]
@@ -219,6 +223,7 @@ function AconfApply() {
 	fi
 
 	# Missing foreign packages (foreign packages that are listed in the configuration, but not installed)
+	local -a missing_foreign_packages
 	comm -23 <(PrintArray foreign_packages) <(("$PACMAN" --query --quiet || true) | sort) | mapfile -t missing_foreign_packages
 
 	if [[ ${#missing_foreign_packages[@]} != 0 ]]
@@ -266,12 +271,13 @@ function AconfApply() {
 		LogEnter 'Pruning orphan packages...\n'
 
 		# We have to loop, since pacman's dependency scanning doesn't seem to be recursive
-		iter=1
+		local iter=1
 		while true
 		do
 			LogEnter 'Iteration %s:\n' "$(Color G "$iter")"
 
 			LogEnter 'Querying orphan packages...\n'
+			local -a orphan_packages
 			( "$PACMAN" --query --unrequired --unrequired --deps --quiet || true ) | mapfile -t orphan_packages
 			LogLeave
 
@@ -397,7 +403,7 @@ function AconfApply() {
 
 	if [[ ${#config_only_file_props[@]} != 0 ]]
 	then
-
+		local key
 		for key in "${config_only_file_props[@]}"
 		do
 			if [[ "$key" == *:deleted ]]
@@ -411,6 +417,7 @@ function AconfApply() {
 
 	if [[ ${#system_only_file_props[@]} != 0 ]]
 	then
+		local key
 		for key in "${system_only_file_props[@]}"
 		do
 			if [[ "$key" == *:deleted ]]
@@ -459,6 +466,7 @@ function AconfApply() {
 				sudo rm --dir "$file"
 			fi
 
+			local prop
 			for prop in "${all_file_property_kinds[@]}"
 			do
 				local key="$file:$prop"
@@ -596,12 +604,13 @@ function AconfApply() {
 		}
 		Confirm Details
 
+		local key
 		( Print0Array config_only_file_props ; Print0Array changed_file_props ; Print0Array system_only_file_props ) | \
 			while read -r -d $'\0' key
 			do
-				kind="${key##*:}"
-				file="${key%:*}"
-				value="${output_file_props[$key]:-}"
+				local kind="${key##*:}"
+				local file="${key%:*}"
+				local value="${output_file_props[$key]:-}"
 				# TODO: check if file exists first?
 				ApplyFileProperty "$kind" "$value" "$file"
 			done
