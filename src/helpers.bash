@@ -248,7 +248,7 @@ function CreateDir() {
 function RemoveFile() {
 	local file="$1"
 
-	rm "$output_dir"/files/"$file"
+	rm --dir "$output_dir"/files/"$file"
 }
 
 #

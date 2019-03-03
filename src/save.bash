@@ -218,8 +218,10 @@ function AconfSave() {
 	then
 		LogEnter 'Found %s extra files.\n' "$(Color G ${#config_only_files[@]})"
 		printf '\n\n# %s - Extra files\n\n\n' "$(date)" >> "$config_save_target"
-		for file in "${config_only_files[@]}"
+		local i
+		for ((i=${#config_only_files[@]}-1; i>=0; i--))
 		do
+			file=${config_only_files[$i]}
 			printf 'RemoveFile %q\n' "$file" >> "$config_save_target"
 		done
 		modified=y
