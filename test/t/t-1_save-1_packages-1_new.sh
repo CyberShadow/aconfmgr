@@ -14,8 +14,8 @@ AconfSave
 
 TestPhase_Check ###############################################################
 TestExpectConfig <<EOF
-AddPackage test-native-explicit-package # Dummy aconfmgr test suite package
 AddPackage --foreign test-foreign-explicit-package # Dummy aconfmgr test suite package
+AddPackage test-native-explicit-package # Dummy aconfmgr test suite package
 EOF
 
 TestDone ######################################################################

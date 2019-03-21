@@ -117,12 +117,9 @@ test_globals_whitelist=(
 	# Internal state (AconfCompile)
 	packages
 	installed_packages
-	foreign_packages
-	installed_foreign_packages
 
 	# Internal state (AconfCompileOutput)
 	ignore_packages
-	ignore_foreign_packages
 	used_files
 
 	# Internal state (AconfCompileSystem)

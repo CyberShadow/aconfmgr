@@ -16,7 +16,7 @@ function AconfSave() {
 
 	LogEnter 'Examining packages...\n'
 
-	# Unknown native packages (installed but not listed)
+	# Unknown packages (installed but not listed)
 
 	local -a unknown_packages
 	comm -13 <(PrintArray packages) <(PrintArray installed_packages) | mapfile -t unknown_packages
@@ -25,19 +25,31 @@ function AconfSave() {
 	then
 		LogEnter 'Found %s unknown packages. Registering...\n' "$(Color G ${#unknown_packages[@]})"
 		printf '\n\n# %s - Unknown packages\n\n\n' "$(date)" >> "$config_save_target"
-		local package
-		for package in "${unknown_packages[@]}"
-		do
-			Log '%s...\r' "$(Color M "%q" "$package")"
-			local description
-			description="$(LC_ALL=C "$PACMAN" --query --info "$package" | grep '^Description' | cut -d ':' -f 2)"
-			printf 'AddPackage %q #%s\n' "$package" "$description" >> "$config_save_target"
-		done
+		local package source
+		printf '%s\n' "${unknown_packages[@]}" \
+			| sort -t/ -k2,1 \
+			| \
+			while IFS=/ read -r source package
+			do
+				Log '%s (%s)...\r' "$(Color M "%q" "$package")" "$source"
+				local description
+				description="$(LC_ALL=C "$PACMAN" --query --info "$package" | grep '^Description' | cut -d ':' -f 2)"
+				local switch
+				case "$source" in
+					pacman)
+						switch= ;;
+					aur)
+						switch=' --foreign' ;;
+					*)
+						FatalError 'Unknown source: %q\n' "$source"
+				esac
+				printf 'AddPackage%s %q #%s\n' "$switch" "$package" "$description" >> "$config_save_target"
+			done
 		modified=y
 		LogLeave
 	fi
 
-	# Missing native packages (listed but not installed on current system)
+	# Missing packages (listed but not installed on current system)
 
 	local -a missing_packages
 	comm -23 <(PrintArray packages) <(PrintArray installed_packages) | mapfile -t missing_packages
@@ -46,50 +58,23 @@ function AconfSave() {
 	then
 		LogEnter 'Found %s missing packages. Un-registering.\n' "$(Color G ${#missing_packages[@]})"
 		printf '\n\n# %s - Missing packages\n\n\n' "$(date)" >> "$config_save_target"
-		local package
-		for package in "${missing_packages[@]}"
-		do
-			printf 'RemovePackage %q\n' "$package" >> "$config_save_target"
-		done
-		modified=y
-		LogLeave
-	fi
-
-	# Unknown foreign packages (installed but not listed)
-
-	local -a unknown_foreign_packages
-	comm -13 <(PrintArray foreign_packages) <(PrintArray installed_foreign_packages) | mapfile -t unknown_foreign_packages
-
-	if [[ ${#unknown_foreign_packages[@]} != 0 ]]
-	then
-		LogEnter 'Found %s unknown foreign packages. Registering...\n' "$(Color G ${#unknown_foreign_packages[@]})"
-		printf '\n\n# %s - Unknown foreign packages\n\n\n' "$(date)" >> "$config_save_target"
-		local package
-		for package in "${unknown_foreign_packages[@]}"
-		do
-			Log '%s...\r' "$(Color M "%q" "$package")"
-			local description
-			description="$(LC_ALL=C "$PACMAN" --query --info "$package" | grep '^Description' | cut -d ':' -f 2)"
-			printf 'AddPackage --foreign %q #%s\n' "$package" "$description" >> "$config_save_target"
-		done
-		modified=y
-		LogLeave
-	fi
-
-	# Missing foreign packages (listed but not installed on current system)
-
-	local -a missing_foreign_packages
-	comm -23 <(PrintArray foreign_packages) <(PrintArray installed_foreign_packages) | mapfile -t missing_foreign_packages
-
-	if [[ ${#missing_foreign_packages[@]} != 0 ]]
-	then
-		LogEnter 'Found %s missing foreign packages. Un-registering.\n' "$(Color G ${#missing_foreign_packages[@]})"
-		printf '\n\n# %s - Missing foreign packages\n\n\n' "$(date)" >> "$config_save_target"
-		local package
-		for package in "${missing_foreign_packages[@]}"
-		do
-			printf 'RemovePackage --foreign %q\n' "$package" >> "$config_save_target"
-		done
+		local package source
+		printf '%s\n' "${missing_packages[@]}" \
+			| sort -t/ -k2,1 \
+			| \
+			while IFS=/ read -r source package
+			do
+				local switch
+				case "$source" in
+					pacman)
+						switch= ;;
+					aur)
+						switch=' --foreign' ;;
+					*)
+						FatalError 'Unknown source: %q\n' "$source"
+				esac
+				printf 'RemovePackage%s %q\n' "$switch" "$package" >> "$config_save_target"
+			done
 		modified=y
 		LogLeave
 	fi

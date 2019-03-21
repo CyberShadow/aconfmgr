@@ -9,14 +9,25 @@
 #
 
 function AddPackage() {
-	local fn='packages.txt'
+	local foreign=false
 	if [[ "$1" == "--foreign" ]]
 	then
 		shift
-		fn='foreign-packages.txt'
+		foreign=true
+	fi
+	local packages=("$@")
+
+	local source=pacman
+	if $foreign
+	then
+		source=aur
 	fi
 
-	printf '%q\n' "$@" >> "$output_dir"/"$fn"
+	local package
+	for package in "${packages[@]}"
+	do
+		printf '%s/%s\n' "$source" "$package" >> "$output_dir"/packages.txt
+	done
 }
 
 #
@@ -28,7 +39,12 @@ function AddPackage() {
 function AddPackageGroup() {
 	local group=$1
 
-	pacman --sync --quiet --groups "$group" >> "$output_dir"/packages.txt
+	local package
+	pacman --sync --quiet --groups "$group" | \
+		while read -r package
+		do
+			AddPackage "$package"
+		done
 }
 
 #
@@ -43,18 +59,22 @@ function AddPackageGroup() {
 #
 
 function RemovePackage() {
-	local fn='packages.txt'
+	local foreign=false
 	if [[ "$1" == "--foreign" ]]
 	then
 		shift
-		fn='foreign-packages.txt'
+		foreign=true
+	fi
+	local packages=("$@")
+
+	local source=pacman
+	if $foreign
+	then
+		source=aur
 	fi
 
-	local package
-	for package in "$@"
-	do
-		sed -i "$output_dir"/"$fn" -e "/^${package}\$/d"
-	done
+	< "$output_dir"/packages.txt grep -vFxf <(printf '%s\n' "${packages[@]}" | awk -v source="$source" '{print source "/" $0}' ) > "$output_dir"/packages.tmp || true
+	mv "$output_dir"/packages.{tmp,txt}
 }
 
 #
@@ -64,13 +84,25 @@ function RemovePackage() {
 #
 
 function IgnorePackage() {
+	local foreign=false
 	if [[ "$1" == "--foreign" ]]
 	then
 		shift
-		ignore_foreign_packages+=("$@")
-	else
-		ignore_packages+=("$@")
+		foreign=true
 	fi
+	local packages=("$@")
+
+	local source=pacman
+	if $foreign
+	then
+		source=aur
+	fi
+
+	local package
+	for package in "${packages[@]}"
+	do
+		ignore_packages+=("$source"/"$package")
+	done
 }
 
 #

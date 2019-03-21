@@ -75,9 +75,9 @@ warn_tmp_df_threshold=$((1024*1024))  # Warn on error if free space in $tmp_dir 
 function LogLeaveDirStats() {
 	local dir="$1"
 	Log 'Finalizing...\r'
-	LogLeave 'Done (%s native packages, %s foreign packages, %s files).\n'	\
-			 "$(Color G "$(wc -l < "$dir"/packages.txt)")"					\
-			 "$(Color G "$(wc -l < "$dir"/foreign-packages.txt)")"			\
+
+	LogLeave 'Done (%s%s files).\n'	\
+			 "$(awk -F / "{a[\$1]++} END {for (k in a) printf \"$(Color G %s %d) %s packages, \", a[k], k; }" "$dir"/packages.txt)" \
 			 "$(Color G "$(find "$dir"/files -not -type d | wc -l)")"
 }
 
@@ -89,7 +89,6 @@ function AconfCompileOutput() {
 	mkdir --parents "$output_dir"
 	mkdir "$output_dir"/files
 	touch "$output_dir"/packages.txt
-	touch "$output_dir"/foreign-packages.txt
 	touch "$output_dir"/file-props.txt
 	mkdir --parents "$config_dir"
 
@@ -98,7 +97,6 @@ function AconfCompileOutput() {
 	Log 'Using configuration in %s\n' "$(Color C "%q" "$config_dir")"
 
 	typeset -ag ignore_packages=()
-	typeset -ag ignore_foreign_packages=()
 	typeset -Ag used_files
 
 	local found=n
@@ -169,8 +167,23 @@ function AconfCompileSystem() {
 	### Packages
 
 	LogEnter 'Querying package list...\n'
-	( "$PACMAN" --query --quiet --explicit --native  || true ) | sort | ( grep -vFxf <(PrintArray ignore_packages        ) || true ) > "$system_dir"/packages.txt
-	( "$PACMAN" --query --quiet --explicit --foreign || true ) | sort | ( grep -vFxf <(PrintArray ignore_foreign_packages) || true ) > "$system_dir"/foreign-packages.txt
+	local source
+	for source in pacman aur
+	do
+		local args=("$PACMAN" --query --quiet --explicit)
+		if [[ $source == pacman ]]
+		then
+			args+=(--native)
+		else
+			args+=(--foreign)
+		fi
+
+		( "${args[@]}" || true ) \
+			| awk -v source="$source" '{print source "/" $0}' \
+			| ( grep -vFxf <(PrintArray ignore_packages) || true ) \
+				  >> "$system_dir"/packages.txt
+	done
+
 	LogLeave
 
 	### Files
@@ -781,9 +794,6 @@ function AconfCompile() {
 
 	< "$output_dir"/packages.txt         sort --unique | mapfile -t                   packages
 	< "$system_dir"/packages.txt         sort --unique | mapfile -t         installed_packages
-
-	< "$output_dir"/foreign-packages.txt sort --unique | mapfile -t           foreign_packages
-	< "$system_dir"/foreign-packages.txt sort --unique | mapfile -t installed_foreign_packages
 
 	AconfAnalyzeFiles
 

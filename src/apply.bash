@@ -205,12 +205,13 @@ function AconfApply() {
 	#	yes		yes		yes		no		nothing
 	#	yes		yes		yes		yes		nothing
 
-	# Unknown packages (native and foreign packages that are explicitly installed but not listed)
+	# Unknown packages (packages that are explicitly installed but not listed)
 	local -a unknown_packages
-	comm -13                                                                               \
-		 <((PrintArray           packages ; PrintArray           foreign_packages) | sort) \
-		 <((PrintArray installed_packages ; PrintArray installed_foreign_packages) | sort) \
-		 | mapfile -t unknown_packages
+	comm -13                                     \
+		 <(PrintArray           packages | sort) \
+		 <(PrintArray installed_packages | sort) \
+		 | sed s#.*/##                           \
+		 | mapfile -t unknown_packages # names only
 
 	if [[ ${#unknown_packages[@]} != 0 ]]
 	then
@@ -225,17 +226,24 @@ function AconfApply() {
 		LogLeave
 	fi
 
-	# Missing packages (native and foreign packages that are listed in the configuration, but not marked as explicitly installed)
+	# Missing packages (packages that are listed in the configuration, but not marked as explicitly installed)
 	local -a missing_packages
-	comm -23																			   \
-		 <((PrintArray           packages ; PrintArray           foreign_packages) | sort) \
-		 <((PrintArray installed_packages ; PrintArray installed_foreign_packages) | sort) \
-		 | mapfile -t missing_packages
+	comm -23                                     \
+		 <(PrintArray           packages | sort) \
+		 <(PrintArray installed_packages | sort) \
+		 | mapfile -t missing_packages # names only
 
-	# Missing installed/unpinned packages (native and foreign packages that are implicitly installed,
+	# Missing installed/unpinned packages (packages that are implicitly installed,
 	# and listed in the configuration, but not marked as explicitly installed)
 	local -a missing_unpinned_packages
-	comm -12 <(PrintArray missing_packages) <(("$PACMAN" --query --quiet || true) | sort) | mapfile -t missing_unpinned_packages
+	comm -12 \
+		 <(PrintArray missing_packages) \
+		 <((
+			  ("$PACMAN" --query --quiet --native  || true) | sed s#^#pacman/#
+			  ("$PACMAN" --query --quiet --foreign || true) | sed s#^#aur/#
+		  ) | sort) \
+			  | sed s#.*/## \
+			  | mapfile -t missing_unpinned_packages # names only
 
 	if [[ ${#missing_unpinned_packages[@]} != 0 ]]
 	then
@@ -300,63 +308,77 @@ function AconfApply() {
 	fi
 
 
-	# Missing native packages (native packages that are listed in the configuration, but not installed)
-	local -a missing_native_packages
-	comm -23 <(PrintArray packages) <(("$PACMAN" --query --quiet || true) | sort) | mapfile -t missing_native_packages
+	# Missing packages (packages that are listed in the configuration, but not installed)
+	local -a uninstalled_packages
+	comm -23 <(PrintArray packages) <((
+										 ("$PACMAN" --query --quiet --native  || true) | sed s#^#pacman/#
+										 ("$PACMAN" --query --quiet --foreign || true) | sed s#^#aur/#
+									 ) | sort) | mapfile -t uninstalled_packages
 
-	if [[ ${#missing_native_packages[@]} != 0 ]]
+	if [[ ${#uninstalled_packages[@]} -gt 0 ]]
 	then
-		LogEnter 'Installing %s missing native packages.\n' "$(Color G ${#missing_native_packages[@]})"
+		local -a uninstalled_package_sources
+		printf '%s\n' "${uninstalled_packages[@]}" | sed s#/.*## | mapfile -t uninstalled_package_sources
 
-		function Details() { Log 'Installing the following native packages:%s\n' "$(Color M " %q" "${missing_native_packages[@]}")" ; }
-		ParanoidConfirm Details
+		local source
+		for source in "${uninstalled_package_sources[@]}"
+		do
+			local uninstalled_source_packages
+			printf '%s\n' "${uninstalled_packages[@]}" | awk -F / -v source="$source" '$1==source' | sed s#.*/## | mapfile -t uninstalled_source_packages
 
-		AconfInstallNative "${missing_native_packages[@]}"
+			case "$source" in
+				pacman)
+					LogEnter 'Installing %s missing native packages.\n' "$(Color G ${#uninstalled_source_packages[@]})"
 
-		modified=y
-		LogLeave
-	fi
+					function Details() { Log 'Installing the following native packages:%s\n' "$(Color M " %q" "${uninstalled_source_packages[@]}")" ; }
+					ParanoidConfirm Details
 
-	# Missing foreign packages (foreign packages that are listed in the configuration, but not installed)
-	local -a missing_foreign_packages
-	comm -23 <(PrintArray foreign_packages) <(("$PACMAN" --query --quiet || true) | sort) | mapfile -t missing_foreign_packages
+					AconfInstallNative "${uninstalled_source_packages[@]}"
 
-	if [[ ${#missing_foreign_packages[@]} != 0 ]]
-	then
-		LogEnter 'Installing %s missing foreign packages.\n' "$(Color G ${#missing_foreign_packages[@]})"
+					modified=y
+					LogLeave
+					;;
 
-		function Details() { Log 'Installing the following foreign packages:%s\n' "$(Color M " %q" "${missing_foreign_packages[@]}")" ; }
-		Confirm Details
+				aur)
+					LogEnter 'Installing %s missing foreign packages.\n' "$(Color G ${#uninstalled_source_packages[@]})"
 
-		# If an AUR helper is present in the list of packages to be installed,
-		# install it first, then use it to install the rest of the foreign packages.
-		function InstallAurHelper() {
-			local package helper
-			for package in "${missing_foreign_packages[@]}"
-			do
-				for helper in "${aur_helpers[@]}"
-				do
-					if [[ "$package" == "$helper" ]]
+					function Details() { Log 'Installing the following foreign packages:%s\n' "$(Color M " %q" "${uninstalled_source_packages[@]}")" ; }
+					Confirm Details
+
+					# If an AUR helper is present in the list of packages to be installed,
+					# install it first, then use it to install the rest of the foreign packages.
+					function InstallAurHelper() {
+						local package helper
+						for package in "${uninstalled_source_packages[@]}"
+						do
+							for helper in "${aur_helpers[@]}"
+							do
+								if [[ "$package" == "$helper" ]]
+								then
+									LogEnter 'Installing AUR helper %s...\n' "$(Color M %q "$helper")"
+									ParanoidConfirm ''
+									AconfInstallForeign "$package"
+									aur_helper="$package"
+									LogLeave
+									return
+								fi
+							done
+						done
+					}
+					if [[ $EUID != 0 ]]
 					then
-						LogEnter 'Installing AUR helper %s...\n' "$(Color M %q "$helper")"
-						ParanoidConfirm ''
-						AconfInstallForeign "$package"
-						aur_helper="$package"
-						LogLeave
-						return
+						InstallAurHelper
 					fi
-				done
-			done
-		}
-		if [[ $EUID != 0 ]]
-		then
-			InstallAurHelper
-		fi
 
-		AconfInstallForeign "${missing_foreign_packages[@]}"
+					AconfInstallForeign "${uninstalled_source_packages[@]}"
 
-		modified=y
-		LogLeave
+					modified=y
+					LogLeave
+					;;
+				*)
+					FatalError 'Unknown package source: %q\n' "$source"
+			esac
+		done
 	fi
 
 	LogLeave # Configuring packages
