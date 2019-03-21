@@ -341,7 +341,7 @@ function TestFileMd5sum() {
 
 function paccheck() {
 	local package
-	while read -r -d $'\t' package _
+	while IFS=$'\t' read -r package _
 	do
 		local modified=false
 
