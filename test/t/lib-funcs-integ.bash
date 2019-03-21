@@ -151,9 +151,20 @@ function TestMakePkg() {
 function TestCreatePackage() {
 	local package=$1
 	local kind=$2
-	local pkgver=1.0 # $3
+	local pkgver=1.0
 	local pkgrel=1
-	local arch=x86_64 # $4
+	local arch=x86_64
+	local groups=()
+
+	shift 2
+	local arg
+	for arg in "$@"
+	do
+		eval "$arg"
+	done
+
+	local groups_str
+	groups_str=$(printf '%q ' "${groups[@]}")
 
 	local dir="$test_data_dir"/packages/"$package"
 	mkdir -p "$dir"
@@ -168,6 +179,7 @@ pkgver=$pkgver
 pkgrel=$pkgrel
 pkgdesc="Dummy aconfmgr test suite package"
 arch=($arch)
+groups=($groups_str)
 EOF
 
 		local tar="$dir"/files.tar

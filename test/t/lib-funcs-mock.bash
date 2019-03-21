@@ -70,8 +70,16 @@ function TestDeleteFile() {
 function TestCreatePackage() {
 	local package=$1
 	local kind=$2
-	local version=1.0 # $3
-	local arch=x86_64 # $4
+	local version=1.0
+	local arch=x86_64
+	local groups=()
+
+	shift 2
+	local arg
+	for arg in "$@"
+	do
+		eval "$arg"
+	done
 
 	local package_file="$test_data_dir"/files/var/cache/pacman/pkg/"$package"-"$version"-"$arch".pkg.tar.xz
 	mkdir -p "$test_data_dir"/files/var/cache/pacman/pkg
@@ -96,6 +104,13 @@ function TestCreatePackage() {
 
 			tar --append -f "$package_file" "${opts[@]}" -C "$test_data_dir"/packages/"$package"/files "$path"
 		done
+
+	mkdir -p "$test_data_dir"/packages/"$package"/groups
+	local group
+	for group in "${groups[@]}"
+	do
+		touch "$test_data_dir"/packages/"$package"/groups/"$group"
+	done
 }
 
 function TestInstallPackage() {
