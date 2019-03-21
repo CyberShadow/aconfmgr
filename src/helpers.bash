@@ -28,7 +28,7 @@ function AddPackage() {
 function AddPackageGroup() {
 	local group=$1
 
-	pacman -Sqg "$group" >> "$output_dir"/packages.txt
+	pacman --sync --quiet --groups "$group" >> "$output_dir"/packages.txt
 }
 
 #
