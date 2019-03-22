@@ -750,9 +750,9 @@ function AconfNeedProgram() {
 	local source
 	if [[ $foreign == y ]]
 	then
-		source=aur
+		source="${package_sources[1]}"
 	else
-		source=pacman
+		source="${package_sources[0]}"
 	fi
 
 	if ! hash "$program" 2> /dev/null
