@@ -11,6 +11,7 @@ source ./lib-init.bash
 
 source ../../src/common.bash
 source ../../src/distros/arch.bash
+source ../../src/distros/debian.bash
 source ../../src/save.bash
 source ../../src/apply.bash
 source ../../src/check.bash

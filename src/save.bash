@@ -36,7 +36,7 @@ function AconfSave() {
 				description=$("$source"_GetPackageDescription "$package")
 				local switch
 				case "$source" in
-					pacman)
+					pacman|apt)
 						switch= ;;
 					aur)
 						switch=' --foreign' ;;
@@ -66,7 +66,7 @@ function AconfSave() {
 			do
 				local switch
 				case "$source" in
-					pacman)
+					pacman|apt)
 						switch= ;;
 					aur)
 						switch=' --foreign' ;;
