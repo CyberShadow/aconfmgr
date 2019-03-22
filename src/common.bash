@@ -970,7 +970,10 @@ function OnError() {
 	then
 		local df dir
 		df=$(($(stat -f --format="%a*%S" "$tmp_dir")))
-		dir="$(realpath "$(dirname "$tmp_dir")")"
+		if ! dir="$(realpath "$(dirname "$tmp_dir")")"
+		then
+			dir="$(dirname "$tmp_dir")"
+		fi
 		if [[ $df -lt $warn_tmp_df_threshold ]]
 		then
 			LogEnter 'Probable cause: low disk space (%s bytes) in %s. Suggestions:\n' "$(Color G %s "$df")" "$(Color C %q "$dir")"
