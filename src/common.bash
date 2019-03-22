@@ -204,6 +204,8 @@ function AconfCompileSystem() {
 	local line
 	local -Ag ignored_dirs
 
+	AconfNeedProgram gawk gawk n
+
 	# Progress display - only show file names once per second
 	local progress_fd
 	exec {progress_fd}> \
