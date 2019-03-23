@@ -115,6 +115,8 @@ function AconfApply() {
 			InstallFile "$file"
 			LogLeave
 		done
+	comm -23 --zero-terminated <(Print0Array config_only_files | sort --zero-terminated) <(Print0Array priority_files | sort --zero-terminated) | mapfile -d $'\0' config_only_files
+	comm -23 --zero-terminated <(Print0Array changed_files     | sort --zero-terminated) <(Print0Array priority_files | sort --zero-terminated) | mapfile -d $'\0' changed_files
 
 	LogLeave # Installing priority files
 
