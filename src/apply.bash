@@ -104,6 +104,11 @@ function AconfApply() {
 
 	LogEnter 'Installing priority files...\n'
 
+	function Details_DiffFile() {
+		AconfNeedProgram diff diffutils n
+		"${diff_opts[@]}" --unified <(SuperCat "$file") "$output_dir"/files/"$file" || true
+	}
+
 	local file
 	comm -12 --zero-terminated \
 		 <(  Print0Array priority_files                                 | sort --zero-terminated ) \
@@ -111,7 +116,14 @@ function AconfApply() {
 		while read -r -d $'\0' file
 		do
 			LogEnter 'Installing %s...\n' "$(Color C %q "$file")"
-			Confirm ''
+
+			if sudo test -e "$file"
+			then
+				Confirm Details_DiffFile
+			else
+				Confirm ''
+			fi
+
 			InstallFile "$file"
 			LogLeave
 			modified=y
@@ -339,11 +351,7 @@ function AconfApply() {
 		for file in "${changed_files[@]}"
 		do
 			LogEnter 'Overwriting %s...\n' "$(Color C "%q" "$file")"
-			function Details() {
-				AconfNeedProgram diff diffutils n
-				"${diff_opts[@]}" --unified <(SuperCat "$file") "$output_dir"/files/"$file" || true
-			}
-			ParanoidConfirm Details
+			ParanoidConfirm Details_DiffFile
 			InstallFile "$file"
 			LogLeave ''
 		done
