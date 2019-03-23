@@ -1676,4 +1676,20 @@ function SuperCat() {
 	fi
 }
 
+if ! ( empty_array=() ; : "${empty_array[@]}" )
+then
+	# Old bash versions treat substitution of an empty array
+	# synonymous with substituting an unset variable, signaling an
+	# error in -u mode and stopping the script in -e mode. We
+	# generally want both of these enabled to catch bugs early and
+	# fail fast, but making every array substitution conditional on
+	# whether it is empty or not is unreasonably onerous, so just
+	# disable those checks in old bash versions - it is then up to the
+	# test suite ran against newer bash versions to ensure code
+	# correctness.
+
+	Log '%s: Old bash detected, disabling unset variable checking.\n' "$(Color Y "Warning")"
+	set +u
+fi
+
 : # include in coverage
