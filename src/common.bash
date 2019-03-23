@@ -55,6 +55,7 @@ ignore_paths=(
 
 # These files must be installed before anything else,
 # because they affect or are required for what follows.
+# shellcheck disable=SC2034
 priority_files=(
 	/etc/passwd
 	/etc/group
