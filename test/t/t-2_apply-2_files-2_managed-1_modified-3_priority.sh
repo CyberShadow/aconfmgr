@@ -5,8 +5,9 @@ source ./lib.bash
 
 TestPhase_Setup ###############################################################
 priority_files+=(/dir/file.txt)
-TestAddFile /dir/file.txt 'Original file contents'
-TestAddPackageFile pacman /dir/file.txt 'Original file contents'
+TestAddPackageFile test-package /dir/file.txt 'Original file contents'
+TestAddPackage test-package native explicit
+TestAddConfig AddPackage test-package
 TestAddConfig 'echo "Modified file contents" > $(CreateFile /dir/file.txt)'
 
 TestPhase_Run #################################################################
