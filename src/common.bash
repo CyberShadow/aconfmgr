@@ -25,6 +25,27 @@ verbose=0
 lint_config=false
 declare -i config_warnings=0
 
+if cut --help | grep -q -- --zero-terminated
+then
+	z_supported=true
+	z_d_delim=(-d $'\0')
+	z_s_delim=(-s $'\0')
+	z_print0=-print0
+	z_zero_terminated=--zero-terminated
+	z_printarray=Print0Array
+	z_tr_to_z=(tr '\n' '\0')
+	z_ps='%s\0'
+else
+	z_supported=false
+	z_d_delim=()
+	z_s_delim=()
+	z_print0=-print
+	z_zero_terminated=
+	z_printarray=PrintArray
+	z_tr_to_z=(cat)
+	z_ps='%s\n'
+fi
+
 umask $((666 - default_file_mode))
 
 ####################################################################################################
@@ -360,7 +381,8 @@ BEGIN {
 			then
 				Log '%s...\r' "$(Color M "%q" "$package")"
 			else
-				printf '%s\0%s\0' "$file" "$package" >> "$tmp_dir"/file-owners
+				# shellcheck disable=SC2059
+				printf "$z_ps$z_ps" "$file" "$package" >> "$tmp_dir"/file-owners
 
 				local ignored=false
 				for ignore_path in "${ignore_paths[@]}"
@@ -626,8 +648,8 @@ function AconfAnalyzeFiles() {
 
 	LogEnter 'Loading data...\n'
 	mkdir --parents "$tmp_dir"
-	( cd "$output_dir"/files && find . -mindepth 1 -print0 ) | cut --zero-terminated -c 2- | sort --zero-terminated > "$tmp_dir"/output-files
-	( cd "$system_dir"/files && find . -mindepth 1 -print0 ) | cut --zero-terminated -c 2- | sort --zero-terminated > "$tmp_dir"/system-files
+	( cd "$output_dir"/files && find . -mindepth 1 $z_print0 ) | cut $z_zero_terminated -c 2- | sort $z_zero_terminated > "$tmp_dir"/output-files
+	( cd "$system_dir"/files && find . -mindepth 1 $z_print0 ) | cut $z_zero_terminated -c 2- | sort $z_zero_terminated > "$tmp_dir"/system-files
 	LogLeave
 
 	Log 'Comparing file data...\n'
@@ -635,8 +657,8 @@ function AconfAnalyzeFiles() {
 	typeset -ag system_only_files=()
 	local file
 
-	( comm -13 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files ) | \
-		while read -r -d $'\0' file
+	( comm -13 $z_zero_terminated "$tmp_dir"/output-files "$tmp_dir"/system-files ) | \
+		while read -r "${z_d_delim[@]}"  file
 		do
 			Log 'Only in system: %s\n' "$(Color C "%q" "$file")"
 			system_only_files+=("$file")
@@ -644,8 +666,8 @@ function AconfAnalyzeFiles() {
 
 	typeset -ag changed_files=()
 
-	( comm -12 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files ) | \
-		while read -r -d $'\0' file
+	( comm -12 $z_zero_terminated "$tmp_dir"/output-files "$tmp_dir"/system-files ) | \
+		while read -r "${z_d_delim[@]}"  file
 		do
 			local output_type system_type
 			output_type=$(LC_ALL=C stat --format=%F "$output_dir"/files/"$file")
@@ -675,8 +697,8 @@ function AconfAnalyzeFiles() {
 
 	typeset -ag config_only_files=()
 
-	( comm -23 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files ) | \
-		while read -r -d $'\0' file
+	( comm -23 $z_zero_terminated "$tmp_dir"/output-files "$tmp_dir"/system-files ) | \
+		while read -r "${z_d_delim[@]}"  file
 		do
 			Log 'Only in config: %s\n' "$(Color C "%q" "$file")"
 			config_only_files+=("$file")
@@ -702,7 +724,7 @@ function AconfAnalyzeFiles() {
 
 	typeset -ag all_file_property_kinds
 	all_file_property_kinds=("${!file_property_kind_exists[@]}")
-	Print0Array all_file_property_kinds | sort --zero-terminated | mapfile -t -d $'\0' all_file_property_kinds
+	$z_printarray all_file_property_kinds | sort $z_zero_terminated | mapfile -t "${z_d_delim[@]}" all_file_property_kinds
 
 	AconfCompareFileProps
 
@@ -1067,6 +1089,11 @@ function SuperCat() {
 		sudo cat "$1"
 	fi
 }
+
+if ! $z_supported
+then
+	Log '%s: Old coreutils detected, files with newlines will not be handled correctly.\n' "$(Color Y "Warning")"
+fi
 
 if ! ( empty_array=() ; : "${empty_array[@]}" )
 then

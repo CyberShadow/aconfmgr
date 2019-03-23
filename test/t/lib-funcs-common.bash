@@ -144,6 +144,16 @@ test_globals_whitelist=(
 	yaourt_opts
 	yay_opts
 
+	# Zero-terminated strings
+	z_supported
+	z_d_delim
+	z_s_delim
+	z_print0
+	z_zero_terminated
+	z_printarray
+	z_tr_to_z
+	z_ps
+
 	# Test suite
 	test_name
 	test_data_dir

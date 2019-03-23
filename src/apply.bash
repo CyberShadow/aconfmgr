@@ -156,10 +156,10 @@ function AconfApply() {
 	}
 
 	local file
-	comm -12 --zero-terminated \
-		 <(  Print0Array priority_files                                 | sort --zero-terminated ) \
-		 <( (Print0Array config_only_files ; Print0Array changed_files) | sort --zero-terminated ) | \
-		while read -r -d $'\0' file
+	comm -12 $z_zero_terminated \
+		 <(  $z_printarray priority_files                                   | sort $z_zero_terminated ) \
+		 <( ($z_printarray config_only_files ; $z_printarray changed_files) | sort $z_zero_terminated ) | \
+		while read -r "${z_d_delim[@]}" file
 		do
 			LogEnter 'Installing %s...\n' "$(Color C %q "$file")"
 
@@ -174,8 +174,8 @@ function AconfApply() {
 			LogLeave
 			modified=y
 		done
-	comm -23 --zero-terminated <(Print0Array config_only_files | sort --zero-terminated) <(Print0Array priority_files | sort --zero-terminated) | mapfile -d $'\0' config_only_files
-	comm -23 --zero-terminated <(Print0Array changed_files     | sort --zero-terminated) <(Print0Array priority_files | sort --zero-terminated) | mapfile -d $'\0' changed_files
+	comm -23 $z_zero_terminated <($z_printarray config_only_files | sort $z_zero_terminated) <($z_printarray priority_files | sort $z_zero_terminated) | mapfile -t "${z_d_delim[@]}" config_only_files
+	comm -23 $z_zero_terminated <($z_printarray changed_files     | sort $z_zero_terminated) <($z_printarray priority_files | sort $z_zero_terminated) | mapfile -t "${z_d_delim[@]}" changed_files
 
 	LogLeave # Installing priority files
 
@@ -347,13 +347,13 @@ function AconfApply() {
 			| \
 			while IFS=$'\t' read -r kind value file
 			do
-				eval "printf '%s\\0' $file" # Unescape
+				eval "printf \"\$z_ps\" $file" # Unescape
 			done
 	) \
-		| sort --zero-terminated --unique \
-		| comm --zero-terminated -12 <(Print0Array files_in_deleted_packages | sort --zero-terminated --unique) /dev/stdin \
-		| tac -s $'\0' \
-		| mapfile -t -d $'\0' modified_files_in_deleted_packages
+		| sort $z_zero_terminated --unique \
+		| comm $z_zero_terminated -12 <($z_printarray files_in_deleted_packages | sort $z_zero_terminated --unique) /dev/stdin \
+		| tac "${z_s_delim[@]}" \
+		| mapfile -t "${z_d_delim[@]}" modified_files_in_deleted_packages
 
 	if [[ "${#modified_files_in_deleted_packages[@]}" -gt 0 ]]
 	then
@@ -458,9 +458,9 @@ function AconfApply() {
 
 		LogEnter 'Filtering system-only lost files...\n'
 		local system_only_lost_files=0
-		tr '\n' '\0' < "$tmp_dir"/managed-files > "$tmp_dir"/managed-files-0
-		comm -13 --zero-terminated "$tmp_dir"/managed-files-0 <(Print0Array system_only_files) | \
-			while read -r -d $'\0' file
+		"${z_tr_to_z[@]}" < "$tmp_dir"/managed-files > "$tmp_dir"/managed-files-0
+		comm -13 $z_zero_terminated "$tmp_dir"/managed-files-0 <($z_printarray system_only_files) | \
+			while read -r "${z_d_delim[@]}"  file
 			do
 				files_to_delete+=("$file")
 				system_only_lost_files=$((system_only_lost_files+1))
@@ -471,8 +471,8 @@ function AconfApply() {
 
 		LogEnter 'Filtering system-only managed files...\n'
 		local system_only_managed_files=0
-		comm -12 --zero-terminated "$tmp_dir"/managed-files-0 <(Print0Array system_only_files) | \
-			while read -r -d $'\0' file
+		comm -12 $z_zero_terminated "$tmp_dir"/managed-files-0 <($z_printarray system_only_files) | \
+			while read -r "${z_d_delim[@]}"  file
 			do
 				if [[ "${output_file_props[$file:deleted]:-}" == y ]]
 				then
@@ -532,7 +532,7 @@ function AconfApply() {
 	if [[ ${#files_to_delete[@]} != 0 ]]
 	then
 		LogEnter 'Deleting %s files.\n' "$(Color G ${#files_to_delete[@]})"
-		printf '%s\0' "${files_to_delete[@]}" | sort --zero-terminated | mapfile -d $'\0' files_to_delete
+		$z_printarray files_to_delete | sort $z_zero_terminated | mapfile -t "${z_d_delim[@]}" files_to_delete
 
 		# shellcheck disable=2059
 		function Details() {
@@ -583,7 +583,7 @@ function AconfApply() {
 	if [[ ${#files_to_restore[@]} != 0 ]]
 	then
 		LogEnter 'Restoring %s files.\n' "$(Color G ${#files_to_restore[@]})"
-		printf '%s\0' "${files_to_restore[@]}" | sort --zero-terminated | mapfile -d $'\0' files_to_restore
+		$z_printarray files_to_restore | sort $z_zero_terminated | mapfile -t "${z_d_delim[@]}" files_to_restore
 
 		# shellcheck disable=2059
 		function Details() {
@@ -595,10 +595,10 @@ function AconfApply() {
 		# Read file owners
 		local -A file_owners
 		local file
-		while read -r -d $'\0' file
+		while read -r "${z_d_delim[@]}" file
 		do
 			local package
-			read -r -d $'\0' package
+			read -r "${z_d_delim[@]}" package
 			file_owners[$file]=$package
 		done < "$tmp_dir"/file-owners
 
