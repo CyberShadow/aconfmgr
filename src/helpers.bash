@@ -17,10 +17,10 @@ function AddPackage() {
 	fi
 	local packages=("$@")
 
-	local source=pacman
+	local source="${package_sources[0]}"
 	if $foreign
 	then
-		source=aur
+		source="${package_sources[1]}"
 	fi
 
 	local package
@@ -45,10 +45,10 @@ function AddPackageGroup() {
 	fi
 	local group=$1
 
-	local source=pacman
+	local source="${package_sources[0]}"
 	if $foreign
 	then
-		source=aur
+		source="${package_sources[1]}"
 	fi
 
 	local package
@@ -79,10 +79,10 @@ function RemovePackage() {
 	fi
 	local packages=("$@")
 
-	local source=pacman
+	local source="${package_sources[0]}"
 	if $foreign
 	then
-		source=aur
+		source="${package_sources[1]}"
 	fi
 
 	< "$output_dir"/packages.txt grep -vFxf <(printf '%s\n' "${packages[@]}" | awk -v source="$source" '{print source "/" $0}' ) > "$output_dir"/packages.tmp || true
@@ -104,10 +104,10 @@ function IgnorePackage() {
 	fi
 	local packages=("$@")
 
-	local source=pacman
+	local source="${package_sources[0]}"
 	if $foreign
 	then
-		source=aur
+		source="${package_sources[1]}"
 	fi
 
 	local package
