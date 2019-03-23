@@ -4,6 +4,7 @@ source ./lib.bash
 # Test applying modified priority files.
 
 TestPhase_Setup ###############################################################
+priority_files+=(/dir/file.txt)
 TestAddFile /dir/file.txt 'Original file contents'
 TestAddPackageFile pacman /dir/file.txt 'Original file contents'
 TestAddConfig 'echo "Modified file contents" > $(CreateFile /dir/file.txt)'
