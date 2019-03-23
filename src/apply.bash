@@ -104,16 +104,6 @@ function AconfApply() {
 
 	LogEnter 'Installing priority files...\n'
 
-	# These files must be installed before anything else,
-	# because they affect or are required for what follows.
-	local priority_files=(
-		/etc/passwd
-		/etc/group
-		/etc/pacman.conf
-		/etc/pacman.d/mirrorlist
-		/etc/makepkg.conf
-	)
-
 	local file priority_file
 	( Print0Array config_only_files ; Print0Array changed_files ) | \
 		while read -r -d $'\0' file

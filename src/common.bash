@@ -53,6 +53,16 @@ ignore_paths=(
     # '/var/spool'
 )
 
+# These files must be installed before anything else,
+# because they affect or are required for what follows.
+priority_files=(
+	/etc/passwd
+	/etc/group
+	/etc/pacman.conf
+	/etc/pacman.d/mirrorlist
+	/etc/makepkg.conf
+)
+
 # Some limits for common-sense warnings.
 # Feel free to override these in your configuration.
 warn_size_threshold=$((10*1024*1024)) # Warn on copying files bigger than this

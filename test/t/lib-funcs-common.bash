@@ -71,6 +71,7 @@ test_globals_whitelist=(
 	# Config-tweakable settings
 	default_file_mode
 	ignore_paths
+	priority_files
 
 	warn_file_count_threshold
 	warn_size_threshold
