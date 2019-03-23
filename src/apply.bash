@@ -104,21 +104,16 @@ function AconfApply() {
 
 	LogEnter 'Installing priority files...\n'
 
-	local file priority_file
-	( Print0Array config_only_files ; Print0Array changed_files ) | \
+	local file
+	comm -12 --zero-terminated \
+		 <(  Print0Array priority_files                                 | sort --zero-terminated ) \
+		 <( (Print0Array config_only_files ; Print0Array changed_files) | sort --zero-terminated ) | \
 		while read -r -d $'\0' file
 		do
-			for priority_file in "${priority_files[@]}"
-			do
-				if [[ "$file" == "$priority_file" ]]
-				then
-					LogEnter 'Installing %s...\n' "$(Color C %q "$file")"
-					Confirm ''
-					InstallFile "$file"
-					LogLeave
-					break
-				fi
-			done
+			LogEnter 'Installing %s...\n' "$(Color C %q "$file")"
+			Confirm ''
+			InstallFile "$file"
+			LogLeave
 		done
 
 	LogLeave # Installing priority files
