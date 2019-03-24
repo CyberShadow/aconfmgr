@@ -667,9 +667,10 @@ function AconfAnalyzeFiles() {
 	( comm -12 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files ) | \
 		while read -r -d $'\0' file
 		do
-			local type
-			type=$(LC_ALL=C stat --format=%F "$system_dir"/files/"$file")
-			if [[ "$type" == "directory" ]]
+			local output_type system_type
+			output_type=$(LC_ALL=C stat --format=%F "$output_dir"/files/"$file")
+			system_type=$(LC_ALL=C stat --format=%F "$system_dir"/files/"$file")
+			if [[ "$output_type" == "directory" || "$system_type" == "directory" ]]
 			then
 				continue
 			fi
