@@ -12,15 +12,15 @@ specs=("
 	"ignored={0..1}"
 	"priority={0..1}"
 
-	"f_present={0..1}"
-	"f_kind={1..3}"
-	"f_content={1..1}"
-	"f_attr={1..1}"
-
 	"p_present={0..2}"
 	"p_kind={1..3}"
-	"p_content={1..2}"
-	"p_attr={1..2}"
+	"p_content={1..1}"
+	"p_attr={1..1}"
+
+	"f_present={0..1}"
+	"f_kind={1..3}"
+	"f_content={1..2}"
+	"f_attr={1..2}"
 
 	"c_present={0..1}"
 	"c_kind={1..3}"
@@ -37,24 +37,24 @@ do
 	eval "$spec"
 
 	# Cull varying properties of absent files
-	[[ "$f_present" != 0 || ( "$f_kind" == 1 && "$f_content" == 1 && "$f_attr" == 1 ) ]] || continue
 	[[ "$p_present" != 0 || ( "$p_kind" == 1 && "$p_content" == 1 && "$p_attr" == 1 ) ]] || continue
+	[[ "$f_present" != 0 || ( "$f_kind" == 1 && "$f_content" == 1 && "$f_attr" == 1 ) ]] || continue
 	[[ "$c_present" != 0 || ( "$c_kind" == 1 && "$c_content" == 1 && "$c_attr" == 1 ) ]] || continue
 
 	# Cull using "same" properties as absent objects
-	if [[ "$f_present" == 0 && ( "$p_content" == 1 || "$p_attr" == 1 ) ]] ; then continue ; fi
-	if [[ "$f_present" == 0 && ( "$c_content" == 1 || "$c_attr" == 1 ) ]] ; then continue ; fi
-	if [[ "$p_present" == 0 && ( "$c_content" == 2 || "$c_attr" == 2 ) ]] ; then continue ; fi
+	if [[ "$p_present" == 0 && ( "$f_content" == 1 || "$f_attr" == 1 ) ]] ; then continue ; fi
+	if [[ "$p_present" == 0 && ( "$c_content" == 1 || "$c_attr" == 1 ) ]] ; then continue ; fi
+	if [[ "$f_present" == 0 && ( "$c_content" == 2 || "$c_attr" == 2 ) ]] ; then continue ; fi
 
 	# Cull varying content for directories
-	[[ "$f_kind" != 2 || "$f_content" == 1 ]] || continue
 	[[ "$p_kind" != 2 || "$p_content" == 1 ]] || continue
+	[[ "$f_kind" != 2 || "$f_content" == 1 ]] || continue
 	[[ "$c_kind" != 2 || "$c_content" == 1 ]] || continue
 
-	fn="$ignored$priority-$f_present$f_kind$f_content$f_attr-$p_present$p_kind$p_content$p_attr-$c_present$c_kind$c_content$c_attr"
+	fn="$ignored$priority-$p_present$p_kind$p_content$p_attr-$f_present$f_kind$f_content$f_attr-$c_present$c_kind$c_content$c_attr"
 
 	specs2+=("$spec fn=$fn")
-	unset spec ignored priority f_present f_kind f_content f_attr p_present p_kind p_content p_attr c_present c_kind c_content c_attr fn
+	unset spec ignored priority p_present p_kind p_content p_attr f_present f_kind f_content f_attr c_present c_kind c_content c_attr fn
 done
 specs=("${specs2[@]}")
 unset specs2
@@ -76,7 +76,7 @@ file_users=(
 	[3]=nobody
 )
 
-LogEnter 'Creating package/config files...\n'
+LogEnter 'Creating package files...\n'
 # shellcheck disable=SC2154
 for spec in "${specs[@]}"
 do
@@ -98,6 +98,32 @@ do
 		TestAddFSObj test-package-"$p_present" "/dir/$fn" "${file_kinds[$p_kind]}" "$p_content" "${file_modes[$p_attr]}" "${file_users[$p_attr]}" "${file_users[$p_attr]}"
 	fi
 
+	unset spec ignored priority p_present p_kind p_content p_attr f_present f_kind f_content f_attr c_present c_kind c_content c_attr fn
+done
+LogLeave
+
+LogEnter 'Installing packages...\n'
+TestAddPackage test-package-1 native explicit
+TestAddPackage test-package-2 native explicit
+TestAddConfig AddPackage test-package-2
+LogLeave
+
+LogEnter 'Creating filesystem/config files...\n'
+# shellcheck disable=SC2154
+for spec in "${specs[@]}"
+do
+	eval "$spec"
+
+	if ((p_present))
+	then
+		TestDeleteFile "/dir/$fn"
+	fi
+	if ((f_present))
+	then
+		[[ "$f_kind" != 2 ]] || f_content= # Directories may not have "content"
+		TestAddFSObj '' "/dir/$fn" "${file_kinds[$f_kind]}" "$f_content" "${file_modes[$f_attr]}" "${file_users[$f_attr]}" "${file_users[$f_attr]}"
+	fi
+
 	if ((c_present))
 	then
 		case $c_kind in
@@ -116,32 +142,7 @@ do
 				;;
 		esac
 	fi
-	unset spec ignored priority f_present f_kind f_content f_attr p_present p_kind p_content p_attr c_present c_kind c_content c_attr fn
-done
-LogLeave
-
-LogEnter 'Installing packages...\n'
-TestAddPackage test-package-1 native explicit
-TestAddPackage test-package-2 native explicit
-TestAddConfig AddPackage test-package-2
-LogLeave
-
-LogEnter 'Creating filesystem files...\n'
-# shellcheck disable=SC2154
-for spec in "${specs[@]}"
-do
-	eval "$spec"
-
-	if ((p_present))
-	then
-		TestDeleteFile "/dir/$fn"
-	fi
-	if ((f_present))
-	then
-		[[ "$f_kind" != 2 ]] || f_content= # Directories may not have "content"
-		TestAddFSObj '' "/dir/$fn" "${file_kinds[$f_kind]}" "$f_content" "${file_modes[$f_attr]}" "${file_users[$f_attr]}" "${file_users[$f_attr]}"
-	fi
-	unset spec ignored priority f_present f_kind f_content f_attr p_present p_kind p_content p_attr c_present c_kind c_content c_attr fn
+	unset spec ignored priority p_present p_kind p_content p_attr f_present f_kind f_content f_attr c_present c_kind c_content c_attr fn
 done
 LogLeave
 
