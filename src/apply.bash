@@ -527,7 +527,7 @@ function AconfApply() {
 
 			if [[ -z "$package" ]]
 			then
-				Log 'Can'\''t find owner of file %s\n' "$(Color C "%q" "$file")"
+				Log 'Can'\''t find package owning file %s\n' "$(Color C "%q" "$file")"
 				Exit 1
 			fi
 
