@@ -105,8 +105,16 @@ function AconfApply() {
 	LogEnter 'Installing priority files...\n'
 
 	function Details_DiffFile() {
-		AconfNeedProgram diff diffutils n
-		"${diff_opts[@]}" --unified <(SuperCat "$file") "$output_dir"/files/"$file" || true
+		if sudo test -d "$file"
+		then
+			Log '%s (old) is a directory.\n' "$(Color C "%q" "$file")"
+		elif test -d "$output_dir"/files/"$file"
+		then
+			Log '%s (new) is a directory.\n' "$(Color C "%q" "$file")"
+		else
+			AconfNeedProgram diff diffutils n
+			sudo "${diff_opts[@]}" --unified --no-dereference --report-identical-files "$file" "$output_dir"/files/"$file" || true
+		fi
 	}
 
 	local file
