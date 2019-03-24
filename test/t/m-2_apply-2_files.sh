@@ -155,7 +155,56 @@ AconfApply
 
 TestPhase_Check ###############################################################
 
-# TODO
+function CheckObj() {
+	local path=$1
+	local kind=$2
+	local content=$3
+	local attr=$4
+
+	case "$kind" in
+		1) # file
+			test -f "$path"
+			diff "$path" <(printf %s "$content")
+			diff <(stat --format=%a "$path") <(printf '%s\n' "${file_modes[$attr]}")
+			diff <(stat --format=%U "$path") <(printf '%s\n' "${file_users[$attr]}")
+			diff <(stat --format=%G "$path") <(printf '%s\n' "${file_users[$attr]}")
+			;;
+		2) # dir
+			test -d "$path"
+			diff <(stat --format=%a "$path") <(printf '%s\n' "${file_modes[$attr]}")
+			diff <(stat --format=%U "$path") <(printf '%s\n' "${file_users[$attr]}")
+			diff <(stat --format=%G "$path") <(printf '%s\n' "${file_users[$attr]}")
+			;;
+		3) # link
+			test -h "$path"
+			diff <(readlink "$path") <(printf '%s\n' "$content")
+			diff <(stat --format=%U "$path") <(printf '%s\n' "${file_users[$attr]}")
+			diff <(stat --format=%G "$path") <(printf '%s\n' "${file_users[$attr]}")
+			;;
+	esac
+}
+
+# shellcheck disable=SC2154
+for spec in "${specs[@]}"
+do
+	eval "$spec"
+	Log '%s\n' "$fn"
+	path=/dir/"$fn"
+
+	if [[ $c_present == 2 ]]
+	then
+		test ! -e "$path" -a ! -h "$path" # Must not exist
+	elif [[ $c_present == 1 ]]
+	then
+		CheckObj "$path" "$c_kind" "$c_content" "$c_attr"
+	elif [[ $p_present == 2 ]]
+	then
+		CheckObj "$path" "$p_kind" "$p_content" "$p_attr"
+	else
+		test ! -e "$path" -a ! -h "$path" # Must not exist
+	fi
+	unset spec ignored priority p_present p_kind p_content p_attr f_present f_kind f_content f_attr c_present c_kind c_content c_attr fn path
+done
 
 unset specs file_kinds file_modes file_users
 
