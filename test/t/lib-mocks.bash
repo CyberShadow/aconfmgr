@@ -333,7 +333,7 @@ function TestPacCheckCompare() {
 }
 
 function TestFileMd5sum() {
-	if ! [[ -d "$1" ]]
+	if ! [[ -d "$1" || -h "$1" ]]
 	then
 		md5sum "$@" | cut -c 1-32
 	fi
