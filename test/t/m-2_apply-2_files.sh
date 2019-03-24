@@ -38,8 +38,8 @@ do
 
 	# Cull varying properties of absent files
 	[[ "$p_present" != 0 || ( "$p_kind" == 1 && "$p_content" == 1 && "$p_attr" == 1 ) ]] || continue
-	[[ "$f_present" != 0 || ( "$f_kind" == 1 && "$f_content" == 1 && "$f_attr" == 1 ) ]] || continue
-	[[ "$c_present" != 0 || ( "$c_kind" == 1 && "$c_content" == 1 && "$c_attr" == 1 ) ]] || continue
+	[[ "$f_present" != 0 || ( "$f_kind" == 1 && "$f_content" == 2 && "$f_attr" == 2 ) ]] || continue
+	[[ "$c_present" != 0 || ( "$c_kind" == 1 && "$c_content" == 3 && "$c_attr" == 3 ) ]] || continue
 
 	# Cull using "same" properties as absent objects
 	if [[ "$p_present" == 0 && ( "$f_content" == 1 || "$f_attr" == 1 ) ]] ; then continue ; fi
