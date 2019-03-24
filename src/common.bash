@@ -668,7 +668,7 @@ function AconfAnalyzeFiles() {
 		while read -r -d $'\0' file
 		do
 			local type
-			type=$(sudo env LC_ALL=C stat --format=%F "$file")
+			type=$(LC_ALL=C stat --format=%F "$system_dir"/files/"$file")
 			if [[ "$type" == "directory" ]]
 			then
 				continue
