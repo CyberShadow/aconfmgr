@@ -156,7 +156,8 @@ a				;;
 					find "$test_data_dir"/packages -mindepth 1 -maxdepth 1 -printf '%P\0' | \
 						while read -r -d $'\0' package
 						do
-							if [[ -e "$test_data_dir"/packages/"$package"/files/"${args[0]}" ]]
+							local fn="$test_data_dir"/packages/"$package"/files/"${args[0]}"
+							if [[ -h "$fn" || -e "$fn" ]]
 							then
 								printf '%s\n' "$package"
 								found=true
