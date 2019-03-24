@@ -48,8 +48,8 @@ do
 
 	# Cull varying content for directories
 	[[ "$p_kind" != 2 || "$p_content" == 1 ]] || continue
-	[[ "$f_kind" != 2 || "$f_content" == 1 ]] || continue
-	[[ "$c_kind" != 2 || "$c_content" == 1 ]] || continue
+	[[ "$f_kind" != 2 || "$f_content" == 2 ]] || continue
+	[[ "$c_kind" != 2 || "$c_content" == 3 ]] || continue
 
 	fn="$ignored$priority-$p_present$p_kind$p_content$p_attr-$f_present$f_kind$f_content$f_attr-$c_present$c_kind$c_content$c_attr"
 
