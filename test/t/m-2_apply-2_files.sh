@@ -22,7 +22,7 @@ specs=("
 	"f_content={1..2}"
 	"f_attr={1..2}"
 
-	"c_present={0..1}"
+	"c_present={0..2}"
 	"c_kind={1..3}"
 	"c_content={1..3}"
 	"c_attr={1..3}"
@@ -39,7 +39,7 @@ do
 	# Cull varying properties of absent files
 	[[ "$p_present" != 0 || ( "$p_kind" == 1 && "$p_content" == 1 && "$p_attr" == 1 ) ]] || continue
 	[[ "$f_present" != 0 || ( "$f_kind" == 1 && "$f_content" == 2 && "$f_attr" == 2 ) ]] || continue
-	[[ "$c_present" != 0 || ( "$c_kind" == 1 && "$c_content" == 3 && "$c_attr" == 3 ) ]] || continue
+	[[ "$c_present" == 1 || ( "$c_kind" == 1 && "$c_content" == 3 && "$c_attr" == 3 ) ]] || continue
 
 	# Cull using "same" properties as absent objects
 	if [[ "$p_present" == 0 && ( "$f_content" == 1 || "$f_attr" == 1 ) ]] ; then continue ; fi
@@ -124,23 +124,27 @@ do
 		TestAddFSObj '' "/dir/$fn" "${file_kinds[$f_kind]}" "$f_content" "${file_modes[$f_attr]}" "${file_users[$f_attr]}" "${file_users[$f_attr]}"
 	fi
 
-	if ((c_present))
+	if [[ $c_present == 1 ]]
 	then
 		case $c_kind in
 			1) # file
 				# shellcheck disable=SC2016
 				TestAddConfig "$(printf 'printf %%s %q > $(CreateFile /dir/%q %q %q %q)' \
-							  			"$c_content" "$fn" "${file_modes[$f_attr]}" "${file_users[$f_attr]}" "${file_users[$f_attr]}")"
+				                        "$c_content" "$fn" "${file_modes[$f_attr]}" "${file_users[$f_attr]}" "${file_users[$f_attr]}")"
 				;;
 			2) # dir
 				TestAddConfig "$(printf 'CreateDir /dir/%q %q %q %q' \
-							  			"$fn" "${file_modes[$c_attr]}" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
+				                        "$fn" "${file_modes[$c_attr]}" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
 				;;
 			3) # link
 				TestAddConfig "$(printf 'CreateLink /dir/%q %q %q %q' \
-							  			"$fn" "$c_content" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
+				                        "$fn" "$c_content" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
 				;;
 		esac
+	elif [[ $c_present == 2 ]]
+	then
+		TestAddConfig "$(printf 'SetFileProperty /dir/%q deleted y' \
+		                        "$fn")"
 	fi
 	unset spec ignored priority p_present p_kind p_content p_attr f_present f_kind f_content f_attr c_present c_kind c_content c_attr fn
 done
