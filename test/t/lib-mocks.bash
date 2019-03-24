@@ -79,7 +79,7 @@ function TestSimpleWrap() {
 	local arg
 	for arg in "$@"
 	do
-		if [[ "$arg" == /* ]]
+		if [[ "$arg" == /* && "$arg" != /dev/* ]]
 		then
 			args+=("$test_data_dir"/files"$arg")
 		else
@@ -191,6 +191,10 @@ else
 		TestSimpleWrap tar "$@"
 	}
 fi
+
+function diff() {
+	TestSimpleWrap diff "$@"
+}
 
 function chmod() {
 	local args=()
