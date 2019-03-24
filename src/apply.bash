@@ -79,6 +79,11 @@ function AconfApply() {
 		local file="$1"
 		local source="$output_dir"/files/"$file"
 
+		if ! ( test -d "$source" && sudo test -d "$file" )
+		then
+			sudo rm --force --dir "$file"
+		fi
+
 		sudo mkdir --parents "$(dirname "$file")"
 		if [[ -h "$source" ]]
 		then
