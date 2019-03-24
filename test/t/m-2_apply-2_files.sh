@@ -130,7 +130,7 @@ do
 			1) # file
 				# shellcheck disable=SC2016
 				TestAddConfig "$(printf 'printf %%s %q > $(CreateFile /dir/%q %q %q %q)' \
-				                        "$c_content" "$fn" "${file_modes[$f_attr]}" "${file_users[$f_attr]}" "${file_users[$f_attr]}")"
+				                        "$c_content" "$fn" "${file_modes[$c_attr]}" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
 				;;
 			2) # dir
 				TestAddConfig "$(printf 'CreateDir /dir/%q %q %q %q' \
