@@ -153,6 +153,14 @@ function pacman() {
 					local filename
 					for filename in "${args[@]}"
 					do
+						# Emulate pacman bug
+						if ! stat "$test_data_dir"/files/"$filename" > /dev/null 2>&1
+						then
+							printf 'error: failed to read file '\''%q'\'': No such file or directory\n' "$filename" 1>&2
+							exit_code=1
+							continue
+						fi
+
 						local found=false
 						local package _
 						while IFS=$'\t' read -r package _
