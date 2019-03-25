@@ -213,10 +213,27 @@ a				;;
 			echo pacman "$@" >> "$test_data_dir"/pacman.log
 			;;
 		remove)
-			local arg
-			for arg in "${args[@]}"
+			local package
+			for package in "${args[@]}"
 			do
-				sed -i "$(printf "/%q/d" "$arg")" "$test_data_dir"/packages.txt
+				sed -i "$(printf "/%q/d" "$package")" "$test_data_dir"/packages.txt
+
+				local file
+				find "$test_data_dir"/packages/"$package"/files \
+					 -mindepth 1 \
+					 -printf '%P\0' \
+					| \
+					while read -r -d '' file
+					do
+						if [[ -d "$test_data_dir"/files/"$file" ]]
+						then
+							rmdir --ignore-fail-on-non-empty "$test_data_dir"/files/"$file"
+						else
+							rm -f "$test_data_dir"/files/"$file"
+						fi
+
+						rm -f "$test_data_dir"/file-props/"$file".{mode,owner,group}
+					done
 			done
 			echo pacman "$@" >> "$test_data_dir"/pacman.log
 			;;
