@@ -194,18 +194,18 @@ do
 	Log '%s\n' "$fn"
 	path=/dir/"$fn"
 
-	if [[ $c_present == 2 ]]
+	if [[ $c_present == 2 ]] # Present as SetFileProperty deleted y
 	then
 		test ! -e "$path" -a ! -h "$path" # Must not exist
 	elif [[ $c_present == 1 ]]
 	then
-		CheckObj "$path" "$c_kind" "$c_content" "$c_attr"
+		CheckObj "$path" "$c_kind" "$c_content" "$c_attr" # Must be as in config
 	elif [[ $f_present == 1 && $ignored == 1 ]]
 	then
-		CheckObj "$path" "$f_kind" "$f_content" "$f_attr"
+		CheckObj "$path" "$f_kind" "$f_content" "$f_attr" # Must be as in filesystem
 	elif [[ $p_present == 2 ]]
 	then
-		CheckObj "$path" "$p_kind" "$p_content" "$p_attr"
+		CheckObj "$path" "$p_kind" "$p_content" "$p_attr" # Must be as in package
 	else
 		test ! -e "$path" -a ! -h "$path" # Must not exist
 	fi
