@@ -223,7 +223,10 @@ function chmod() {
 
 	[[ "$dst" == /* ]] || FatalError 'Can'\''t chmod non-absolute path\n'
 
-	test -e "$test_data_dir"/files"$dst" || test -h "$test_data_dir"/files"$dst"
+	# aconfmgr should not invoke chmod on symlinks
+	test ! -h "$test_data_dir"/files"$dst"
+
+	test -e "$test_data_dir"/files"$dst"
 
 	TestWriteFile "$test_data_dir"/file-props"$dst".mode "$mode"
 }
