@@ -200,6 +200,9 @@ do
 	elif [[ $c_present == 1 ]]
 	then
 		CheckObj "$path" "$c_kind" "$c_content" "$c_attr"
+	elif [[ $f_present == 1 && $ignored == 1 ]]
+	then
+		CheckObj "$path" "$f_kind" "$f_content" "$f_attr"
 	elif [[ $p_present == 2 ]]
 	then
 		CheckObj "$path" "$p_kind" "$p_content" "$p_attr"
