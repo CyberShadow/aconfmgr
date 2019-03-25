@@ -223,6 +223,8 @@ function chmod() {
 
 	[[ "$dst" == /* ]] || FatalError 'Can'\''t chmod non-absolute path\n'
 
+	test -e "$test_data_dir"/files"$dst" || test -h "$test_data_dir"/files"$dst"
+
 	TestWriteFile "$test_data_dir"/file-props"$dst".mode "$mode"
 }
 
@@ -264,6 +266,8 @@ function chown() {
 		fi
 	fi
 
+	test -e "$test_data_dir"/files"$dst" || test -h "$test_data_dir"/files"$dst"
+
 	test -z "$owner" || TestWriteFile "$test_data_dir"/file-props"$dst".owner "$owner"
 	test -z "$group" || TestWriteFile "$test_data_dir"/file-props"$dst".group "$group"
 }
@@ -291,6 +295,8 @@ function chgrp() {
 	local dst="${args[1]}"
 
 	[[ "$dst" == /* ]] || FatalError 'Can'\''t chgrp non-absolute path\n'
+
+	test -e "$test_data_dir"/files"$dst" || test -h "$test_data_dir"/files"$dst"
 
 	TestWriteFile "$test_data_dir"/file-props"$dst".group "$group"
 }
