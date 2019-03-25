@@ -111,8 +111,8 @@ function TestAddFSObj() {
 
 	if [[ -z "$package" ]]
 	then
-		if [[ -n "$owner" ]] ; then "${prefix[@]}" chown "$owner" "$fn" ; fi
-		if [[ -n "$group" ]] ; then "${prefix[@]}" chgrp "$group" "$fn" ; fi
+		if [[ -n "$owner" ]] ; then "${prefix[@]}" chown --no-dereference "$owner" "$fn" ; fi
+		if [[ -n "$group" ]] ; then "${prefix[@]}" chgrp --no-dereference "$group" "$fn" ; fi
 	else
 		tar rf "$test_data_dir"/packages/"$package"/files.tar \
 			-C "$root" \
