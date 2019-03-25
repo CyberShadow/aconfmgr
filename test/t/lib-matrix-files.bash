@@ -45,6 +45,7 @@ function TestMatrixFileSetup() {
 	LogLeave 'Done (%s specs).\n' "$(Color G "${#specs[@]}")"
 
 	LogEnter 'Filtering specs...\n'
+	[[ -v BASH_XTRACEFD ]] && set +x
 	local specs2=()
 	local spec
 	# shellcheck disable=SC2154
@@ -78,6 +79,7 @@ function TestMatrixFileSetup() {
 	done
 	specs=("${specs2[@]}")
 	unset specs2
+	[[ -v BASH_XTRACEFD ]] && set -x
 	LogLeave 'Done (%s specs).\n' "$(Color G "${#specs[@]}")"
 
 	# Check that we didn't cull any given tests
