@@ -358,7 +358,7 @@ function paccheck() {
 				local fs_path="$test_data_dir"/files/"$path"
 				# local fs_prop_path="$test_data_dir"/file-props/"$path"
 
-				if [[ -e "$fs_path" ]]
+				if [[ -e "$fs_path" || -h "$fs_path" ]]
 				then
 					TestPacCheckCompare "$package" "$path" type                type  stat --format=%F || modified=true
 					TestPacCheckCompare "$package" "$path" size                size  stat --format=%s || modified=true
