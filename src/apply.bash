@@ -614,14 +614,31 @@ function AconfApply() {
 		Confirm Details
 
 		local key
+		local -A restored_files
 		( Print0Array config_only_file_props ; Print0Array changed_file_props ; Print0Array system_only_file_props ) | \
 			while read -r -d $'\0' key
 			do
 				local kind="${key##*:}"
 				local file="${key%:*}"
 				local value="${output_file_props[$key]:-}"
-				# TODO: check if file exists first?
-				ApplyFileProperty "$kind" "$value" "$file"
+
+				if [[ -n "${restored_files[$file]+x}" ]]
+				then
+					continue # File was restored in full, and its output_file_props were deleted
+				fi
+
+				if sudo test -e "$file" || sudo test -h "$file"
+				then
+					ApplyFileProperty "$kind" "$value" "$file"
+				else
+					# File no longer exists.
+					# This can happen if it was part of a package that was removed during this run.
+					LogEnter 'File %s no longer exists - recreating.\n' \
+						"$(Color C "%q" "$file")"
+					InstallFile "$file"
+					LogLeave
+					restored_files[$file]=y
+				fi
 			done
 
 		modified=y
