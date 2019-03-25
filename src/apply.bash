@@ -679,6 +679,14 @@ function AconfApply() {
 					continue # File was restored in full, and its output_file_props were deleted
 				fi
 
+				if [[ -n "${files_in_deleted_packages[$file]+x}" ]]
+				then
+					Log 'Skipping file %s (was in pruned package %s).\n' \
+						"$(Color C "%q" "$file")" \
+						"$(Color M "%q" "${file_owners[$path]}")"
+					continue
+				fi
+
 				if sudo test -e "$file" || sudo test -h "$file"
 				then
 					ApplyFileProperty "$kind" "$value" "$file"
