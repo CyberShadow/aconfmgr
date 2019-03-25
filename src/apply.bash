@@ -277,7 +277,38 @@ function AconfApply() {
 		LogLeave
 	fi
 
+	# Capture owners of files before removing packages
+	LogEnter 'Recording modified files'\'' owners...\n'
+	tr '\n' '\0' < "$tmp_dir"/managed-files > "$tmp_dir"/managed-files-0
+
+	local -a files_to_restore_p # preliminary
+	(
+		comm -12 --zero-terminated "$tmp_dir"/managed-files-0 <(Print0Array system_only_files)
+		Print0Array system_only_file_props | sed --null-data --silent 's/^\(.*\):deleted$/\1/p'
+	) \
+		| sort --zero-terminated --unique \
+		| mapfile -t -d $'\0' files_to_restore_p
+
+	local -A file_owners package
+	local i=0
+	if [[ "${#files_to_restore_p[@]}" -gt 0 ]]
+	then
+		Print0Array files_to_restore_p \
+			| sudo xargs -0 "$PACMAN" --query --quiet --owns \
+			| \
+			while read -r package
+			do
+				file_owners[${files_to_restore_p[$i]}]=$package
+				: $((i++))
+			done
+	fi
+	unset files_to_restore_p
+
+	LogLeave
+
 	# Orphan packages
+
+	local -A files_in_deleted_packages
 
 	if "$PACMAN" --query --unrequired --unrequired --deps --quiet > /dev/null
 	then
@@ -302,6 +333,19 @@ function AconfApply() {
 				ParanoidConfirm Details
 
 				sudo "${pacman_opts[@]}" --remove "${orphan_packages[@]}"
+
+				for package in "${orphan_packages[@]}"
+				do
+					local path
+					for path in "${!file_owners[@]}"
+					do
+						if [[ -n "${file_owners[$path]+x}" && "${file_owners[$path]}" == "$package" ]]
+						then
+							files_in_deleted_packages[$path]=y
+						fi
+					done
+				done
+
 				LogLeave
 			fi
 
@@ -383,7 +427,6 @@ function AconfApply() {
 		# Delete unknown lost files (files not present in config and belonging to no package)
 
 		LogEnter 'Filtering system-only lost files...\n'
-		tr '\n' '\0' < "$tmp_dir"/managed-files > "$tmp_dir"/managed-files-0
 		local system_only_lost_files=0
 		comm -13 --zero-terminated "$tmp_dir"/managed-files-0 <(Print0Array system_only_files) | \
 			while read -r -d $'\0' file
@@ -506,6 +549,14 @@ function AconfApply() {
 		for file in "${files_to_restore[@]}"
 		do
 			local package
+
+			if [[ -n "${files_in_deleted_packages[$file]+x}" ]]
+			then
+				Log 'Skipping file %s (was in pruned package %s).\n' \
+					"$(Color C "%q" "$file")" \
+					"$(Color M "%q" "${file_owners[$path]}")"
+				continue
+			fi
 
 			# Ensure file exists, to work around pacman's inability to
 			# query ownership of non-existing files. See:
