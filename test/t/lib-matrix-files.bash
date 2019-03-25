@@ -72,6 +72,9 @@ function TestMatrixFileSetup() {
 		# Cull bad config: if a package is about to get removed, simultaneously asking to remove a file in that package doesn't make sense
 		if [[ "$p_present" == 1 && "$c_present" == 2 ]] ; then continue ; fi
 
+		# Cull bad config: configurations should not mention a file if it is in the ignore list
+		if [[ "$c_present" != 0 && "$ignored" == 1 ]] ; then continue ; fi
+
 		fn="$ignored$priority-$p_present$p_kind$p_content$p_attr-$f_present$f_kind$f_content$f_attr-$c_present$c_kind$c_content$c_attr"
 		[[ -z "$test_list_str" || "$test_list_str" == *"$fn"* ]] || continue
 
