@@ -51,6 +51,9 @@ do
 	[[ "$f_kind" != 2 || "$f_content" == 2 ]] || continue
 	[[ "$c_kind" != 2 || "$c_content" == 3 ]] || continue
 
+	# Cull bad config: if a package is about to get removed, simultaneously asking to remove a file in that package doesn't make sense
+	if [[ "$p_present" == 1 && "$c_present" == 2 ]] ; then continue ; fi
+
 	fn="$ignored$priority-$p_present$p_kind$p_content$p_attr-$f_present$f_kind$f_content$f_attr-$c_present$c_kind$c_content$c_attr"
 
 	specs2+=("$spec fn=$fn")
