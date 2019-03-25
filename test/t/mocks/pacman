@@ -148,26 +148,29 @@ function pacman() {
 					;;
 				owns)
 					$opt_quiet || FatalError 'Mocked pacman --query --owns without --quiet\n'
-					test "${#args[@]}" -eq 1 || FatalError 'Mocked pacman --query --owns expected 1 argument\n'
+					test "${#args[@]}" -ge 1 || FatalError 'Mocked pacman --query --owns expected at least 1 argument\n'
 
-					local found=false
-
-					local package _
-					while IFS=$'\t' read -r package _
+					local filename
+					for filename in "${args[@]}"
 					do
-						local fn="$test_data_dir"/packages/"$package"/files/"${args[0]}"
-						if [[ -h "$fn" || -e "$fn" ]]
-						then
-							printf '%s\n' "$package"
-							found=true
-						fi
-					done < "$test_data_dir"/packages.txt
+						local found=false
+						local package _
+						while IFS=$'\t' read -r package _
+						do
+							local fn="$test_data_dir"/packages/"$package"/files/"$filename"
+							if [[ -h "$fn" || -e "$fn" ]]
+							then
+								printf '%s\n' "$package"
+								found=true
+							fi
+						done < "$test_data_dir"/packages.txt
 
-					if ! $found
-					then
-						printf 'Error: no package owns %q\n' "${args[0]}" 1>&2
-						exit_code=1
-					fi
+						if ! $found
+						then
+							printf 'Error: no package owns %q\n' "$filename" 1>&2
+							exit_code=1
+						fi
+					done
 					;;
 				*)
 					FatalError 'Unknown --query subcommand %s\n' "$subcommand"
