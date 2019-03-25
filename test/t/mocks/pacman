@@ -215,7 +215,7 @@ function pacman() {
 			local package
 			for package in "${args[@]}"
 			do
-				sed -i "$(printf "/%q/d" "$package")" "$test_data_dir"/packages.txt
+				sed -i "$(printf "/^%q\\t/d" "$package")" "$test_data_dir"/packages.txt
 
 				local file
 				find "$test_data_dir"/packages/"$package"/files \
