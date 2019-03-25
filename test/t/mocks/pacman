@@ -165,6 +165,7 @@ function pacman() {
 
 					if ! $found
 					then
+						printf 'Error: no package owns %q\n' "${args[0]}" 1>&2
 						exit_code=1
 					fi
 					;;
