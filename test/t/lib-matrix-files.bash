@@ -128,7 +128,7 @@ function TestMatrixFileSetup() {
 		if ((p_present))
 		then
 			[[ "$p_kind" != 2 ]] || p_content= # Directories may not have "content"
-			TestAddFSObj test-package-"$p_present" "/dir/$fn" "${file_kinds[$p_kind]}" "$p_content" "${file_modes[$p_attr]}" "${file_users[$p_attr]}" "${file_users[$p_attr]}"
+			TestMatrixAddObj test-package-"$p_present" "$fn" "$p_kind" "$p_content" "$p_attr"
 		fi
 	done
 	LogLeave
@@ -153,7 +153,7 @@ function TestMatrixFileSetup() {
 		if ((f_present))
 		then
 			[[ "$f_kind" != 2 ]] || f_content= # Directories may not have "content"
-			TestAddFSObj '' "/dir/$fn" "${file_kinds[$f_kind]}" "$f_content" "${file_modes[$f_attr]}" "${file_users[$f_attr]}" "${file_users[$f_attr]}"
+			TestMatrixAddObj '' "$fn" "$f_kind" "$f_content" "$f_attr"
 		fi
 
 		if [[ $c_present == 1 ]]
@@ -182,7 +182,26 @@ function TestMatrixFileSetup() {
 	LogLeave
 }
 
-function TestMatrixObj() {
+function TestMatrixAddObj() {
+	local package=$1
+	local fn=$2
+	local kind=$3
+	local content=$4
+	local attr=$5
+
+	local path=/dir/"$fn"
+	local mode
+	if [[ "$kind" == 3 ]] # link
+	then
+		mode= # symlinks can't have a mode
+	else
+		mode="${file_modes[$attr]}"
+	fi
+
+	TestAddFSObj "$package" "$path" "${file_kinds[$kind]}" "$f_content" "$mode" "${file_users[$attr]}" "${file_users[$attr]}"
+}
+
+function TestMatrixCheckObj() {
 	local path=$1
 	local kind=$2
 	local content=$3
@@ -227,13 +246,13 @@ function TestMatrixFileCheckApply() {
 			test ! -e "$path" -a ! -h "$path" # Must not exist
 		elif [[ $c_present == 1 ]]
 		then
-			TestMatrixObj "$path" "$c_kind" "$c_content" "$c_attr" # Must be as in config
+			TestMatrixCheckObj "$path" "$c_kind" "$c_content" "$c_attr" # Must be as in config
 		elif [[ $f_present == 1 && $ignored == 1 ]]
 		then
-			TestMatrixObj "$path" "$f_kind" "$f_content" "$f_attr" # Must be as in filesystem
+			TestMatrixCheckObj "$path" "$f_kind" "$f_content" "$f_attr" # Must be as in filesystem
 		elif [[ $p_present == 2 ]]
 		then
-			TestMatrixObj "$path" "$p_kind" "$p_content" "$p_attr" # Must be as in package
+			TestMatrixCheckObj "$path" "$p_kind" "$p_content" "$p_attr" # Must be as in package
 		else
 			test ! -e "$path" -a ! -h "$path" # Must not exist
 		fi
