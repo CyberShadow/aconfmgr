@@ -65,7 +65,7 @@ function AconfApply() {
 		for prop in "${all_file_property_kinds[@]}"
 		do
 			local key="$file:$prop"
-			if [[ -n "${output_file_props[$key]+x}" && ( -z "${system_file_props[$key]+x}" || "${output_file_props[$key]}" != "${system_file_props[$key]}" ) ]]
+			if [[ -n "${output_file_props[$key]+x}" ]]
 			then
 				local value="${output_file_props[$key]}"
 				ApplyFileProperty "$prop" "$value" "$file"
