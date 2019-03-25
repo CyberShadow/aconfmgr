@@ -225,11 +225,12 @@ a				;;
 					| \
 					while read -r -d '' file
 					do
-						if [[ -d "$test_data_dir"/files/"$file" ]]
+						local path="$test_data_dir"/files/"$file"
+						if [[ ! -h "$path" && -d "$path" ]]
 						then
-							rmdir --ignore-fail-on-non-empty "$test_data_dir"/files/"$file"
+							rmdir --ignore-fail-on-non-empty "$path"
 						else
-							rm -f "$test_data_dir"/files/"$file"
+							rm -f "$path"
 						fi
 
 						rm -f "$test_data_dir"/file-props/"$file".{mode,owner,group}
