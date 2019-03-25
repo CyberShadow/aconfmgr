@@ -80,6 +80,32 @@ function TestMatrixFileSetup() {
 	unset specs2
 	LogLeave 'Done (%s specs).\n' "$(Color G "${#specs[@]}")"
 
+	# Check that we didn't cull any given tests
+	if [[ "${#test_list[@]}" -gt 0 && "${#specs[@]}" -ne "${#test_list[@]}" ]]
+	then
+		local -A saw_fn
+
+		for spec in "${specs[@]}"
+		do
+			local ignored priority p_present p_kind p_content p_attr f_present f_kind f_content f_attr c_present c_kind c_content c_attr fn
+			eval "$spec"
+			saw_fn[$fn]=y
+		done
+
+		LogEnter 'Some tests were culled (%s/%s):\n' \
+				 "$(Color G "${#specs[@]}")" \
+				 "$(Color G "${#test_list[@]}")"
+		local test
+		for test in "${test_list[@]}"
+		do
+			if [[ -z "${saw_fn[$test]+x}" ]]
+			then
+				Log 'Test was not included: %q\n' "$test"
+			fi
+		done
+		false
+	fi
+
 	LogEnter 'Creating package files...\n'
 	# shellcheck disable=SC2154
 	for spec in "${specs[@]}"
