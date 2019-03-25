@@ -130,7 +130,6 @@ function TestMatrixFileSetup() {
 
 		if ((p_present))
 		then
-			[[ "$p_kind" != 2 ]] || p_content= # Directories may not have "content"
 			TestMatrixAddObj test-package-"$p_present" "$fn" "$p_kind" "$p_content" "$p_attr"
 		fi
 	done
@@ -155,7 +154,6 @@ function TestMatrixFileSetup() {
 		fi
 		if ((f_present))
 		then
-			[[ "$f_kind" != 2 ]] || f_content= # Directories may not have "content"
 			TestMatrixAddObj '' "$fn" "$f_kind" "$f_content" "$f_attr"
 		fi
 
@@ -193,15 +191,13 @@ function TestMatrixAddObj() {
 	local attr=$5
 
 	local path=/dir/"$fn"
-	local mode
-	if [[ "$kind" == 3 ]] # link
-	then
-		mode= # symlinks can't have a mode
-	else
-		mode="${file_modes[$attr]}"
-	fi
 
-	TestAddFSObj "$package" "$path" "${file_kinds[$kind]}" "$f_content" "$mode" "${file_users[$attr]}" "${file_users[$attr]}"
+	[[ "$kind" != 2 ]] || content= # Directories may not have "content"
+
+	local mode="${file_modes[$attr]}"
+	[[ "$kind" != 3 ]] || mode= # Symlinks can't have a mode
+
+	TestAddFSObj "$package" "$path" "${file_kinds[$kind]}" "$content" "$mode" "${file_users[$attr]}" "${file_users[$attr]}"
 }
 
 function TestMatrixCheckObj() {
