@@ -290,6 +290,19 @@ function AconfApply() {
 		| comm -12 --zero-terminated "$tmp_dir"/managed-files-0 /dev/stdin \
 		| mapfile -t -d $'\0' files_to_restore_p
 
+	# Work around pacman bug ...
+	local path
+	local -a temporarily_created_files
+	for path in "${files_to_restore_p[@]}"
+	do
+		if ! sudo stat "$path" > /dev/null
+		then
+			Log 'Temporarily creating file %s for package query...\n' "$(Color C "%q" "$path")"
+			sudo touch "$path"
+			temporarily_created_files+=("$path")
+		fi
+	done
+
 	local -A file_owners package
 	local i=0
 	if [[ "${#files_to_restore_p[@]}" -gt 0 ]]
@@ -304,6 +317,12 @@ function AconfApply() {
 			done
 	fi
 	unset files_to_restore_p
+
+	for path in "${temporarily_created_files[@]}"
+	do
+		sudo rm "$path"
+	done
+	unset temporarily_created_files
 
 	LogLeave
 
