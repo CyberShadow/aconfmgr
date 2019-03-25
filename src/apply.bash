@@ -283,10 +283,11 @@ function AconfApply() {
 
 	local -a files_to_restore_p # preliminary
 	(
-		comm -12 --zero-terminated "$tmp_dir"/managed-files-0 <(Print0Array system_only_files)
-		Print0Array system_only_file_props | sed --null-data --silent 's/^\(.*\):deleted$/\1/p'
+		Print0Array system_only_files
+		Print0Array system_only_file_props | sed --null-data 's/^\(.*\):.*$/\1/'
 	) \
 		| sort --zero-terminated --unique \
+		| comm -12 --zero-terminated "$tmp_dir"/managed-files-0 /dev/stdin \
 		| mapfile -t -d $'\0' files_to_restore_p
 
 	local -A file_owners package
