@@ -17,9 +17,10 @@ file_users=(
 )
 
 function TestMatrixFileSetup() {
-	declare -ag specs
+	local test_list=("$@")
 
 	LogEnter 'Expanding specs...\n'
+	declare -ag specs
 	# shellcheck disable=SC2191
 	specs=("
 		"ignored={0..1}"
@@ -70,6 +71,19 @@ function TestMatrixFileSetup() {
 		if [[ "$p_present" == 1 && "$c_present" == 2 ]] ; then continue ; fi
 
 		fn="$ignored$priority-$p_present$p_kind$p_content$p_attr-$f_present$f_kind$f_content$f_attr-$c_present$c_kind$c_content$c_attr"
+		if [[ "${#test_list[@]}" -gt 0 ]]
+		then
+			local test found=false
+			for test in "${test_list[@]}"
+			do
+				if [[ "$fn" == "$test" ]]
+				then
+					found=true
+					break
+				fi
+			done
+			$found || continue
+		fi
 
 		specs2+=("$spec fn=$fn")
 	done
