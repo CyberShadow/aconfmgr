@@ -417,7 +417,7 @@ BEGIN {
 			then
 				local package="${BASH_REMATCH[1]}"
 				local file="${BASH_REMATCH[2]}"
-				printf '%s\t%s\t%q\n' "deleted" "y" "$file" >> "$system_dir"/file-props.txt
+				# Ignore
 			elif [[ $line =~ ^(.*):\ all\ files\ match\ (database|mtree|mtree\ md5sums)$ ]]
 			then
 				local package="${BASH_REMATCH[1]}"
