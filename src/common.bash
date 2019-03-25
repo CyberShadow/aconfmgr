@@ -670,6 +670,17 @@ function AconfAnalyzeFiles() {
 			local output_type system_type
 			output_type=$(LC_ALL=C stat --format=%F "$output_dir"/files/"$file")
 			system_type=$(LC_ALL=C stat --format=%F "$system_dir"/files/"$file")
+
+			if [[ "$output_type" != "$system_type" ]]
+			then
+				Log 'Changed type (%s / %s): %s\n' \
+					"$(Color Y "%q" "$output_type")" \
+					"$(Color Y "%q" "$system_type")" \
+					"$(Color C "%q" "$file")"
+				changed_files+=("$file")
+				continue
+			fi
+
 			if [[ "$output_type" == "directory" || "$system_type" == "directory" ]]
 			then
 				continue
