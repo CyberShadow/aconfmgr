@@ -64,7 +64,7 @@ function pacman() {
 				;;
 			-*)
 				FatalError 'Unknown mocked pacman switch %s\n' "$(Color Y "$arg")"
-a				;;
+				;;
 			*)
 				args+=("$arg")
 		esac
