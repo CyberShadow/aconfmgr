@@ -262,7 +262,9 @@ function Confirm() {
 
 	if [[ -n "$detail_func" ]]
 	then
+		LogEnter 'Details:\n'
 		"$detail_func"
+		LogLeave ''
 	fi
 
 	return 0
