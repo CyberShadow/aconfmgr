@@ -346,6 +346,8 @@ BEGIN {
 	# The canonical version is read from orig-file-props.txt in AconfAnalyzeFiles
 	unset orig_file_props ; typeset -Ag orig_file_props
 
+	touch "$tmp_dir"/file-owners
+
 	sudo sh -c "LC_ALL=C stdbuf -o0 paccheck --md5sum --files --file-properties --backup --noupgrade 2>&1 || true" | \
 		while read -r line
 		do
@@ -407,12 +409,14 @@ BEGIN {
 						printf '%s\t%s\t%q\n' "$prop" "$value" "$file" >> "$system_dir"/orig-file-props.txt
 					fi
 				fi
+				printf '%s\0%s\0' "$file" "$package" >> "$tmp_dir"/file-owners
 			elif [[ $line =~ ^(.*):\ \'(.*)\'\ missing\ file$ ]]
 			then
 				local package="${BASH_REMATCH[1]}"
 				local file="${BASH_REMATCH[2]}"
 				Log '%s (missing)...\r' "$(Color M "%q" "$package")"
 				printf '%s\t%s\t%q\n' "deleted" "y" "$file" >> "$system_dir"/file-props.txt
+				printf '%s\0%s\0' "$file" "$package" >> "$tmp_dir"/file-owners
 			elif [[ $line =~ ^warning:\ (.*):\ \'(.*)\'\ read\ error\ \(No\ such\ file\ or\ directory\)$ ]]
 			then
 				local package="${BASH_REMATCH[1]}"

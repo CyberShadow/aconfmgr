@@ -277,58 +277,9 @@ function AconfApply() {
 		LogLeave
 	fi
 
-	# Capture owners of files before removing packages
-	LogEnter 'Recording modified files'\'' owners...\n'
-	tr '\n' '\0' < "$tmp_dir"/managed-files > "$tmp_dir"/managed-files-0
-
-	local -a files_to_restore_p # preliminary
-	(
-		Print0Array system_only_files
-		Print0Array system_only_file_props | sed --null-data 's/^\(.*\):.*$/\1/'
-	) \
-		| sort --zero-terminated --unique \
-		| comm -12 --zero-terminated "$tmp_dir"/managed-files-0 /dev/stdin \
-		| mapfile -t -d $'\0' files_to_restore_p
-
-	# Work around pacman bug ...
-	local path
-	local -a temporarily_created_files
-	for path in "${files_to_restore_p[@]}"
-	do
-		if ! sudo stat "$path" > /dev/null
-		then
-			Log 'Temporarily creating file %s for package query...\n' "$(Color C "%q" "$path")"
-			sudo touch "$path"
-			temporarily_created_files+=("$path")
-		fi
-	done
-
-	local -A file_owners package
-	local i=0
-	if [[ "${#files_to_restore_p[@]}" -gt 0 ]]
-	then
-		Print0Array files_to_restore_p \
-			| sudo xargs -0 "$PACMAN" --query --quiet --owns \
-			| \
-			while read -r package
-			do
-				file_owners[${files_to_restore_p[$i]}]=$package
-				: $((i++))
-			done
-	fi
-	unset files_to_restore_p
-
-	for path in "${temporarily_created_files[@]}"
-	do
-		sudo rm "$path"
-	done
-	unset temporarily_created_files
-
-	LogLeave
-
 	# Orphan packages
 
-	local -A files_in_deleted_packages
+	local -A deleted_packages
 
 	if "$PACMAN" --query --unrequired --unrequired --deps --quiet > /dev/null
 	then
@@ -354,16 +305,10 @@ function AconfApply() {
 
 				sudo "${pacman_opts[@]}" --remove "${orphan_packages[@]}"
 
+				local package
 				for package in "${orphan_packages[@]}"
 				do
-					local path
-					for path in "${!file_owners[@]}"
-					do
-						if [[ -n "${file_owners[$path]+x}" && "${file_owners[$path]}" == "$package" ]]
-						then
-							files_in_deleted_packages[$path]=y
-						fi
-					done
+					deleted_packages[$package]=y
 				done
 
 				LogLeave
@@ -384,6 +329,18 @@ function AconfApply() {
 	fi
 
 	LogLeave # Configuring packages
+
+	local -A files_in_deleted_packages
+	# Read file owners
+	while read -r -d $'\0' file
+	do
+		local package
+		read -r -d $'\0' package
+		if [[ -n "${deleted_packages[$package]+x}" ]]
+		then
+			files_in_deleted_packages[$file]=$package
+		fi
+	done < "$tmp_dir"/file-owners
 
 	#
 	# Copy files
@@ -448,6 +405,7 @@ function AconfApply() {
 
 		LogEnter 'Filtering system-only lost files...\n'
 		local system_only_lost_files=0
+		tr '\n' '\0' < "$tmp_dir"/managed-files > "$tmp_dir"/managed-files-0
 		comm -13 --zero-terminated "$tmp_dir"/managed-files-0 <(Print0Array system_only_files) | \
 			while read -r -d $'\0' file
 			do
@@ -574,7 +532,7 @@ function AconfApply() {
 			then
 				Log 'Skipping file %s (was in pruned package %s).\n' \
 					"$(Color C "%q" "$file")" \
-					"$(Color M "%q" "${file_owners[$path]}")"
+					"$(Color M "%q" "${files_in_deleted_packages[$file]}")"
 				continue
 			fi
 
@@ -702,7 +660,7 @@ function AconfApply() {
 				then
 					Log 'Skipping file %s (was in pruned package %s).\n' \
 						"$(Color C "%q" "$file")" \
-						"$(Color M "%q" "${file_owners[$path]}")"
+						"$(Color M "%q" "${files_in_deleted_packages[$file]}")"
 					continue
 				fi
 
