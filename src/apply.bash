@@ -506,6 +506,11 @@ function AconfApply() {
 		comm -12 --zero-terminated "$tmp_dir"/managed-files-0 <(Print0Array system_only_files) | \
 			while read -r -d $'\0' file
 			do
+				if [[ "${output_file_props[$file:deleted]:-}" == y ]]
+				then
+					continue # Don't restore files that the user wants deleted
+				fi
+
 				files_to_restore+=("$file")
 				system_only_managed_files=$((system_only_managed_files+1))
 			done
