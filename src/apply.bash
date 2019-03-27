@@ -120,6 +120,15 @@ function AconfApply() {
 		fi
 
 		ApplyFileProps "$file"
+
+		if [[ -h "$source" ]]
+		then
+			# ApplyFileProps will apply and unset owner/group. For
+			# symlinks, we need to avoid attempting to restore the
+			# mode, so unset it here.
+			unset "system_file_props[\$file:mode]"
+			printf '%s\t%s\t%q\n' mode '' "$file" >> "$system_dir"/file-props.txt
+		fi
 	}
 
 	AconfCompile
