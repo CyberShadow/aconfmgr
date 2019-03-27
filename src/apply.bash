@@ -336,7 +336,7 @@ function AconfApply() {
 				ParanoidConfirm Details
 
 				local -a deleted_files=()
-				"$PACMAN" --query --list --quiet "${orphan_packages[@]}" | mapfile -t deleted_files
+				"$PACMAN" --query --list --quiet "${orphan_packages[@]}" | sed 's#^\(.*\)/$#\1#' | mapfile -t deleted_files
 				files_in_deleted_packages+=("${deleted_files[@]}")
 
 				sudo "${pacman_opts[@]}" --remove "${orphan_packages[@]}"
