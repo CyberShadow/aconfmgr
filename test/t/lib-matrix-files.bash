@@ -237,7 +237,7 @@ function TestMatrixFileCheckApply() {
 		local ignored priority p_present p_kind p_content p_attr f_present f_kind f_content f_attr c_present c_kind c_content c_attr fn
 		eval "$spec"
 
-		Log '%s\n' "$fn"
+		LogEnter '%s\n' "$fn"
 		local path=/dir/"$fn"
 
 		if [[ $c_present == 2 ]] # Present as SetFileProperty deleted y
@@ -255,6 +255,7 @@ function TestMatrixFileCheckApply() {
 		else
 			test ! -e "$path" -a ! -h "$path" # Must not exist
 		fi
+		LogLeave 'OK!\n'
 	done
 
 	unset specs file_kinds file_modes file_users
