@@ -538,7 +538,17 @@ function AconfApply() {
 			if [[ "$key" == *:deleted ]]
 			then
 				local file="${key%:*}"
-				files_to_restore+=("$file")
+
+				if [[ -h "$output_dir"/files/"$file" || -e "$output_dir"/files/"$file" ]]
+				then
+					# If we are going to replace a deleted file with
+					# one from the configuration, do not attempt to
+					# restore it.
+					:
+				else
+					files_to_restore+=("$file")
+				fi
+
 				unset "system_file_props[\$key]"
 			fi
 		done
