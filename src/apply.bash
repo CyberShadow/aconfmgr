@@ -679,6 +679,12 @@ function AconfApply() {
 			AconfReplace "$tmp_file" "$file"
 			sudo rm -rf "$tmp_base"
 
+			if sudo test -h "$file"
+			then
+				# Links no longer have a mode.
+				unset "system_file_props[\$file:mode]"
+			fi
+
 			LogLeave ''
 		done
 
