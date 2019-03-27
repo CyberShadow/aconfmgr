@@ -69,6 +69,9 @@ function TestMatrixFileSetup() {
 		[[ "$f_kind" != 2 || "$f_content" == 2 ]] || continue
 		[[ "$c_kind" != 2 || "$c_content" == 3 ]] || continue
 
+		# Cull bad config: if a file is not in a package, asking to delete it doesn't make sense
+		if [[ "$p_present" == 0 && "$c_present" == 2 ]] ; then continue ; fi
+
 		# Cull bad config: if a package is about to get removed, simultaneously asking to remove a file in that package doesn't make sense
 		if [[ "$p_present" == 1 && "$c_present" == 2 ]] ; then continue ; fi
 
