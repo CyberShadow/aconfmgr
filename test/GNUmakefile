@@ -67,7 +67,8 @@ BASH_TAR_FN=$(BASH_TAR_DIR).tar.gz
 BASH_TAR_URL_BASE=https://ftp.gnu.org/gnu/bash/
 BASH_TAR_URL=$(BASH_TAR_URL_BASE)$(BASH_TAR_FN)
 BASH_TAR=$(TMP)/$(BASH_TAR_FN)
-BASH_BIN=$(TMP)/bash/bin/bash
+BASH_BIN_DIR=$(TMP)/bash/bin
+BASH_BIN=$(BASH_BIN_DIR)/bash
 
 $(BASH_TAR) : | $(TMP)
 	curl --fail --output $@.tmp $(BASH_TAR_URL)
@@ -111,7 +112,7 @@ ifeq (,$(BUILD_BASH))
 else
  BASH=$(realpath $(BASH_BIN))
  BASH_DEP=$(BASH_BIN) $(COREUTILS_BIN_DIR)
- PATH_PREFIX=$(realpath $(COREUTILS_BIN_DIR)):
+ PATH_PREFIX=$(realpath $(COREUTILS_BIN_DIR)):$(realpath $(BASH_BIN_DIR)):
 endif
 
 # ShellCheck rule

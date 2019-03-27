@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # shellcheck source=../lib-init-mock.bash
 source ./lib-init-mock.bash
