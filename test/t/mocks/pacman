@@ -135,16 +135,23 @@ function pacman() {
 				list)
 					$opt_quiet || FatalError 'Mocked pacman --query --list without --quiet\n'
 
+					local -a packages
+					if [[ "${#args[@]}" -eq 0 ]]
+					then
+						find "$test_data_dir"/packages -mindepth 1 -maxdepth 1 -printf '%P\0' | mapfile -t -d $'\0' packages
+					else
+						packages=("${args[@]}")
+					fi
+
 					local package
-					find "$test_data_dir"/packages -mindepth 1 -maxdepth 1 -printf '%P\0' | \
-						while read -r -d $'\0' package
-						do
-							find "$test_data_dir"/packages/"$package"/files \
-								 -mindepth 1 \
-								 -printf '%P\n' \
-								| sed 's#^#/#'
-						done \
-							| sort -u
+					for package in "${packages[@]}"
+					do
+						find "$test_data_dir"/packages/"$package"/files \
+							 -mindepth 1 \
+							 -printf '%P\n' \
+							| sed 's#^#/#'
+					done \
+						| sort -u
 					;;
 				owns)
 					$opt_quiet || FatalError 'Mocked pacman --query --owns without --quiet\n'
