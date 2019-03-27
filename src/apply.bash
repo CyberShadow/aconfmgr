@@ -71,6 +71,8 @@ function AconfApply() {
 				ApplyFileProperty "$prop" "$value" "$file"
 				unset "output_file_props[\$key]"
 				unset "system_file_props[\$key]"
+
+				printf '%s\t%s\t%q\n' "$prop" "$value" "$file" >> "$system_dir"/file-props.txt
 			fi
 		done
 	}
@@ -78,6 +80,8 @@ function AconfApply() {
 	function InstallFile() {
 		local file="$1"
 		local source="$output_dir"/files/"$file"
+
+		# system
 
 		if ! ( test -d "$source" && sudo test -d "$file" )
 		then
@@ -94,6 +98,25 @@ function AconfApply() {
 			sudo install --mode=755 --owner=root --group=root -d "$file"
 		else
 			sudo install --mode=$default_file_mode --owner=root --group=root "$source" "$file"
+		fi
+
+		# $system_dir
+
+		local system_file="$system_dir"/files/"$file"
+		if ! ( test -d "$source" && sudo test -d "$system_file" )
+		then
+			rm --force --dir "$system_file"
+		fi
+
+		mkdir --parents "$(dirname "$system_file")"
+		if [[ -h "$source" ]]
+		then
+			cp --no-dereference "$source" "$system_file"
+		elif [[ -d "$source" ]]
+		then
+			mkdir --parents "$system_file"
+		else
+			cp --no-dereference "$source" "$system_file"
 		fi
 
 		ApplyFileProps "$file"
@@ -330,17 +353,70 @@ function AconfApply() {
 
 	LogLeave # Configuring packages
 
-	local -A files_in_deleted_packages
+	local -a files_in_deleted_packages=()
 	# Read file owners
+	local file
 	while read -r -d $'\0' file
 	do
 		local package
 		read -r -d $'\0' package
 		if [[ -n "${deleted_packages[$package]+x}" ]]
 		then
-			files_in_deleted_packages[$file]=$package
+			files_in_deleted_packages+=("$file")
 		fi
 	done < "$tmp_dir"/file-owners
+
+	local -a modified_files_in_deleted_packages
+	(
+		cat "$tmp_dir"/output-files "$tmp_dir"/system-files
+		local kind value file
+		cat "$output_dir"/file-props.txt "$system_dir"/file-props.txt \
+			| \
+			while IFS=$'\t' read -r kind value file
+			do
+				eval "printf '%s\\0' $file" # Unescape
+			done
+	) \
+		| sort --zero-terminated --unique \
+		| comm --zero-terminated -12 <(Print0Array files_in_deleted_packages | sort --zero-terminated --unique) /dev/stdin \
+		| tac \
+		| mapfile -t -d $'\0' modified_files_in_deleted_packages
+
+	if [[ "${#modified_files_in_deleted_packages[@]}" -gt 0 ]]
+	then
+		LogEnter 'Detected %s modified files in pruned packages.\n' \
+				 "$(Color G %s "${#modified_files_in_deleted_packages[@]}")"
+
+		LogEnter 'Updating system files...\n'
+		local file
+		for file in "${modified_files_in_deleted_packages[@]}"
+		do
+			local system_file="$system_dir"/files"$file"
+			if [[ -h "$system_file" || -f "$system_file" ]]
+			then
+				rm --force "$system_file"
+			elif [[ -d "$system_file" ]]
+			then
+				rmdir --ignore-fail-on-non-empty "$system_file"
+			elif [[ -e "$system_file" ]]
+			then
+				FatalError '%s exists, but is neither file or directory or link?\n' \
+						   "$(Color C "%q" "$file")"
+			fi
+
+			local prop
+			for prop in "${all_file_property_kinds[@]}"
+			do
+				printf '%s\t%s\t%q\n' "$prop" '' "$file" >> "$system_dir"/file-props.txt
+			done
+		done
+		LogLeave
+
+		LogEnter 'Rescanning...\n'
+		AconfAnalyzeFiles
+		LogLeave
+		LogLeave
+	fi
 
 	#
 	# Copy files
@@ -528,14 +604,6 @@ function AconfApply() {
 		do
 			local package
 
-			if [[ -n "${files_in_deleted_packages[$file]+x}" ]]
-			then
-				Log 'Skipping file %s (was in pruned package %s).\n' \
-					"$(Color C "%q" "$file")" \
-					"$(Color M "%q" "${files_in_deleted_packages[$file]}")"
-				continue
-			fi
-
 			# Ensure file exists, to work around pacman's inability to
 			# query ownership of non-existing files. See:
 			# https://lists.archlinux.org/pipermail/pacman-dev/2017-August/022107.html
@@ -671,12 +739,6 @@ function AconfApply() {
 						InstallFile "$file"
 						LogLeave
 						restored_files[$file]=y
-					elif [[ -n "${files_in_deleted_packages[$file]+x}" ]]
-					then
-						Log 'Skipping file %s (was in pruned package %s).\n' \
-							"$(Color C "%q" "$file")" \
-							"$(Color M "%q" "${files_in_deleted_packages[$file]}")"
-						continue
 					else
 						FatalError 'Trying to apply file property %s (%s) to non-existent file %s!\n' \
 								   "$(Color Y "%q" "$kind")" \
