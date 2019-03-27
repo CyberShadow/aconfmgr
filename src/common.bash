@@ -494,6 +494,14 @@ BEGIN {
 			local prop
 			for prop in mode owner group
 			do
+				# Ignore mode "changes" in symbolic links
+				# If a file's type changes, a change in mode can be reported too.
+				# But, symbolic links cannot have a mode, so ignore this change.
+				if [[ "$type" == "symbolic link" && "$prop" == mode ]]
+				then
+					continue
+				fi
+
 				local value
 				eval "value=\$$prop"
 
