@@ -656,25 +656,33 @@ function AconfApply() {
 					continue # File was restored in full, and its output_file_props were deleted
 				fi
 
-				if [[ -n "${files_in_deleted_packages[$file]+x}" ]]
-				then
-					Log 'Skipping file %s (was in pruned package %s).\n' \
-						"$(Color C "%q" "$file")" \
-						"$(Color M "%q" "${files_in_deleted_packages[$file]}")"
-					continue
-				fi
-
 				if sudo test -e "$file" || sudo test -h "$file"
 				then
 					ApplyFileProperty "$kind" "$value" "$file"
 				else
 					# File no longer exists.
 					# This can happen if it was part of a package that was removed during this run.
-					LogEnter 'File %s no longer exists - recreating.\n' \
-						"$(Color C "%q" "$file")"
-					InstallFile "$file"
-					LogLeave
-					restored_files[$file]=y
+
+					local source="$output_dir"/files/"$file"
+					if [[ -h "$source" || -e "$source" ]]
+					then
+						LogEnter 'File %s no longer exists - recreating.\n' \
+							"$(Color C "%q" "$file")"
+						InstallFile "$file"
+						LogLeave
+						restored_files[$file]=y
+					elif [[ -n "${files_in_deleted_packages[$file]+x}" ]]
+					then
+						Log 'Skipping file %s (was in pruned package %s).\n' \
+							"$(Color C "%q" "$file")" \
+							"$(Color M "%q" "${files_in_deleted_packages[$file]}")"
+						continue
+					else
+						FatalError 'Trying to apply file property %s (%s) to non-existent file %s!\n' \
+								   "$(Color Y "%q" "$kind")" \
+								   "$(Color G "%q" "$value")" \
+								   "$(Color C "%q" "$file")"
+					fi
 				fi
 			done
 
