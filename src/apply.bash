@@ -311,7 +311,7 @@ function AconfApply() {
 
 	# Orphan packages
 
-	local -A deleted_packages
+	local -a files_in_deleted_packages=()
 
 	if "$PACMAN" --query --unrequired --unrequired --deps --quiet > /dev/null
 	then
@@ -335,13 +335,11 @@ function AconfApply() {
 				function Details() { Log 'Removing the following orphan packages:%s\n' "$(Color M " %q" "${orphan_packages[@]}")" ; }
 				ParanoidConfirm Details
 
-				sudo "${pacman_opts[@]}" --remove "${orphan_packages[@]}"
+				local -a deleted_files=()
+				"$PACMAN" --query --list --quiet "${orphan_packages[@]}" | mapfile -t deleted_files
+				files_in_deleted_packages+=("${deleted_files[@]}")
 
-				local package
-				for package in "${orphan_packages[@]}"
-				do
-					deleted_packages[$package]=y
-				done
+				sudo "${pacman_opts[@]}" --remove "${orphan_packages[@]}"
 
 				LogLeave
 			fi
@@ -362,19 +360,7 @@ function AconfApply() {
 
 	LogLeave # Configuring packages
 
-	local -a files_in_deleted_packages=()
 	# Read file owners
-	local file
-	while read -r -d $'\0' file
-	do
-		local package
-		read -r -d $'\0' package
-		if [[ -n "${deleted_packages[$package]+x}" ]]
-		then
-			files_in_deleted_packages+=("$file")
-		fi
-	done < "$tmp_dir"/file-owners
-
 	local -a modified_files_in_deleted_packages
 	(
 		cat "$tmp_dir"/output-files "$tmp_dir"/system-files
