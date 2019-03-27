@@ -610,32 +610,47 @@ function AconfApply() {
 		}
 		Confirm Details
 
+		# Read file owners
+		local -A file_owners
+		local file
+		while read -r -d $'\0' file
+		do
+			local package
+			read -r -d $'\0' package
+			file_owners[$file]=$package
+		done < "$tmp_dir"/file-owners
+
 		for file in "${files_to_restore[@]}"
 		do
 			local package
 
-			# Ensure file exists, to work around pacman's inability to
-			# query ownership of non-existing files. See:
-			# https://lists.archlinux.org/pipermail/pacman-dev/2017-August/022107.html
-			local absent=false
-			if ! sudo stat "$file" > /dev/null
+			if [[ -n "${file_owners[$file]+x}" ]]
 			then
-				Log 'Temporarily creating file %s for package query...\n' "$(Color C "%q" "$file")"
-				sudo touch "$file"
-				absent=true
-			fi
+				package=${file_owners[$file]}
+			else
+				# Ensure file exists, to work around pacman's inability to
+				# query ownership of non-existing files. See:
+				# https://lists.archlinux.org/pipermail/pacman-dev/2017-August/022107.html
+				local absent=false
+				if ! sudo stat "$file" > /dev/null
+				then
+					Log 'Temporarily creating file %s for package query...\n' "$(Color C "%q" "$file")"
+					sudo touch "$file"
+					absent=true
+				fi
 
-			package="$( ("$PACMAN" --query --owns --quiet "$file" || true) | head -n 1)"
+				package="$( ("$PACMAN" --query --owns --quiet "$file" || true) | head -n 1)"
 
-			if $absent
-			then
-				sudo rm "$file"
-			fi
+				if $absent
+				then
+					sudo rm "$file"
+				fi
 
-			if [[ -z "$package" ]]
-			then
-				Log 'Can'\''t find package owning file %s\n' "$(Color C "%q" "$file")"
-				Exit 1
+				if [[ -z "$package" ]]
+				then
+					Log 'Can'\''t find package owning file %s\n' "$(Color C "%q" "$file")"
+					Exit 1
+				fi
 			fi
 
 			LogEnter 'Restoring %s file %s...\n' "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
