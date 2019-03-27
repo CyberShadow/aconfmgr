@@ -246,7 +246,7 @@ function TestMatrixFileCheckApply() {
 		elif [[ $c_present == 1 ]]
 		then
 			TestMatrixCheckObj "$path" "$c_kind" "$c_content" "$c_attr" # Must be as in config
-		elif [[ $f_present == 1 && $ignored == 1 ]]
+		elif [[ $f_present == 1 && $ignored == 1 && $p_present != 1 ]]
 		then
 			TestMatrixCheckObj "$path" "$f_kind" "$f_content" "$f_attr" # Must be as in filesystem
 		elif [[ $p_present == 2 ]]
