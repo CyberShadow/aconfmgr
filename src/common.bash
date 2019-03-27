@@ -1336,6 +1336,26 @@ function AconfGetPackageOriginalFile() {
 	fi
 }
 
+function AconfRestoreFile() {
+	local package=$1
+	local file=$2
+
+	local package_file
+	package_file="$(AconfNeedPackageFile "$package")"
+
+	# If we are restoring a directory, it may be non-empty.
+	# Extract the object to a temporary location first.
+	local tmp_base=${tmp_dir:?}/dir-props
+	sudo rm -rf "$tmp_base"
+
+	mkdir -p "$tmp_base"
+	local tmp_file="$tmp_base""$file"
+	sudo tar x --directory "$tmp_base" --file "$package_file" --no-recursion "${file/\//}"
+
+	AconfReplace "$tmp_file" "$file"
+	sudo rm -rf "$tmp_base"
+}
+
 # Move filesystem object at $1 to $2, replacing any existing one.
 # Attempt to do so atomically, when possible.
 # Do the right thing when filesystem objects differ, but never
