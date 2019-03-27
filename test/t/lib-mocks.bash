@@ -394,6 +394,42 @@ function AconfNeedProgram() {
 	: # ignore
 }
 
+function AconfRestoreFile() {
+	local package=$1
+	local file=$2
+
+	local system_file="$test_data_dir"/files$file
+	local package_file="$test_data_dir"/packages/"$package"/files"$file"
+
+	if [[ -d "$system_file" && -d "$package_file" ]]
+	then
+		:
+	else
+		rm -f --dir "$system_file"
+	fi
+
+	if [[ -d "$package_file" ]]
+	then
+		mkdir --parents "$system_file"
+	else
+		cp --no-dereference --no-target-directory \
+		   "$package_file" \
+		   "$system_file"
+	fi
+
+	local prop
+	for prop in owner group mode
+	do
+		local system_prop="$test_data_dir"/file-props"$file"."$prop"
+		local package_prop="$test_data_dir"/packages/"$package"/file-props"$file"."$prop"
+		rm -f "$system_prop"
+		if [[ -e "$package_prop" ]]
+		then
+			cp "$package_prop" "$system_prop"
+		fi
+	done
+}
+
 # Some mocked commands cannot be functions, if:
 #
 # - They are executed from a condition (e.g. `if prog; then` or `prog
