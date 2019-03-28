@@ -202,7 +202,7 @@ function AconfSave() {
 				for prop in "${props[@]}"
 				do
 					local key="$file:$prop"
-					if [[ -n "${system_file_props[$key]+x}" && ( -z "${output_file_props[$key]+x}" || "${system_file_props[$key]}" != "${output_file_props[$key]}" ) ]]
+					if [[ -n "${system_file_props[$key]+x}" ]]
 					then
 						args+=("${system_file_props[$key]}")
 						unset "output_file_props[\$key]"
