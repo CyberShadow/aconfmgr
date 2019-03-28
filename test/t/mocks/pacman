@@ -222,6 +222,9 @@ function pacman() {
 				local package
 				for package in "${args[@]}"
 				do
+					local kind
+					kind=$(cat "$test_data_dir"/packages/"$package"/kind)
+					[[ "$kind" == native ]] || FatalError 'Cannot install non-native packages (%s, kind=%s) via pacman!\n' "$package" "$kind"
 					printf '%s\t%s\t%s\n' "$package" native "$inst_as" >> "$test_data_dir"/packages.txt
 				done
 
