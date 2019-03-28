@@ -136,6 +136,37 @@ function TestMatrixPackageCheckApply() {
 	unset specs package_kinds package_kind_switch package_dependences
 }
 
+# shellcheck disable=SC2030,SC2031
 function TestMatrixPackageCheckRoundtrip() {
-	FatalError 'TODO\n'
+	local -a packages=()
+	( "$PACMAN" --query --quiet || true ) | mapfile -t packages
+	local -A package_present
+	local package
+	for package in "${packages[@]}"
+	do
+		package_present[$package]=y
+	done
+
+	local spec
+	for spec in "${specs[@]}"
+	do
+		local ignored s_present s_kind s_dependence c_present c_kind name
+		eval "$spec"
+
+		LogEnter '%s\n' "$name"
+
+		local expected
+		if ((s_present && s_dependence > 1))
+		then
+			expected=y
+		else
+			expected=n
+		fi
+
+		[[ "${package_present[$name]:-n}" == "$expected" ]] || \
+			FatalError 'Wrong package installation state: expected %s, result %s\n' "$expected" "${package_present[$name]:-n}"
+		LogLeave 'OK!\n'
+	done
+
+	unset specs package_kinds package_kind_switch package_dependences
 }
