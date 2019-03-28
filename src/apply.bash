@@ -667,11 +667,12 @@ function AconfApply() {
 
 			AconfRestoreFile "$package" "$file"
 
-			if sudo test -h "$file"
-			then
-				# Links no longer have a mode.
-				unset "system_file_props[\$file:mode]"
-			fi
+			# The file was restored with all of its original properties.
+			local prop
+			for prop in owner group mode
+			do
+				unset "system_file_props[\$file:\$prop]"
+			done
 
 			LogLeave ''
 		done
