@@ -211,6 +211,20 @@ function pacman() {
 					done \
 						| sort -u
 			else
+				local inst_as
+				if $opt_asdeps
+				then
+					inst_as=orphan
+				else
+					inst_as=explicit
+				fi
+
+				local package
+				for package in "${args[@]}"
+				do
+					printf '%s\t%s\t%s\n' "$package" native "$inst_as" >> "$test_data_dir"/packages.txt
+				done
+
 				echo pacman "$@" >> "$test_data_dir"/pacman.log
 			fi
 			;;
