@@ -51,6 +51,9 @@ function TestMatrixPackageSetup() {
 		# Cull bad config: configurations should not both ignore and install a package
 		if [[ "$c_present" == 1 && "$ignored" == 1 ]] ; then continue ; fi
 
+		# Cull bad config: installing mismatched package kind
+		if [[ "$s_present" == 0 && "$c_present" == 1 && "$s_kind" != "$c_kind" ]] ; then continue ; fi
+
 		name="$ignored-$s_present$s_kind$s_dependence-$c_present$c_kind"
 
 		specs2+=("$spec name=$name")
