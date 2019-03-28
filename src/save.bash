@@ -157,15 +157,23 @@ function AconfSave() {
 
 				local func args props suffix=''
 
-				local system_file type
-				system_file="$system_dir"/files/"$file"
-				type=$(LC_ALL=C stat --format=%F "$system_file")
-				if [[ "$type" == "symbolic link" ]]
+				local output_file="$output_dir"/files/"$file"
+				local system_file="$system_dir"/files/"$file"
+
+				if [[ ( -d "$output_file" && ! -d "$system_file" ) || ( ! -d "$output_file" && -d "$system_file" ) ]]
+				then
+					printf 'RemoveFile %q # Replacing %s with %s\n' "$file" \
+						   "$(LC_ALL=C stat --format=%F "$output_file")" \
+						   "$(LC_ALL=C stat --format=%F "$system_file")" \
+						   >> "$config_save_target"
+				fi
+
+				if [[ -h "$system_file" ]]
 				then
 					func=CreateLink
 					args=("$file" "$(readlink "$system_file")")
 					props=(owner group)
-				elif [[ "$type" == "directory" ]]
+				elif [[ -d "$system_file" ]]
 				then
 					func=CreateDir
 					args=("$file")

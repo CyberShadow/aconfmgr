@@ -233,7 +233,6 @@ function TestMatrixCheckObj() {
 }
 
 function TestMatrixFileCheckApply() {
-	# shellcheck disable=SC2154
 	local spec
 	for spec in "${specs[@]}"
 	do
@@ -257,6 +256,28 @@ function TestMatrixFileCheckApply() {
 			TestMatrixCheckObj "$path" "$p_kind" "$p_content" "$p_attr" # Must be as in package
 		else
 			test ! -e "$path" -a ! -h "$path" # Must not exist
+		fi
+		LogLeave 'OK!\n'
+	done
+
+	unset specs file_kinds file_modes file_users
+}
+
+function TestMatrixFileCheckRoundtrip() {
+	local spec
+	for spec in "${specs[@]}"
+	do
+		local ignored priority p_present p_kind p_content p_attr f_present f_kind f_content f_attr c_present c_kind c_content c_attr fn
+		eval "$spec"
+
+		LogEnter '%s\n' "$fn"
+		local path=/dir/"$fn"
+
+		if [[ $f_present == 0 ]]
+		then
+			test ! -e "$path" -a ! -h "$path" # Must not exist
+		else
+			TestMatrixCheckObj "$path" "$f_kind" "$f_content" "$f_attr" # Must be as in filesystem
 		fi
 		LogLeave 'OK!\n'
 	done
