@@ -102,29 +102,6 @@ function AconfSave() {
 
 	LogEnter 'Registering files...\n'
 
-	function PrintFileProps() {
-		local file="$1"
-		local prop
-		local printed=n
-
-		for prop in "${all_file_property_kinds[@]}"
-		do
-			local key="$file:$prop"
-			if [[ -n "${system_file_props[$key]+x}" && ( -z "${output_file_props[$key]+x}" || "${system_file_props[$key]}" != "${output_file_props[$key]}" ) ]]
-			then
-				printf 'SetFileProperty %q %q %q\n' "$file" "$prop" "${system_file_props[$key]}" >> "$config_save_target"
-				unset "output_file_props[\$key]"
-				unset "system_file_props[\$key]"
-				printed=y
-			fi
-		done
-
-		if [[ $printed == y ]]
-		then
-			printf '\n' >> "$config_save_target"
-		fi
-	}
-
 	# Don't emit redundant CreateDir lines
 	local -A skip_dirs
 	local file
@@ -219,8 +196,6 @@ function AconfSave() {
 				done
 
 				printf '%s%s%s\n' "$func" "$(printf ' %q' "${args[@]}")" "$suffix" >> "$config_save_target"
-
-				PrintFileProps "$file"
 			done
 		modified=y
 		LogLeave
@@ -248,7 +223,7 @@ function AconfSave() {
 
 	LogEnter 'Registering file properties...\n'
 
-	AconfCompareFileProps # Update data after PrintFileProps' unsets
+	AconfCompareFileProps # Update data after above unsets
 
 	if [[ ${#system_only_file_props[@]} != 0 || ${#changed_file_props[@]} != 0 ]]
 	then
