@@ -160,7 +160,7 @@ function AconfSave() {
 				local output_file="$output_dir"/files/"$file"
 				local system_file="$system_dir"/files/"$file"
 
-				if [[ ( -d "$output_file" && ! -d "$system_file" ) || ( ! -d "$output_file" && -d "$system_file" ) ]]
+				if ! [[ ( -d "$output_file" && -d "$system_file" ) || ( -f "$output_file" && -f "$system_file" ) ]]
 				then
 					printf 'RemoveFile %q # Replacing %s with %s\n' "$file" \
 						   "$(LC_ALL=C stat --format=%F "$output_file")" \
