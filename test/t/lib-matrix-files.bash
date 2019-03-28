@@ -39,7 +39,7 @@ function TestMatrixFileSetup() {
 
 		"c_present={0..2}"
 		"c_kind={1..3}"
-		"c_content={1..3}"
+		"c_content={0..3}"
 		"c_attr={1..3}"
 	")
 	LogLeave 'Done (%s specs).\n' "$(Color G "${#specs[@]}")"
@@ -69,11 +69,17 @@ function TestMatrixFileSetup() {
 		[[ "$f_kind" != 2 || "$f_content" == 2 ]] || continue
 		[[ "$c_kind" != 2 || "$c_content" == 3 ]] || continue
 
+		# Cull varying type for content-less config files
+		if [[ "$c_content" == 0 && "$c_kind" != 1 ]] ; then continue ; fi
+
 		# Cull bad config: if a file is not in a package, asking to delete it doesn't make sense
 		if [[ "$p_present" == 0 && "$c_present" == 2 ]] ; then continue ; fi
 
 		# Cull bad config: if a package is about to get removed, simultaneously asking to remove a file in that package doesn't make sense
 		if [[ "$p_present" == 1 && "$c_present" == 2 ]] ; then continue ; fi
+
+		# Cull bad config: if we are not providing the content of some file in the config, it should be in a package
+		if [[ "$c_content" == 0 && "$p_present" != 2 ]] ; then continue ; fi
 
 		# Cull bad config: configurations should not mention a file if it is in the ignore list
 		if [[ "$c_present" != 0 && "$ignored" == 1 ]] ; then continue ; fi
@@ -162,21 +168,34 @@ function TestMatrixFileSetup() {
 
 		if [[ $c_present == 1 ]]
 		then
-			case $c_kind in
-				1) # file
-					# shellcheck disable=SC2016
-					TestAddConfig "$(printf 'printf %%s %q > $(CreateFile /dir/%q %q %q %q)' \
-											"$c_content" "$fn" "${file_modes[$c_attr]}" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
-					;;
-				2) # dir
-					TestAddConfig "$(printf 'CreateDir /dir/%q %q %q %q' \
-											"$fn" "${file_modes[$c_attr]}" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
-					;;
-				3) # link
-					TestAddConfig "$(printf 'CreateLink /dir/%q %q %q %q' \
-											"$fn" "$c_content" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
-					;;
-			esac
+			if [[ $c_content == 0 ]]
+			then
+				TestAddConfig "$(printf 'SetFileProperty /dir/%q owner %q' \
+										"$fn" "${file_users[$c_attr]}")"
+				TestAddConfig "$(printf 'SetFileProperty /dir/%q group %q' \
+										"$fn" "${file_users[$c_attr]}")"
+				if [[ $p_kind != 3 ]]
+				then
+					TestAddConfig "$(printf 'SetFileProperty /dir/%q mode %q' \
+											"$fn" "${file_modes[$c_attr]}")"
+				fi
+			else
+				case $c_kind in
+					1) # file
+						# shellcheck disable=SC2016
+						TestAddConfig "$(printf 'printf %%s %q > $(CreateFile /dir/%q %q %q %q)' \
+												"$c_content" "$fn" "${file_modes[$c_attr]}" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
+						;;
+					2) # dir
+						TestAddConfig "$(printf 'CreateDir /dir/%q %q %q %q' \
+												"$fn" "${file_modes[$c_attr]}" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
+						;;
+					3) # link
+						TestAddConfig "$(printf 'CreateLink /dir/%q %q %q %q' \
+												"$fn" "$c_content" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
+						;;
+				esac
+			fi
 		elif [[ $c_present == 2 ]]
 		then
 			TestAddConfig "$(printf 'SetFileProperty /dir/%q deleted y' \
@@ -247,7 +266,12 @@ function TestMatrixFileCheckApply() {
 			test ! -e "$path" -a ! -h "$path" # Must not exist
 		elif [[ $c_present == 1 ]]
 		then
-			TestMatrixCheckObj "$path" "$c_kind" "$c_content" "$c_attr" # Must be as in config
+			if [[ $c_content == 0 ]]
+			then
+				TestMatrixCheckObj "$path" "$p_kind" "$p_content" "$c_attr" # Kind/content as in package, attr as in config
+			else
+				TestMatrixCheckObj "$path" "$c_kind" "$c_content" "$c_attr" # Must be as in config
+			fi
 		elif [[ $f_present == 1 && $ignored == 1 && $p_present != 1 ]]
 		then
 			TestMatrixCheckObj "$path" "$f_kind" "$f_content" "$f_attr" # Must be as in filesystem
