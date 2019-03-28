@@ -628,23 +628,7 @@ function AconfApply() {
 			then
 				package=${file_owners[$file]}
 			else
-				# Ensure file exists, to work around pacman's inability to
-				# query ownership of non-existing files. See:
-				# https://lists.archlinux.org/pipermail/pacman-dev/2017-August/022107.html
-				local absent=false
-				if ! sudo stat "$file" > /dev/null
-				then
-					Log 'Temporarily creating file %s for package query...\n' "$(Color C "%q" "$file")"
-					sudo touch "$file"
-					absent=true
-				fi
-
 				package="$( ("$PACMAN" --query --owns --quiet "$file" || true) | head -n 1)"
-
-				if $absent
-				then
-					sudo rm "$file"
-				fi
 
 				if [[ -z "$package" ]]
 				then
@@ -730,7 +714,6 @@ function AconfApply() {
 		Confirm Details
 
 		local key
-		local -A restored_files
 		( Print0Array config_only_file_props ; Print0Array changed_file_props ; Print0Array system_only_file_props ) | \
 			while read -r -d $'\0' key
 			do
@@ -738,33 +721,7 @@ function AconfApply() {
 				local file="${key%:*}"
 				local value="${output_file_props[$key]:-}"
 
-				if [[ -n "${restored_files[$file]+x}" ]]
-				then
-					continue # File was restored in full, and its output_file_props were deleted
-				fi
-
-				if sudo test -e "$file" || sudo test -h "$file"
-				then
-					ApplyFileProperty "$kind" "$value" "$file"
-				else
-					# File no longer exists.
-					# This can happen if it was part of a package that was removed during this run.
-
-					local source="$output_dir"/files/"$file"
-					if [[ -h "$source" || -e "$source" ]]
-					then
-						LogEnter 'File %s no longer exists - recreating.\n' \
-							"$(Color C "%q" "$file")"
-						InstallFile "$file"
-						LogLeave
-						restored_files[$file]=y
-					else
-						FatalError 'Trying to apply file property %s (%s) to non-existent file %s!\n' \
-								   "$(Color Y "%q" "$kind")" \
-								   "$(Color G "%q" "$value")" \
-								   "$(Color C "%q" "$file")"
-					fi
-				fi
+				ApplyFileProperty "$kind" "$value" "$file"
 			done
 
 		modified=y
