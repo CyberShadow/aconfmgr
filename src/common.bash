@@ -570,7 +570,7 @@ function AconfDefaultFileProp() {
 
 			if [[ "$type" == "symbolic link" ]]
 			then
-				printf 777
+				FatalError 'Symbolic links do not have a mode\n' # Bug
 			elif [[ "$type" == "directory" ]]
 			then
 				printf 755
