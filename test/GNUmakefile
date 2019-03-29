@@ -171,7 +171,7 @@ $(TMP)/.docker-image-ok-arch : $(ARCH_TAR) docker/Dockerfile.arch
 		"$(ARCH_TAR_DIR)"
 	touch "$@"
 
-$(TMP)/.docker-image-ok : $(TMP)/.docker-image-ok-arch docker/Dockerfile docker/build-packages.sh ../.dockerignore
+$(TMP)/.docker-image-ok : $(TMP)/.docker-image-ok-arch docker/Dockerfile ../.dockerignore
 	$(DOCKER) build \
 		-t aconfmgr \
 		-f docker/Dockerfile \

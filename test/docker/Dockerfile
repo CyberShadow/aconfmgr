@@ -1,12 +1,4 @@
-FROM aconfmgr-arch AS builder
-
-ADD . /aconfmgr
-RUN /aconfmgr/test/docker/build-packages.sh
-
-
 FROM aconfmgr-arch
-
-COPY --from=builder /aconfmgr-packages/ /aconfmgr-packages/
 
 RUN mkdir /aconfmgr-repo/
 RUN repo-add /aconfmgr-repo/aconfmgr.db.tar

@@ -1,4 +1,3 @@
 *
 !/src
 !/test/docker/run-one.sh
-!/test/docker/build-packages.sh
