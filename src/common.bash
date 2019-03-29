@@ -338,7 +338,7 @@ BEGIN {
 
 	LogEnter 'Searching for modified files...\n'
 
-	AconfNeedProgram paccheck pacutils y
+	AconfNeedProgram paccheck pacutils n
 	local modified_file_count=0
 	local -A saw_file
 
@@ -933,7 +933,7 @@ function AconfMakePkgDir() {
 								# Check if this package is provided by something in pacman repos.
 								# `pacman -Si` will not give us that information,
 								# however, `pacman -S` still works.
-								AconfNeedProgram pacsift pacutils y
+								AconfNeedProgram pacsift pacutils n
 								local providers
 								providers=$(pacsift --sync --exact --satisfies="$dependency")
 								if [[ -n "$providers" ]]
