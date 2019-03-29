@@ -22,11 +22,4 @@ pacman_opts+=(--noconfirm)
 
 mkdir /aconfmgr-packages
 
-packages=(pacutils)
-for package in "${packages[@]}"
-do
-	file=$(AconfNeedPackageFile "$package")
-	cp "$file" /aconfmgr-packages/"$package".pkg.tar.xz
-done
-
 Exit 0
