@@ -17,7 +17,6 @@ AddPackage bison
 AddPackage fakeroot
 AddPackage file
 AddPackage flex
-AddPackage gawk
 AddPackage gcc
 AddPackage gettext
 AddPackage grep
@@ -27,16 +26,18 @@ AddPackage libtool
 AddPackage m4
 AddPackage make
 AddPackage patch
-AddPackage pkg-config
+AddPackage pkgconf
 AddPackage sed
 AddPackage sudo
 AddPackage systemd
 AddPackage texinfo
 AddPackage which
 
+AddPackage ruby-rdoc
+AddPackage rubygems
+
 AddPackage git
 AddPackage pacutils
-AddPackage ruby
 
 IgnorePackage --foreign parent-package
 
