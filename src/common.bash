@@ -1020,8 +1020,8 @@ EOF
 
 		if [[ $EUID == 0 ]]
 		then
-			chown -R nobody: .
-			su -s /bin/bash nobody -c "GNUPGHOME=$(realpath ../../gnupg) $(printf ' %q' "${args[@]}")"
+			chown -R "$makepkg_user": .
+			su -s /bin/bash "$makepkg_user" -c "GNUPGHOME=$(realpath ../../gnupg) $(printf ' %q' "${args[@]}")"
 
 			if $install
 			then
