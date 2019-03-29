@@ -188,4 +188,4 @@ clean :
 
 # GNU make directives
 
-.PHONY: check ci shellcheck testsuite coverage clean
+.PHONY: check ci shellcheck testsuite coverage docker-image clean
