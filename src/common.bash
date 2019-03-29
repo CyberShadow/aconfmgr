@@ -876,6 +876,15 @@ function AconfMakePkg() {
 		return
 	fi
 
+	AconfMakePkgDir "$package" "$asdeps" "$install" "$pkg_dir"
+}
+
+function AconfMakePkgDir() {
+	local package=$1
+	local asdeps=$2
+	local install=$3
+	local pkg_dir=$4
+
 	local gnupg_home
 	gnupg_home="$(realpath -m "$tmp_dir/gnupg")"
 	local makepkg_user=nobody # when running as root
