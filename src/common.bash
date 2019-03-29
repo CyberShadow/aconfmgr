@@ -931,7 +931,7 @@ function AconfMakePkgDir() {
 							# however, `pacman -S` still works.
 							AconfNeedProgram pacsift pacutils n
 							local providers
-							providers=$(pacsift --sync --exact --satisfies="$dependency")
+							providers=$(pacsift --sync --exact --satisfies="$dependency" <&-)
 							if [[ -n "$providers" ]]
 							then
 								Log 'Installing provider package from repositories...\n'
