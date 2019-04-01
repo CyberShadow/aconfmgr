@@ -165,10 +165,11 @@ DOCKER=docker
 $(TMP)/.docker-image-ok-arch : $(ARCH_TAR) docker/Dockerfile.arch
 	$(DOCKER) build \
 		-t aconfmgr-arch \
-		-f docker/Dockerfile.arch \
+		-f - \
 		--build-arg arch_tar="$(ARCH_TAR_FN)" \
 		--build-arg arch_date=$(subst .,/,$(ARCH_DATE)) \
-		"$(ARCH_TAR_DIR)"
+		"$(ARCH_TAR_DIR)" \
+		< docker/Dockerfile.arch
 	touch "$@"
 
 $(TMP)/.docker-image-ok : $(TMP)/.docker-image-ok-arch docker/Dockerfile ../.dockerignore
