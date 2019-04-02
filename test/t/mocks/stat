@@ -25,6 +25,9 @@ function stat() {
 		--format=%G)
 			kind=group
 			;;
+		--format=%y)
+			kind=mtime
+			;;
 		-f) # filesystem
 			/usr/bin/stat "$@"
 			return
