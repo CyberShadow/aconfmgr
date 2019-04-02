@@ -76,6 +76,7 @@ function TestAddFSObj() {
 	local mode=${5:-}
 	local owner=${6:-}
 	local group=${7:-}
+	local mtime=${8:-@0}
 
 	local root prefix
 	if [[ -z "$package" ]]
@@ -106,7 +107,7 @@ function TestAddFSObj() {
 			FatalError 'Unknown filesystem object type %s\n' "$type"
 			;;
 	esac
-	"${prefix[@]}" touch --no-dereference --date @0 "$fn"
+	"${prefix[@]}" touch --no-dereference --date "$mtime" "$fn"
 
 	if [[ -n "$mode"  ]] ; then "${prefix[@]}" chmod "$mode"  "$fn" ; fi
 
@@ -140,12 +141,18 @@ function TestMakePkg() {
 	rm -rf /tmp/aconfmgr-build
 	cp -a "$dir" /tmp/aconfmgr-build
 
+	local timestamp=0
+	if [[ -f "$dir"/time ]]
+	then
+		timestamp=$(stat --format=%Y "$dir"/time)
+	fi
+
 	if [[ "$EUID" -eq 0 ]]
 	then
 		chown -R nobody: /tmp/aconfmgr-build
-		env -i -C /tmp/aconfmgr-build su nobody -s /bin/sh -c makepkg
+		env -i -C /tmp/aconfmgr-build su nobody -s /bin/sh -c "env SOURCE_DATE_EPOCH=$timestamp makepkg"
 	else
-		env -i -C /tmp/aconfmgr-build makepkg
+		env -i -C /tmp/aconfmgr-build SOURCE_DATE_EPOCH="$timestamp" makepkg
 	fi
 }
 
@@ -156,6 +163,7 @@ function TestCreatePackage() {
 	local pkgrel=1
 	local arch=x86_64
 	local groups=()
+	local time=@0
 
 	shift 2
 	local arg
@@ -170,6 +178,7 @@ function TestCreatePackage() {
 	local dir="$test_data_dir"/packages/"$package"
 	mkdir -p "$dir"
 	printf '%s' "$kind" > "$dir"/kind
+	touch --date "$time" "$dir"/time
 
 	mkdir "$dir"/build
 	# shellcheck disable=SC2059

@@ -176,8 +176,9 @@ function TestAddFile() {
 	local mode=${3:-}
 	local owner=${4:-}
 	local group=${5:-}
+	local mtime=${6:-}
 
-	TestAddFSObj '' "$path" file "$contents" "$mode" "$owner" "$group"
+	TestAddFSObj '' "$path" file "$contents" "$mode" "$owner" "$group" "$mtime"
 }
 
 # Add a directory to the virtual filesystem.
@@ -186,8 +187,9 @@ function TestAddDir() {
 	local mode=${2:-}
 	local owner=${3:-}
 	local group=${4:-}
+	local mtime=${5:-}
 
-	TestAddFSObj '' "$path" dir '' "$mode" "$owner" "$group"
+	TestAddFSObj '' "$path" dir '' "$mode" "$owner" "$group" "$mtime"
 }
 
 # Add a symlink to the virtual filesystem.
@@ -196,8 +198,9 @@ function TestAddLink() {
 	local target=$2
 	local owner=${3:-}
 	local group=${4:-}
+	local mtime=${5:-}
 
-	TestAddFSObj '' "$path" link "$target" '' "$owner" "$group"
+	TestAddFSObj '' "$path" link "$target" '' "$owner" "$group" "$mtime"
 }
 
 function TestAddPackageFile() {
@@ -207,8 +210,9 @@ function TestAddPackageFile() {
 	local mode=${4:-}
 	local owner=${5:-}
 	local group=${6:-}
+	local mtime=${7:-}
 
-	TestAddFSObj "$package" "$path" file "$contents" "$mode" "$owner" "$group"
+	TestAddFSObj "$package" "$path" file "$contents" "$mode" "$owner" "$group" "$mtime"
 }
 
 function TestAddPackageDir() {
@@ -217,8 +221,9 @@ function TestAddPackageDir() {
 	local mode=${3:-}
 	local owner=${4:-}
 	local group=${5:-}
+	local mtime=${6:-}
 
-	TestAddFSObj "$package" "$path" dir '' "$mode" "$owner" "$group"
+	TestAddFSObj "$package" "$path" dir '' "$mode" "$owner" "$group" "$mtime"
 }
 
 ###############################################################################

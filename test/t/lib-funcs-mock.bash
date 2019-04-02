@@ -25,6 +25,7 @@ function TestAddFSObj() {
 	local mode=${5:-}
 	local owner=${6:-}
 	local group=${7:-}
+	local mtime=${8:-@0}
 
 	local root
 	if [[ -z "$package" ]]
@@ -55,6 +56,7 @@ function TestAddFSObj() {
 	if [[ -n "$mode"  ]] ; then TestWriteFile "$root"/file-props/"$path".mode  "$mode"  ; fi
 	if [[ -n "$owner" ]] ; then TestWriteFile "$root"/file-props/"$path".owner "$owner" ; fi
 	if [[ -n "$group" ]] ; then TestWriteFile "$root"/file-props/"$path".group "$group" ; fi
+	touch --no-dereference -d "$mtime" "$root"/files/"$path"
 }
 
 function TestDeleteFile() {
@@ -73,6 +75,7 @@ function TestCreatePackage() {
 	local version=1.0
 	local arch=x86_64
 	local groups=()
+	local time=@0
 
 	shift 2
 	local arg
@@ -89,6 +92,8 @@ function TestCreatePackage() {
 
 	printf 'pkgname = %s\n' "$package" > "$test_data_dir"/packages/"$package"/.PKGINFO
 	tar --create -f "$package_file" -C "$test_data_dir"/packages/"$package" .PKGINFO
+
+	find "$test_data_dir"/packages/"$package"/files -exec touch --no-dereference --date "$time" {} +
 
 	local path
 	find "$test_data_dir"/packages/"$package"/files -mindepth 1 -maxdepth 1 -printf '%P\0' | \
