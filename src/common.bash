@@ -733,7 +733,8 @@ function AconfAnalyzeFiles() {
 	LogLeave
 
 	typeset -ag all_file_property_kinds
-	echo "${!file_property_kind_exists[*]}" | sort | mapfile -t all_file_property_kinds
+	all_file_property_kinds=("${!file_property_kind_exists[@]}")
+	Print0Array all_file_property_kinds | sort --zero-terminated | mapfile -t -d $'\0' all_file_property_kinds
 
 	AconfCompareFileProps
 
