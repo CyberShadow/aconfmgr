@@ -368,7 +368,7 @@ function paccheck() {
 				then
 					TestPacCheckCompare "$package" "$path" type                type  stat --format=%F || modified=true
 					TestPacCheckCompare "$package" "$path" size                size  stat --format=%s || modified=true
-				#	TestPacCheckCompare "$package" "$path" 'modification time' ''    stat --format=%y || modified=true
+					TestPacCheckCompare "$package" "$path" 'modification time' ''    stat --format=%y || modified=true
 					[[ ! -f "$fs_path" || ! -f "$package_path" ]] || \
 					TestPacCheckCompare "$package" "$path" md5sum              ''    TestFileMd5sum   || modified=true
 					TestPacCheckCompare "$package" "$path" UID                 owner stat --format=%U || modified=true
