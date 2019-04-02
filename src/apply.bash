@@ -374,7 +374,7 @@ function AconfApply() {
 	) \
 		| sort --zero-terminated --unique \
 		| comm --zero-terminated -12 <(Print0Array files_in_deleted_packages | sort --zero-terminated --unique) /dev/stdin \
-		| tac \
+		| tac -s $'\0' \
 		| mapfile -t -d $'\0' modified_files_in_deleted_packages
 
 	if [[ "${#modified_files_in_deleted_packages[@]}" -gt 0 ]]
