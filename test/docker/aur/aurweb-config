@@ -1,0 +1,81 @@
+[database]
+backend = mysql
+host = localhost
+socket = /opt/aur/run/mysqld.sock
+name = AUR
+user = root
+password = 
+
+[options]
+username_min_len = 3
+username_max_len = 16
+passwd_min_len = 8
+default_lang = en
+default_timezone = UTC
+sql_debug = 0
+max_sessions_per_user = 8
+login_timeout = 7200
+persistent_cookie_timeout = 2592000
+max_filesize_uncompressed = 8388608
+disable_http_login = 0
+aur_location = https://aur.archlinux.org
+git_clone_uri_anon = https://aur.archlinux.org/%s.git
+git_clone_uri_priv = ssh://aur@aur.archlinux.org/%s.git
+max_rpc_results = 5000
+max_depends = 1000
+aur_request_ml = aur-requests@archlinux.org
+request_idle_time = 1209600
+request_archive_time = 15552000
+auto_orphan_age = 15552000
+auto_delete_age = 86400
+source_file_uri =  https://aur.archlinux.org/cgit/aur.git/tree/%s?h=%s
+log_uri = https://aur.archlinux.org/cgit/aur.git/log/?h=%s
+commit_uri = https://aur.archlinux.org/cgit/aur.git/commit/?h=%s&id=%s
+snapshot_uri = /cgit/aur.git/snapshot/%s.tar.gz
+enable-maintenance = 0
+maintenance-exceptions = 127.0.0.1
+render-comment-cmd = /usr/bin/aurweb-rendercomment
+# memcache or apc
+cache = none
+memcache_servers = 127.0.0.1:11211
+
+[ratelimit]
+request_limit = 4000
+window_length = 86400
+
+[notifications]
+notify-cmd = /usr/bin/aurweb-notify
+sendmail = /usr/bin/sendmail
+sender = notify@aur.archlinux.org
+reply-to = noreply@aur.archlinux.org
+
+[fingerprints]
+Ed25519 = SHA256:HQ03dn6EasJHNDlt51KpQpFkT3yBX83x7BoIkA1iv2k
+ECDSA = SHA256:L71Q91yHwmHPYYkJMDgj0xmUuw16qFOhJbBr1mzsiOI
+RSA = SHA256:Ju+yWiMb/2O+gKQ9RJCDqvRg7l+Q95KFAeqM5sr6l2s
+
+[auth]
+valid-keytypes = ssh-rsa ssh-dss ecdsa-sha2-nistp256 ecdsa-sha2-nistp384 ecdsa-sha2-nistp521 ssh-ed25519
+username-regex = [a-zA-Z0-9]+[.\-_]?[a-zA-Z0-9]+$
+git-serve-cmd = /usr/bin/aurweb-git-serve
+ssh-options = restrict
+
+[serve]
+repo-path = /opt/aur/aurweb/aur.git/
+repo-regex = [a-z0-9][a-z0-9.+_-]*$
+git-shell-cmd = /usr/bin/git-shell
+git-update-cmd = /usr/bin/aurweb-git-update
+ssh-cmdline = ssh aur@aur.archlinux.org
+
+[update]
+max-blob-size = 256000
+
+[aurblup]
+db-path = /opt/aur/aurweb/aurblup/
+sync-dbs = core extra community multilib testing community-testing
+server = ftp://mirrors.kernel.org/archlinux/%s/os/x86_64
+
+[mkpkglists]
+packagesfile = /opt/aur/aurweb/web/html/packages.gz
+pkgbasefile = /opt/aur/aurweb/web/html/pkgbase.gz
+userfile = /opt/aur/aurweb/web/html/users.gz

@@ -1,0 +1,11 @@
+#ListenAddress 127.28.154.67
+ChallengeResponseAuthentication no
+PasswordAuthentication no
+
+AllowUsers aur
+
+Match User aur
+PasswordAuthentication no
+AuthorizedKeysCommand /usr/bin/aurweb-git-auth "%t" "%k"
+AuthorizedKeysCommandUser aur
+AcceptEnv AUR_OVERWRITE

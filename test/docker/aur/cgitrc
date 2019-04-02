@@ -1,0 +1,32 @@
+virtual-root=/cgit/
+clone-prefix=https://aur.archlinux.org
+noheader=0
+favicon=/images/favicon.ico
+logo=
+css=/css/cgit.css
+snapshots=tar.gz
+readme=:README.md
+readme=:README
+enable-index-owner=0
+enable-index-links=1
+
+cache-root=/opt/aur/cgit/cache
+cache-size=500000
+cache-dynamic-ttl=15
+cache-repo-ttl=15
+cache-root-ttl=60
+cache-scanrc-ttl=120
+cache-static-ttl=60
+
+root-title=AUR Package Repositories
+root-desc=Web interface to the AUR Package Repositories
+header=/opt/aur/aurweb/web/template/cgit/header.html
+footer=/opt/aur/aurweb/web/template/cgit/footer.html
+max-repodesc-length=50
+max-blob-size=2048
+max-stats=year
+enable-http-clone=1
+
+repo.url=aur.git
+repo.path=/opt/aur/aurweb/aur.git
+repo.desc=AUR Package Repositories

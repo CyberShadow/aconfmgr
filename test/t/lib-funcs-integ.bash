@@ -39,6 +39,7 @@ AddPackage rubygems
 AddPackage git
 AddPackage pacutils
 
+AddPackage aur
 IgnorePackage --foreign parent-package
 
 IgnorePath /.dockerenv
@@ -46,6 +47,7 @@ IgnorePath /README
 IgnorePath /aconfmgr/\*
 IgnorePath /aconfmgr-packages/\*
 IgnorePath /aconfmgr-repo/\*
+IgnorePath /opt/aur
 
 IgnorePath /etc/\*
 IgnorePath /usr/\*

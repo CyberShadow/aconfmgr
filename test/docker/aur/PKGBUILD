@@ -1,0 +1,60 @@
+pkgname=aur
+pkgver=1
+pkgrel=1
+arch=('i686' 'x86_64')
+_py_deps=(bleach markdown mysql-connector pygit2 srcinfo)
+depends=(nginx php php-fpm mysql fcgiwrap openssh git cgit "${_py_deps[@]/#/python-}")
+_aurweb_ver=4.7.0
+source=(git+https://github.com/lfos/aurweb#tag=v$_aurweb_ver
+		nginx.conf
+		aurweb-config
+		php.ini
+		php-fpm.conf
+		sshd_config
+		cgitrc
+		start.sh
+		setup.sh)
+md5sums=('SKIP'
+         '5eb22ab4188ee2d28f68a9f506044582'
+         'cf3f5b8e539f6657be89187f947a8d45'
+         'fe93c80924b4a5064c51064ab7d37eed'
+         '9cd425efe85356ca36f08e2dc773f31f'
+         'f0e1159864a04bad3b1f903bc7301d80'
+         '718c816fdaedb644f5b4d0cd742dbc97'
+         '05f52abd3c84a79f4ef10681d9e5a133'
+         '12c4adba5530e989c8d9067972cbcbae')
+
+_aur_uid=500
+_aur_gid=500
+
+package() {
+  mkdir -p "$pkgdir"/opt/aur
+
+  mkdir "$pkgdir"/opt/aur/aurweb
+  git -C "$srcdir"/aurweb archive HEAD | tar -x -C "$pkgdir"/opt/aur/aurweb
+
+  (
+	printf 'g aur %d\n' "$_aur_gid"
+	printf 'u aur %d "AUR user" /opt/aur /bin/sh\n' "$_aur_uid"
+  ) | install -Dm644 /dev/stdin "$pkgdir"/usr/lib/sysusers.d/aur.conf
+  printf 'd /opt/aur/run - aur aur -\n'  \
+	| install -Dm644 /dev/stdin "$pkgdir"/usr/lib/tmpfiles.d/aur.conf
+
+  ( cd "$srcdir"/aurweb && python setup.py install --root="$pkgdir" )
+  install -m644 -D "$srcdir"/aurweb-config "$pkgdir"/etc/aurweb/config
+
+  install -m644 -D "$srcdir"/nginx.conf "$pkgdir"/opt/aur/nginx.conf
+
+  install -m644 -D "$srcdir"/php.ini "$pkgdir"/opt/aur/php.ini
+  install -m644 -D "$srcdir"/php-fpm.conf "$pkgdir"/opt/aur/php-fpm.conf
+
+  mkdir -p "$pkgdir"/opt/aur/cgit/cache
+  install -m644 -D "$srcdir"/cgitrc "$pkgdir"/opt/aur/cgitrc
+
+  install -m644 -D "$srcdir"/sshd_config "$pkgdir"/opt/aur/sshd_config
+
+  install -m755 -D "$srcdir"/start.sh "$pkgdir"/opt/aur/start.sh
+  install -m755 -D "$srcdir"/setup.sh "$pkgdir"/opt/aur/setup.sh
+
+  chown -R "$_aur_uid":"$_aur_gid" "$pkgdir"/opt/aur
+}

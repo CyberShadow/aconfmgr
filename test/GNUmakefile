@@ -172,7 +172,7 @@ $(TMP)/.docker-image-ok-arch : $(ARCH_TAR) docker/Dockerfile.arch
 		< docker/Dockerfile.arch
 	touch "$@"
 
-$(TMP)/.docker-image-ok : $(TMP)/.docker-image-ok-arch docker/Dockerfile ../.dockerignore
+$(TMP)/.docker-image-ok : $(TMP)/.docker-image-ok-arch docker/Dockerfile docker/aur/PKGBUILD ../.dockerignore
 	$(DOCKER) build \
 		-t aconfmgr \
 		-f docker/Dockerfile \

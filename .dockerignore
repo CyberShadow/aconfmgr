@@ -1,3 +1,5 @@
 *
 !/src
 !/test/docker/run-one.sh
+!/test/docker/aur/
+!/test/docker/build-aur.sh
