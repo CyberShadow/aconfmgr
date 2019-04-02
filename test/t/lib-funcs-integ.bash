@@ -6,6 +6,7 @@
 function TestInit() {
 	# No TTY for confirmations
 	pacman_opts+=(--noconfirm)
+	makepkg_opts+=(--noconfirm)
 
 	# Configuration matching the Docker image
 	cat > "$config_dir"/10-system.sh <<'EOF'
@@ -222,6 +223,44 @@ EOF
 		sudo cp "$pkg_path" /aconfmgr-repo/
 		sudo pacman -Sy
 	fi
+
+	if [[ "$kind" == foreign ]] && $aur_initialized
+	then
+		(
+			cd "$dir"/build
+
+			{
+				cat <<EOF
+pkgbase = $package
+	pkgdesc = Dummy aconfmgr test suite package
+	pkgver = $pkgver
+	pkgrel = $pkgrel
+	arch = $arch
+EOF
+				if [[ -f files.tar ]]
+				then
+				cat <<EOF
+	source = files.tar
+	md5sums = SKIP
+EOF
+				fi
+				cat <<EOF
+
+pkgname = $package
+
+EOF
+			} > .SRCINFO
+
+			git init .
+			git add PKGBUILD .SRCINFO
+			if [[ -f files.tar ]]
+			then
+				git add files.tar
+			fi
+			git commit -m 'Initial commit'
+			git push aur@aur.archlinux.org:"$package".git master
+		)
+	fi
 }
 
 # Create dummy parent package to distinguish dependency from orphan packages.
@@ -287,4 +326,62 @@ function TestInstallPackage() {
 function TestExpectPacManLog() {
 	sudo touch /var/log/pacman.log
 	diff -u /dev/stdin <( sed -n 's/^.*\[PACMAN\] Running '\''pacman \(--noconfirm \)\?\(.*\)'\''$/\2/p' /var/log/pacman.log )
+}
+
+###############################################################################
+# AUR
+
+aur_initialized=false
+
+function TestInitAUR() {
+	LogEnter 'Initializing AUR support...\n'
+
+	LogEnter 'Starting AUR...\n'
+	sudo /opt/aur/start.sh
+	LogLeave
+
+	LogEnter 'Generating a SSH key...\n'
+	mkdir -p ~/.ssh
+	chmod 700 ~/.ssh
+	ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519
+	LogLeave
+
+	LogEnter 'Registering on AUR...\n'
+	local args=(
+		curl
+		--fail
+		--output /dev/null
+		'http://127.0.0.1/register/'
+		-H 'Host: aur.archlinux.org'
+		-H 'Content-Type: application/x-www-form-urlencoded'
+		--data-urlencode 'Action=NewAccount'
+		--data-urlencode 'U=aconfmgr'
+		--data-urlencode 'E=aconfmgr@thecybershadow.net'
+		--data-urlencode 'R='
+		--data-urlencode 'HP='
+		--data-urlencode 'I='
+		--data-urlencode 'K='
+		--data-urlencode 'L=en'
+		--data-urlencode 'TZ=UTC'
+		--data-urlencode 'PK='"$(cat ~/.ssh/id_ed25519.pub)"
+		--compressed
+	) ; "${args[@]}"
+	LogLeave
+
+	LogEnter 'Adding SSH host keys...\n'
+	ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+	LogLeave
+
+	LogEnter 'Checking SSH...\n'
+	ssh aur@aur.archlinux.org help
+	LogLeave
+
+	LogEnter 'Configuring git...\n'
+	git config --global user.name aconfmgr
+	git config --global user.email 'aconfmgr@thecybershadow.net'
+	LogLeave
+
+	aur_initialized=true
+
+	LogLeave
 }
