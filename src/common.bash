@@ -1093,6 +1093,7 @@ function AconfInstallForeign() {
 			"${yay_opts[@]}" --sync --aur "${asdeps_arr[@]}" "${target_packages[@]}"
 			;;
 		makepkg)
+			local package
 			for package in "${target_packages[@]}"
 			do
 				AconfMakePkg "$package" "$asdeps"
