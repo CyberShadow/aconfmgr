@@ -1012,7 +1012,7 @@ EOF
 	(
 		cd "$pkg_dir"
 		mkdir --parents home
-		local args=(env "HOME=$PWD/home" "GNUPGHOME=$gnupg_home" "${makepkg_opts[@]}")
+		local args=(env -i 'PATH=/bin' "HOME=$PWD/home" "GNUPGHOME=$gnupg_home" "${makepkg_opts[@]}")
 
 		if [[ $EUID == 0 ]]
 		then
