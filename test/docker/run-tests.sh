@@ -36,4 +36,4 @@ do
 	) ; "${args[@]}"
 done
 
-printf '\n''Integration tests OK!''\n' 1>&2
+printf 'Integration tests OK!\n' 1>&2

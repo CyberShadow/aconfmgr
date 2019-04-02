@@ -154,6 +154,7 @@ function TestDone() {
 	) || FatalError 'Unknown stray global variables found!\n'
 
 	LogLeave 'Test %s: %s!\n' "$(Color C "$test_name")" "$(Color G success)"
+	printf '\n' 1>&2 # Leave a blank line between tests
 	Exit 0
 }
 
