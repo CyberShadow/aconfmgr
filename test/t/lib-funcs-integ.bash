@@ -7,6 +7,14 @@ function TestInit() {
 	# No TTY for confirmations
 	pacman_opts+=(--noconfirm)
 	makepkg_opts+=(--noconfirm)
+	pacaur_opts+=(--noconfirm --noedit)
+
+	# pacaur insists that this is set, even if it will never inoke it
+	export EDITOR=/bin/cat
+
+	# Allows AUR helpers find perl tools etc.
+	# shellcheck disable=SC2016
+	PATH=$(env -i sh -c 'source /etc/profile 1>&2 ; printf -- %s "$PATH"')
 
 	# Configuration matching the Docker image
 	cat > "$config_dir"/10-system.sh <<'EOF'
