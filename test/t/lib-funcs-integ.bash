@@ -169,6 +169,7 @@ function TestCreatePackage() {
 	local pkgrel=1
 	local arch=x86_64
 	local groups=()
+	local depends=()
 	local time=@0
 	local pkgbuild
 	local pkg_fn="$package"-"$pkgver"-"$pkgrel"-"$arch".pkg.tar.xz
@@ -179,9 +180,6 @@ function TestCreatePackage() {
 	do
 		eval "$arg"
 	done
-
-	local groups_str
-	groups_str=$(printf '%q ' "${groups[@]}")
 
 	local dir="$test_data_dir"/packages/"$package"
 	mkdir -p "$dir"
@@ -208,7 +206,8 @@ pkgver=$pkgver
 pkgrel=$pkgrel
 pkgdesc="Dummy aconfmgr test suite package"
 arch=($arch)
-groups=($groups_str)
+groups=($(PrintQArray groups))
+depends=($(PrintQArray depends))
 EOF
 
 			if [[ -f "$tar" ]]
