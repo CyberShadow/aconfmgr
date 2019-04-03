@@ -965,9 +965,6 @@ function AconfMakePkgDir() {
 				local key
 				for key in "${keys[@]}"
 				do
-					local keyserver=pgp.mit.edu
-					#local keyserver=subkeys.pgp.net
-
 					export GNUPGHOME="$gnupg_home"
 
 					if [[ ! -d "$GNUPGHOME" ]]
@@ -986,9 +983,25 @@ EOF
 					LogEnter 'Adding key %s...\n' "$(Color Y %q "$key")"
 					#ParanoidConfirm ''
 
-					LogEnter 'Receiving key...\n'
-					gpg --keyserver "$keyserver" --recv-key "$key"
-					LogLeave
+					local ok=false
+					local keyserver
+					for keyserver in keys.gnupg.net pgp.mit.edu # subkeys.pgp.net
+					do
+						LogEnter 'Trying keyserver %s...\n' "$(Color C %s "$keyserver")"
+						if gpg --keyserver "$keyserver" --recv-key "$key"
+						then
+							ok=true
+							LogLeave 'OK!\n'
+							break
+						else
+							LogLeave 'Error...\n'
+						fi
+					done
+
+					if ! $ok
+					then
+						FatalError 'No keyservers succeeded.\n'
+					fi
 
 					LogEnter 'Signing key...\n'
 					gpg --quick-lsign-key "$key"
