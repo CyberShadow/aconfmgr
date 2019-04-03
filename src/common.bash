@@ -1558,7 +1558,6 @@ function Exit() {
 ####################################################################################################
 
 # Print an array, one element per line (assuming IFS starts with \n).
-# Work-around for Bash considering it an error to expand an empty array.
 function PrintArray() {
 	local name="$1" # Name of the global variable containing the array
 	local size
