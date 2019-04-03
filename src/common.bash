@@ -863,6 +863,12 @@ function AconfMakePkg() {
 	if [[ ! -f "$pkg_dir"/PKGBUILD ]]
 	then
 		Log 'No package description file found!\n'
+
+		if [[ "$package" == cower ]]
+		then
+			FatalError 'Failed to download aconfmgr dependency!\n'
+		fi
+
 		LogEnter 'Assuming this package is part of a package base:\n'
 
 		LogEnter 'Retrieving package info...\n'
