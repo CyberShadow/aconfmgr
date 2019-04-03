@@ -171,6 +171,7 @@ function TestCreatePackage() {
 	local groups=()
 	local time=@0
 	local pkgbuild
+	local pkg_fn="$package"-"$pkgver"-"$pkgrel"-"$arch".pkg.tar.xz
 
 	shift 2
 	local arg
@@ -226,9 +227,8 @@ EOF
 
 	TestMakePkg "$dir"/build
 
-	local pkg_fn="$package"-"$pkgver"-"$pkgrel"-"$arch".pkg.tar.xz
 	local pkg_path=/tmp/aconfmgr-build/"$pkg_fn"
-	test -e "$pkg_path" || FatalError 'Package expected to exist: %q\n' "$pkg_path"
+	test -f "$pkg_path" || FatalError 'Package expected to exist: %q\n' "$pkg_path"
 	cp "$pkg_path" "$dir"/package.pkg.tar.xz
 
 	if [[ "$kind" == native ]]
