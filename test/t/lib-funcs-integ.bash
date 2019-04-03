@@ -140,6 +140,9 @@ function TestDeleteFile() {
 # Helper
 function TestMakePkg() {
 	local dir=$1
+	shift
+
+	local args=(makepkg "$@")
 
 	rm -rf /tmp/aconfmgr-build
 	cp -a "$dir" /tmp/aconfmgr-build
@@ -153,9 +156,9 @@ function TestMakePkg() {
 	if [[ "$EUID" -eq 0 ]]
 	then
 		chown -R nobody: /tmp/aconfmgr-build
-		env -i -C /tmp/aconfmgr-build su nobody -s /bin/sh -c "env SOURCE_DATE_EPOCH=$timestamp makepkg"
+		env -i -C /tmp/aconfmgr-build su nobody -s /bin/sh -c "env SOURCE_DATE_EPOCH=$timestamp $(printf ' %q' "${args[@]}")"
 	else
-		env -i -C /tmp/aconfmgr-build SOURCE_DATE_EPOCH="$timestamp" makepkg
+		env -i -C /tmp/aconfmgr-build SOURCE_DATE_EPOCH="$timestamp" "${args[@]}"
 	fi
 }
 
@@ -229,27 +232,7 @@ EOF
 		(
 			cd "$dir"/build
 
-			{
-				cat <<EOF
-pkgbase = $package
-	pkgdesc = Dummy aconfmgr test suite package
-	pkgver = $pkgver
-	pkgrel = $pkgrel
-	arch = $arch
-EOF
-				if [[ -f files.tar ]]
-				then
-				cat <<EOF
-	source = files.tar
-	md5sums = SKIP
-EOF
-				fi
-				cat <<EOF
-
-pkgname = $package
-
-EOF
-			} > .SRCINFO
+			TestMakePkg . --printsrcinfo > .SRCINFO
 
 			git init .
 			git add PKGBUILD .SRCINFO
