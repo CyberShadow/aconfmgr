@@ -142,7 +142,7 @@ function TestMakePkg() {
 	local dir=$1
 	shift
 
-	local args=(makepkg "$@")
+	local args=(makepkg --nodeps "$@")
 
 	rm -rf /tmp/aconfmgr-build
 	cp -a "$dir" /tmp/aconfmgr-build
