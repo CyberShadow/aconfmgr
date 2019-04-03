@@ -1021,11 +1021,17 @@ EOF
 		fi
 	done
 
+	LogEnter 'Evaluating environment...\n'
+	local path
+	# shellcheck disable=SC2016
+	path=$(env -i sh -c 'source /etc/profile 1>&2 ; printf -- %s "$PATH"')
+	LogLeave
+
 	LogEnter 'Building...\n'
 	(
 		cd "$pkg_dir"
 		mkdir --parents home
-		local args=(env -i 'PATH=/bin' "HOME=$PWD/home" "GNUPGHOME=$gnupg_home" "${makepkg_opts[@]}")
+		local args=(env -i "PATH=$path" "HOME=$PWD/home" "GNUPGHOME=$gnupg_home" "${makepkg_opts[@]}")
 
 		if [[ $EUID == 0 ]]
 		then
