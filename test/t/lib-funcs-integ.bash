@@ -170,6 +170,7 @@ function TestCreatePackage() {
 	local arch=x86_64
 	local groups=()
 	local time=@0
+	local pkgbuild
 
 	shift 2
 	local arg
@@ -187,9 +188,20 @@ function TestCreatePackage() {
 	touch --date "$time" "$dir"/time
 
 	mkdir "$dir"/build
+
+	local tar="$dir"/files.tar
+	if [[ -f "$tar" ]]
+	then
+		cp "$tar" "$dir"/build/
+	fi
+
 	# shellcheck disable=SC2059
 	(
-		cat <<EOF
+		if [[ -v pkgbuild ]]
+		then
+			printf -- %s "$pkgbuild"
+		else
+			cat <<EOF
 pkgname=$package
 pkgver=$pkgver
 pkgrel=$pkgrel
@@ -198,11 +210,9 @@ arch=($arch)
 groups=($groups_str)
 EOF
 
-		local tar="$dir"/files.tar
-		if [[ -f "$tar" ]]
-		then
-			cp "$tar" "$dir"/build/
-			cat <<'EOF'
+			if [[ -f "$tar" ]]
+			then
+				cat <<'EOF'
 source=(files.tar)
 md5sums=(SKIP)
 
@@ -210,6 +220,7 @@ package() {
 	tar xf "$srcdir"/files.tar -C "$pkgdir"
 }
 EOF
+			fi
 		fi
 	) > "$dir"/build/PKGBUILD
 
