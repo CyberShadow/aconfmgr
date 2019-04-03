@@ -247,7 +247,7 @@ EOF
 		sudo pacman -Sy
 	fi
 
-	if [[ "$kind" == foreign ]] && $aur_initialized
+	if [[ "$kind" == foreign && -f ~/aur-initialized ]]
 	then
 		(
 			cd "$dir"/build
@@ -334,9 +334,9 @@ function TestExpectPacManLog() {
 ###############################################################################
 # AUR
 
-aur_initialized=false
-
 function TestInitAUR() {
+	test ! -f ~/aur-initialized || return 0
+
 	LogEnter 'Initializing AUR support...\n'
 
 	LogEnter 'Starting AUR...\n'
@@ -384,7 +384,7 @@ function TestInitAUR() {
 	git config --global user.email 'aconfmgr@thecybershadow.net'
 	LogLeave
 
-	aur_initialized=true
+	touch ~/aur-initialized
 
 	LogLeave
 }

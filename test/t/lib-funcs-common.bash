@@ -152,7 +152,6 @@ test_globals_whitelist=(
 	test_globals_initial
 	test_globals_whitelist
 	test_adopted_packages
-	aur_initialized
 )
 
 function TestDone() {
