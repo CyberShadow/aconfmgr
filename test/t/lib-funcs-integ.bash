@@ -170,6 +170,7 @@ function TestCreatePackage() {
 	local arch=x86_64
 	local groups=()
 	local depends=()
+	local provides=()
 	local time=@0
 	local pkgbuild
 	local pkg_fn="$package"-"$pkgver"-"$pkgrel"-"$arch".pkg.tar.xz
@@ -208,6 +209,7 @@ pkgdesc="Dummy aconfmgr test suite package"
 arch=($arch)
 groups=($(PrintQArray groups))
 depends=($(PrintQArray depends))
+provides=($(PrintQArray provides))
 EOF
 
 			if [[ -f "$tar" ]]
