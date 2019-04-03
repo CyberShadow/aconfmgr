@@ -385,6 +385,8 @@ function TestInitAUR() {
 function TestNeedAURPackage() {
 	local package=$1
 	local commit=$2
+	shift 2
+	local pkgbuild_extras=("$@")
 
 	function TestEditHosts() {
 		local transform=$1
@@ -405,6 +407,20 @@ function TestNeedAURPackage() {
 	git clone https://aur.archlinux.org/"$package".git "$dir"
 	git -C "$dir" reset --hard "$commit"
 	LogLeave
+
+	if [[ "${#pkgbuild_extras[@]}" -gt 0 ]]
+	then
+		LogEnter 'Patching PKGBUILD...\n'
+		test -f "$dir"/PKGBUILD
+		printf '\n' >> "$dir"/PKGBUILD
+		local line
+		for line in "${pkgbuild_extras[@]}"
+		do
+			printf '%s\n' "$line" >> "$dir"/PKGBUILD
+		done
+		git -C "$dir" commit -am 'Patch PKGBUILD for aconfmgr test suite'
+		LogLeave
+	fi
 
 	LogEnter 'Uploading package...\n'
 	TestEditHosts 's/^#\(.*aur.archlinux.org\)$/\1/'
