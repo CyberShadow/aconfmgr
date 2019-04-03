@@ -379,3 +379,34 @@ function TestInitAUR() {
 
 	LogLeave
 }
+
+# Copies a package from the real AUR to our local instance.
+function TestNeedAURPackage() {
+	local package=$1
+	local commit=$2
+
+	function TestEditHosts() {
+		local transform=$1
+
+		# Docker bind-mounts /etc/hosts; sed -i doesn't work
+		local hosts
+		hosts=$(cat /etc/hosts)
+		printf -- %s "$hosts" | sed "$transform" | sudo tee /etc/hosts > /dev/null
+	}
+
+	LogEnter 'Copying package %s from AUR...\n' "$(Color M "%q" "$package")"
+
+	LogEnter 'Downloading package...\n'
+	TestEditHosts 's/^.*aur.archlinux.org$/#\0/'
+	mkdir -p "$tmp_dir"/aur
+	git clone https://aur.archlinux.org/"$package".git "$tmp_dir"/aur/"$package"
+	git -C "$tmp_dir"/aur/"$package" reset --hard "$commit"
+	LogLeave
+
+	LogEnter 'Uploading package...\n'
+	TestEditHosts 's/^#\(.*aur.archlinux.org\)$/\1/'
+	git -C "$tmp_dir"/aur/"$package" push aur@aur.archlinux.org:"$package".git master
+	LogLeave
+
+	LogLeave
+}
