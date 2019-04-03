@@ -397,16 +397,18 @@ function TestNeedAURPackage() {
 
 	LogEnter 'Copying package %s from AUR...\n' "$(Color M "%q" "$package")"
 
+	local dir="$tmp_dir"/aur/"$package"
+
 	LogEnter 'Downloading package...\n'
 	TestEditHosts 's/^.*aur.archlinux.org$/#\0/'
 	mkdir -p "$tmp_dir"/aur
-	git clone https://aur.archlinux.org/"$package".git "$tmp_dir"/aur/"$package"
-	git -C "$tmp_dir"/aur/"$package" reset --hard "$commit"
+	git clone https://aur.archlinux.org/"$package".git "$dir"
+	git -C "$dir" reset --hard "$commit"
 	LogLeave
 
 	LogEnter 'Uploading package...\n'
 	TestEditHosts 's/^#\(.*aur.archlinux.org\)$/\1/'
-	git -C "$tmp_dir"/aur/"$package" push aur@aur.archlinux.org:"$package".git master
+	git -C "$dir" push aur@aur.archlinux.org:"$package".git master
 	LogLeave
 
 	LogLeave
