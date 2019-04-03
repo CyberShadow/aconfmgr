@@ -15,3 +15,6 @@ env:
 
 script:
  - test/travis.sh
+
+notifications:
+  webhooks: https://coveralls.io/webhook

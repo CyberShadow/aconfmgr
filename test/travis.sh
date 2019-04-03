@@ -6,6 +6,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
+export COVERALLS_PARALLEL=true
+
 if ! ((${ACONFMGR_INTEGRATION:-0}))
 then
 	# Run shellcheck, unit / mock tests, coverage ...
