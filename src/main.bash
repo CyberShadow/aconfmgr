@@ -104,7 +104,7 @@ function Main() {
 				fi
 				prompt_mode=never
 				pacman_opts+=(--noconfirm)
-				aurman_opts+=(--noconfirm --noedit)
+				aurman_opts+=(--noconfirm --noedit --skip_news)
 				pacaur_opts+=(--noconfirm --noedit)
 				yaourt_opts+=(--noconfirm)
 				yay_opts+=(--noconfirm)
