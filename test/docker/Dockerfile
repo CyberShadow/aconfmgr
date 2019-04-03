@@ -8,7 +8,7 @@ FROM aconfmgr-arch
 
 ARG aconfmgr_uid
 RUN useradd -u ${aconfmgr_uid} -m aconfmgr
-RUN echo 'aconfmgr ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/nopasswd
+RUN printf '%s\n%s\n' 'aconfmgr ALL=(ALL) NOPASSWD:ALL' 'Defaults closefrom_override' > /etc/sudoers.d/aconfmgr
 
 COPY --from=builder /aconfmgr-packages/ /aconfmgr-packages/
 RUN cp -ln /aconfmgr-packages/cache/* /var/cache/pacman/pkg/

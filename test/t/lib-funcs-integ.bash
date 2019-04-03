@@ -337,7 +337,7 @@ function TestInitAUR() {
 	LogEnter 'Initializing AUR support...\n'
 
 	LogEnter 'Starting AUR...\n'
-	sudo /opt/aur/start.sh
+	command sudo /opt/aur/start.sh
 	LogLeave
 
 	LogEnter 'Generating a SSH key...\n'

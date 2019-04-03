@@ -20,6 +20,7 @@ fi
 
 # Integration tmp directory
 mkdir -p ../tmp/integ
+chmod a+x ../tmp/integ
 
 for t in "${tests[@]}"
 do

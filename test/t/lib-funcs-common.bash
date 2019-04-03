@@ -21,6 +21,18 @@ function TestIntegrationOnly() {
 	fi
 }
 
+function TestNeedRoot() {
+	TestIntegrationOnly
+
+	if [[ "$EUID" != 0 ]]
+	then
+		Log 'Re-executing as root ...\n'
+		exec sudo -E -C 1000 "$0"
+	else
+		HOME=/root # Ensure ~/.ssh is set up properly for AUR
+	fi
+}
+
 function TestNeedAUR() {
 	TestIntegrationOnly
 	TestInitAUR

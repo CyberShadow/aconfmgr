@@ -18,8 +18,17 @@ source ../../src/helpers.bash
 LogEnter 'Running test case %s...\n' "$(Color C "$test_name")"
 LogEnter 'Setting up test suite...\n'
 
-rm -rf   "$config_dir" "$tmp_dir" "$test_data_dir"
-mkdir -p "$config_dir" "$tmp_dir" "$test_data_dir"
+for dir in "$config_dir" "$tmp_dir" "$test_data_dir"
+do
+	if ((${ACONFMGR_INTEGRATION:-0}))
+	then
+		command sudo rm -rf "$dir" # Clean up after root tests
+	else
+		rm -rf "$dir"
+	fi
+	mkdir -p "$dir"
+done
+unset dir
 
 source ./lib-funcs-common.bash
 if ((${ACONFMGR_INTEGRATION:-0}))
