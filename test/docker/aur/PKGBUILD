@@ -40,7 +40,8 @@ package() {
   printf 'd /opt/aur/run - aur aur -\n'  \
 	| install -Dm644 /dev/stdin "$pkgdir"/usr/lib/tmpfiles.d/aur.conf
 
-  ( cd "$srcdir"/aurweb && python setup.py install --root="$pkgdir" )
+  # Use full path to Python due to https://stackoverflow.com/q/55485061/21501
+  env -i -C "$srcdir"/aurweb /usr/bin/python setup.py install --root="$pkgdir"
   install -m644 -D "$srcdir"/aurweb-config "$pkgdir"/etc/aurweb/config
 
   install -m644 -D "$srcdir"/nginx.conf "$pkgdir"/opt/aur/nginx.conf
