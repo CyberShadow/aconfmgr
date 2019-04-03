@@ -1605,6 +1605,22 @@ EOF
 )"
 }
 
+# Ditto, but shell-escape array elements.
+function PrintQArray() {
+	local name="$1" # Name of the global variable containing the array
+	local size
+
+	size="$(eval "echo \${#${name}""[*]}")"
+	if [[ $size != 0 ]]
+	then
+		eval "printf -- %q \"\${${name}[0]}\""
+		if [[ $size -gt 1 ]]
+		then
+			eval "printf -- ' %q' \"\${${name}[@]:1}\""
+		fi
+	fi
+}
+
 if [[ $EUID == 0 ]]
 then
 	function sudo() { "$@" ; }
