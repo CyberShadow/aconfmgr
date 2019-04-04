@@ -1106,16 +1106,16 @@ function AconfInstallForeign() {
 
 	case "$aur_helper" in
 		aurman)
-			"${aurman_opts[@]}" --sync --aur "${asdeps_arr[@]}" "${target_packages[@]}"
+			RunExternal "${aurman_opts[@]}" --sync --aur "${asdeps_arr[@]}" "${target_packages[@]}"
 			;;
 		pacaur)
-			"${pacaur_opts[@]}" --sync --aur "${asdeps_arr[@]}" "${target_packages[@]}"
+			RunExternal "${pacaur_opts[@]}" --sync --aur "${asdeps_arr[@]}" "${target_packages[@]}"
 			;;
 		yaourt)
-			"${yaourt_opts[@]}" --sync --aur "${asdeps_arr[@]}" "${target_packages[@]}"
+			RunExternal "${yaourt_opts[@]}" --sync --aur "${asdeps_arr[@]}" "${target_packages[@]}"
 			;;
 		yay)
-			"${yay_opts[@]}" --sync --aur "${asdeps_arr[@]}" "${target_packages[@]}"
+			RunExternal "${yay_opts[@]}" --sync --aur "${asdeps_arr[@]}" "${target_packages[@]}"
 			;;
 		makepkg)
 			local package
@@ -1313,11 +1313,11 @@ function AconfNeedPackageFile() {
 				do
 					case "$helper" in
 						aurman)
-							"${aurman_opts[@]}" --makepkg --aur --makepkg "$package" 1>&2
+							RunExternal "${aurman_opts[@]}" --makepkg --aur --makepkg "$package" 1>&2
 							break
 							;;
 						pacaur)
-							"${pacaur_opts[@]}" --makepkg --aur --makepkg "$package" 1>&2
+							RunExternal "${pacaur_opts[@]}" --makepkg --aur --makepkg "$package" 1>&2
 							break
 							;;
 						yaourt)
@@ -1631,6 +1631,14 @@ if [[ $EUID == 0 ]]
 then
 	function sudo() { "$@" ; }
 fi
+
+# Run external bash script.
+# No-op, except when running under the test suite with bashcov,
+# in which case it does not propagate bashcov to the invoked script.
+# Unlike `env -i`, does not nuke the environment.
+function RunExternal() {
+	env -u SHELLOPTS -u PS4 -u SHLVL -u BASH_XTRACEFD "$@"
+}
 
 # cat a file; if it's not readable, cat via sudo.
 function SuperCat() {
