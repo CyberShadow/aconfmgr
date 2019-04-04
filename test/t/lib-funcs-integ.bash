@@ -442,44 +442,22 @@ function TestNeedAURPackage() {
 	LogLeave
 }
 
-# Re-exec and run test for all AUR helpers.
-function TestAURHelpers() {
-	if [[ -v ACONFMGR_AUR_HELPER ]]
-	then
-		aur_helper=$ACONFMGR_AUR_HELPER
+# Common test code for testing integration with an AUR helper.
+function TestAURHelper() {
+	aur_helper=$1
 
-		# Install it, so aconfmgr will use it
-		# shellcheck disable=SC2016
-		case "$aur_helper" in
-			pacaur)
-				TestNeedAURPackage pacaur da18900a6fe888654867748fa976f8ae0ab96334
-				TestNeedAURPackage auracle-git e85c64aeaf9103a6808c3bec136b32fd2fa939ef 'source=("${source[@]/%/#commit=4f90e0fb38e21e9037ccbbe4afa34d3b5299cfa2}")'
-				AconfMakePkg pacaur true
-				;;
-			yaourt)
-				TestNeedAURPackage yaourt 67da8ff148bac693f98d8f3a2e2a2031c20e846f
-				TestNeedAURPackage package-query 98ce2515ad81e9d7efd444d4d61dfe00f5701100
-				AconfMakePkg yaourt true
-				;;
-			aurman)
-				TestNeedAURPackage aurman 62160314c33f6d60c7f04c3085ea327df95ba5b1
-				AconfMakePkg aurman true
-				;;
-			yay)
-				TestNeedAURPackage yay d7244687491ed935e4f7379e99af10f458b41f04
-				AconfMakePkg yay true
-				;;
-			makepkg)
-				# :)
-				;;
-		esac
-	else
-		local helper
-		for helper in "${aur_helpers[@]}"
-		do
-			LogEnter 'Testing AUR helper %s...\n' "$(Color M %q "$helper")"
-			ACONFMGR_AUR_HELPER="$helper" "$0"
-			LogLeave
-		done
-	fi
+	# Test installing a package
+
+	TestPhase_Setup ###############################################################
+	TestAddPackageFile test-package-"$aur_helper" /testfile-"$aur_helper".txt 'File contents'
+	TestCreatePackage test-package-"$aur_helper" foreign
+	TestAddConfig AddPackage --foreign test-package-"$aur_helper"
+
+	TestPhase_Run #################################################################
+	AconfApply
+
+	TestPhase_Check ###############################################################
+	diff -u <(cat /testfile-"$aur_helper".txt) <(printf 'File contents')
+
+	TestDone ######################################################################
 }
