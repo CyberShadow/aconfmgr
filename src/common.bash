@@ -1313,12 +1313,18 @@ function AconfNeedPackageFile() {
 				do
 					case "$helper" in
 						aurman)
-							RunExternal "${aurman_opts[@]}" --makepkg --aur --makepkg "$package" 1>&2
-							break
+							if command -v "${aurman_opts[0]}" > /dev/null
+							then
+								RunExternal "${aurman_opts[@]}" --makepkg --aur --makepkg "$package" 1>&2
+								break
+							fi
 							;;
 						pacaur)
-							RunExternal "${pacaur_opts[@]}" --makepkg --aur --makepkg "$package" 1>&2
-							break
+							if command -v "${pacaur_opts[0]}" > /dev/null
+							then
+								RunExternal "${pacaur_opts[@]}" --makepkg --aur --makepkg "$package" 1>&2
+								break
+							fi
 							;;
 						yaourt)
 							# yaourt does not save .pkg.xz files
