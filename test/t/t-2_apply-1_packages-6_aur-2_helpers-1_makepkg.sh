@@ -2,4 +2,5 @@
 source ./lib.bash
 
 TestNeedAUR
-TestAURHelper makepkg
+TestAURHelper makepkg "$tmp_dir"/aur true
+TestDone

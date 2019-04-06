@@ -442,22 +442,65 @@ function TestNeedAURPackage() {
 	LogLeave
 }
 
+# Upload a new version of an AUR package with the given lines to
+# override existing declarations.
+function TestUpdateAurPackage() {
+	local package=$1
+	shift
+	local lines=("$@")
+
+	(
+		cd "$test_data_dir"/packages/"$package"/build
+		local line
+		printf '%s\n' "${lines[@]}" >> PKGBUILD
+		TestMakePkg . --printsrcinfo > .SRCINFO
+		git add PKGBUILD .SRCINFO
+		git commit -m 'AUR package update'
+		git push aur@aur.archlinux.org:"$package".git master
+	)
+}
+
 # Common test code for testing integration with an AUR helper.
 function TestAURHelper() {
 	aur_helper=$1
-
-	# Test installing a package
+	local cache_dir=$2
+	local can_build_only=$3
 
 	TestPhase_Setup ###############################################################
-	TestAddPackageFile test-package-"$aur_helper" /testfile-"$aur_helper".txt 'File contents'
-	TestCreatePackage test-package-"$aur_helper" foreign
-	TestAddConfig AddPackage --foreign test-package-"$aur_helper"
+	TestAddPackageFile test-package /testfile.txt 'File contents'
+	TestCreatePackage test-package foreign
 
 	TestPhase_Run #################################################################
+
+	LogEnter 'Test installing a package:\n'
+	TestAddConfig AddPackage --foreign test-package
 	AconfApply
+	diff -u <(cat /testfile.txt) <(printf 'File contents')
+	test -z "$cache_dir" -o -d "$cache_dir"
+	LogLeave 'OK\n'
 
-	TestPhase_Check ###############################################################
-	diff -u <(cat /testfile-"$aur_helper".txt) <(printf 'File contents')
+	LogEnter 'Test getting a file from an installed package:\n'
+	diff -u "$(GetPackageOriginalFile test-package /testfile.txt)" <(printf 'File contents')
+	LogLeave 'OK\n'
 
-	TestDone ######################################################################
+	LogEnter 'Test getting a file from a non-installed package:\n'
+	sudo pacman -R --noconfirm test-package
+	diff -u "$(GetPackageOriginalFile test-package /testfile.txt)" <(printf 'File contents')
+	LogLeave 'OK\n'
+
+	if "$can_build_only"
+	then
+		LogEnter 'Test getting a file from a non-installed package (clean cache):\n'
+		test -z "$cache_dir" || rm -rf "$cache_dir"
+		diff -u "$(GetPackageOriginalFile test-package /testfile.txt)" <(printf 'File contents')
+		test -z "$cache_dir" -o -d "$cache_dir"
+		LogLeave 'OK\n'
+
+		LogEnter 'Test getting a file from another version of the package:\n'
+		test -z "$cache_dir" || rm -rf "$cache_dir"
+		TestUpdateAurPackage test-package 'pkgver=2.0'
+		diff -u "$(GetPackageOriginalFile test-package /testfile.txt)" <(printf 'File contents')
+		test -z "$cache_dir" -o -d "$cache_dir"
+		LogLeave 'OK\n'
+	fi
 }
