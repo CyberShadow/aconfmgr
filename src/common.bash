@@ -1313,11 +1313,7 @@ function AconfNeedPackageFile() {
 				do
 					case "$helper" in
 						aurman)
-							if command -v "${aurman_opts[0]}" > /dev/null
-							then
-								RunExternal "${aurman_opts[@]}" --makepkg --aur --makepkg "$package" 1>&2
-								break
-							fi
+							# aurman does not have a --makepkg option
 							;;
 						pacaur)
 							if command -v "${pacaur_opts[0]}" > /dev/null
