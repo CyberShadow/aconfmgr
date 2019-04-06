@@ -16,4 +16,4 @@ then
 fi
 
 PATH="$PATH:$(ruby -e 'print Gem.user_dir')/bin"
-bashcov --root=../.. ./"$test"
+bashcov --skip_uncovered --root=../.. ./"$test"
