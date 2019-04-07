@@ -5,7 +5,8 @@ file_kinds=(
 	[2]=dir  # empty
 	[3]=link # broken
 	[4]=dir  # non-empty
-	[5]=link # non-broken
+	[5]=link # link to file
+	[6]=link # link to dir
 )
 file_modes=(
 	[1]=766
@@ -54,7 +55,7 @@ function TestMatrixFileSetup() {
 		specs=("$@")
 	else
 		LogEnter 'Expanding specs...\n'
-		specs=({0..1}{0..1}-{0..2}{1..5}{1..1}{1..1}-{0..1}{1..5}{1..2}{1..2}-{0..2}{1..5}{0..3}{1..3})
+		specs=({0..1}{0..1}-{0..2}{1..6}{1..1}{1..1}-{0..1}{1..6}{1..2}{1..2}-{0..2}{1..6}{0..3}{1..3})
 		LogLeave 'Done (%s specs).\n' "$(Color G "${#specs[@]}")"
 	fi
 
@@ -162,8 +163,10 @@ function TestMatrixFileSetup() {
 	local i
 	for i in 1 2 3
 	do
-		TestAddFile /$i $i
-		TestAddPackageFile test-package-2 /$i $i
+		TestAddFile /f$i $i
+		TestAddPackageFile test-package-2 /f$i $i
+		TestAddDir /d$i
+		TestAddPackageDir test-package-2 /d$i
 	done
 
 	LogEnter 'Installing packages...\n'
@@ -196,7 +199,7 @@ function TestMatrixFileSetup() {
 										"$fn" "${file_users[$c_attr]}")"
 				TestAddConfig "$(printf 'SetFileProperty %q group %q' \
 										"$fn" "${file_users[$c_attr]}")"
-				if [[ $p_kind != [35] ]]
+				if [[ $p_kind != [356] ]]
 				then
 					TestAddConfig "$(printf 'SetFileProperty %q mode %q' \
 											"$fn" "${file_modes[$c_attr]}")"
@@ -222,9 +225,13 @@ function TestMatrixFileSetup() {
 						TestAddConfig "$(printf 'printf %%s %q > $(CreateFile %q %q %q %q)' \
 												"$c_content" "$fn"/"$c_content")"
 						;;
-					5) # non-broken link
+					5) # link to file
 						TestAddConfig "$(printf 'CreateLink %q %q %q %q' \
-												"$fn" "$c_content" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
+												"$fn" "/f$c_content" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
+						;;
+					6) # link to directory
+						TestAddConfig "$(printf 'CreateLink %q %q %q %q' \
+												"$fn" "/d$c_content" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
 						;;
 				esac
 			fi
@@ -247,7 +254,8 @@ function TestMatrixAddObj() {
 	local ocontent=$content
 	[[ "$kind" != 2 ]] || content= # Directories may not have "content"
 	[[ "$kind" != 4 ]] || content= # Ditto (but use content for file name)
-	[[ "$kind" != 5 ]] || content=/$content # Make target for non-broken links valid
+	[[ "$kind" != 5 ]] || content=/f$content # Link to file
+	[[ "$kind" != 6 ]] || content=/d$content # Link to dir
 
 	local mode="${file_modes[$attr]}"
 	[[ "$kind" != 3 ]] || mode= # Symlinks can't have a mode
@@ -291,9 +299,15 @@ function TestMatrixCheckObj() {
 			sudo test -f "$path"/"$content"
 			diff <(sudo find "$path" -mindepth 1 -printf '%P\n') <(printf '%s\n' "$content")
 			;;
-		5) # link (non-broken)
+		5) # link to file
 			test -h "$path"
-			diff <(readlink "$path") <(printf '/%s\n' "$content")
+			diff <(readlink "$path") <(printf '/f%s\n' "$content")
+			diff <(stat --format=%U "$path") <(printf '%s\n' "${file_users[$attr]}")
+			diff <(stat --format=%G "$path") <(printf '%s\n' "${file_users[$attr]}")
+			;;
+		6) # link to dir
+			test -h "$path"
+			diff <(readlink "$path") <(printf '/d%s\n' "$content")
 			diff <(stat --format=%U "$path") <(printf '%s\n' "${file_users[$attr]}")
 			diff <(stat --format=%G "$path") <(printf '%s\n' "${file_users[$attr]}")
 			;;
