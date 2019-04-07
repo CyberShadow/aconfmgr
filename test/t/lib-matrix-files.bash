@@ -196,23 +196,33 @@ function TestMatrixFileSetup() {
 										"$fn" "${file_users[$c_attr]}")"
 				TestAddConfig "$(printf 'SetFileProperty %q group %q' \
 										"$fn" "${file_users[$c_attr]}")"
-				if [[ $p_kind != 3 ]]
+				if [[ $p_kind != [35] ]]
 				then
 					TestAddConfig "$(printf 'SetFileProperty %q mode %q' \
 											"$fn" "${file_modes[$c_attr]}")"
 				fi
 			else
+				# shellcheck disable=SC2016
 				case $c_kind in
 					1) # file
-						# shellcheck disable=SC2016
 						TestAddConfig "$(printf 'printf %%s %q > $(CreateFile %q %q %q %q)' \
 												"$c_content" "$fn" "${file_modes[$c_attr]}" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
 						;;
-					2) # dir
+					2) # empty dir
 						TestAddConfig "$(printf 'CreateDir %q %q %q %q' \
 												"$fn" "${file_modes[$c_attr]}" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
 						;;
-					3) # link
+					3) # broken link
+						TestAddConfig "$(printf 'CreateLink %q %q %q %q' \
+												"$fn" "$c_content" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
+						;;
+					4) # non-empty dir
+						TestAddConfig "$(printf 'CreateDir %q %q %q %q' \
+												"$fn" "${file_modes[$c_attr]}" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
+						TestAddConfig "$(printf 'printf %%s %q > $(CreateFile %q %q %q %q)' \
+												"$c_content" "$fn"/"$c_content")"
+						;;
+					5) # non-broken link
 						TestAddConfig "$(printf 'CreateLink %q %q %q %q' \
 												"$fn" "$c_content" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
 						;;
