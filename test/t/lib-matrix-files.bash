@@ -163,9 +163,7 @@ function TestMatrixFileSetup() {
 	local i
 	for i in 1 2 3
 	do
-		TestAddFile /f$i $i
 		TestAddPackageFile test-package-2 /f$i $i
-		TestAddDir /d$i
 		TestAddPackageDir test-package-2 /d$i
 	done
 
