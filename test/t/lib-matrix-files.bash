@@ -2,8 +2,10 @@
 
 file_kinds=(
 	[1]=file
-	[2]=dir
-	[3]=link
+	[2]=dir  # empty
+	[3]=link # broken
+	[4]=dir  # non-empty
+	[5]=link # non-broken
 )
 file_modes=(
 	[1]=766
@@ -28,17 +30,17 @@ function TestMatrixFileSetup() {
 		"priority={0..1}"
 
 		"p_present={0..2}"
-		"p_kind={1..3}"
+		"p_kind={1..5}"
 		"p_content={1..1}"
 		"p_attr={1..1}"
 
 		"f_present={0..1}"
-		"f_kind={1..3}"
+		"f_kind={1..5}"
 		"f_content={1..2}"
 		"f_attr={1..2}"
 
 		"c_present={0..2}"
-		"c_kind={1..3}"
+		"c_kind={1..5}"
 		"c_content={0..3}"
 		"c_attr={1..3}"
 	")
@@ -144,6 +146,14 @@ function TestMatrixFileSetup() {
 	done
 	LogLeave
 
+	# Non-broken link targets
+	local i
+	for i in 1 2 3
+	do
+		TestAddFile /$i $i
+		TestAddPackageFile test-package-2 /$i $i
+	done
+
 	LogEnter 'Installing packages...\n'
 	TestAddPackage test-package-1 native explicit
 	TestAddPackage test-package-2 native explicit
@@ -214,12 +224,16 @@ function TestMatrixAddObj() {
 
 	local path=/dir/"$fn"
 
+	local ocontent=$content
 	[[ "$kind" != 2 ]] || content= # Directories may not have "content"
+	[[ "$kind" != 4 ]] || content= # Ditto (but use content for file name)
+	[[ "$kind" != 5 ]] || content=/$content # Make target for non-broken links valid
 
 	local mode="${file_modes[$attr]}"
 	[[ "$kind" != 3 ]] || mode= # Symlinks can't have a mode
 
 	TestAddFSObj "$package" "$path" "${file_kinds[$kind]}" "$content" "$mode" "${file_users[$attr]}" "${file_users[$attr]}"
+	[[ "$kind" != 4 ]] || TestAddFSObj "$package" "$path"/"$ocontent" file "$ocontent"
 }
 
 function TestMatrixCheckObj() {
@@ -236,15 +250,30 @@ function TestMatrixCheckObj() {
 			diff <(stat --format=%U "$path") <(printf '%s\n' "${file_users[$attr]}")
 			diff <(stat --format=%G "$path") <(printf '%s\n' "${file_users[$attr]}")
 			;;
-		2) # dir
+		2) # dir (empty)
 			test -d "$path"
 			diff <(stat --format=%a "$path") <(printf '%s\n' "${file_modes[$attr]}")
 			diff <(stat --format=%U "$path") <(printf '%s\n' "${file_users[$attr]}")
 			diff <(stat --format=%G "$path") <(printf '%s\n' "${file_users[$attr]}")
+			diff <(find "$path" -mindepth 1 -printf '%P\n') /dev/null
 			;;
-		3) # link
+		3) # link (broken)
 			test -h "$path"
 			diff <(readlink "$path") <(printf '%s\n' "$content")
+			diff <(stat --format=%U "$path") <(printf '%s\n' "${file_users[$attr]}")
+			diff <(stat --format=%G "$path") <(printf '%s\n' "${file_users[$attr]}")
+			;;
+		4) # dir (non-empty)
+			test -d "$path"
+			diff <(stat --format=%a "$path") <(printf '%s\n' "${file_modes[$attr]}")
+			diff <(stat --format=%U "$path") <(printf '%s\n' "${file_users[$attr]}")
+			diff <(stat --format=%G "$path") <(printf '%s\n' "${file_users[$attr]}")
+			sudo test -f "$path"/"$content"
+			diff <(sudo find "$path" -mindepth 1 -printf '%P\n') <(printf '%s\n' "$content")
+			;;
+		5) # link (non-broken)
+			test -h "$path"
+			diff <(readlink "$path") <(printf '/%s\n' "$content")
 			diff <(stat --format=%U "$path") <(printf '%s\n' "${file_users[$attr]}")
 			diff <(stat --format=%G "$path") <(printf '%s\n' "${file_users[$attr]}")
 			;;
