@@ -95,7 +95,13 @@ function cat() {
 }
 
 function readlink() {
-	TestSimpleWrap readlink "$@"
+	local result
+	result="$(TestSimpleWrap readlink "$@")"
+	if [[ "$result" == "$test_data_dir"/files/* ]]
+	then
+		result=${result#"$test_data_dir"/files}
+	fi
+	printf -- '%s\n' "$result"
 }
 
 function install() {
@@ -171,6 +177,10 @@ function mkdir() {
 
 function touch() {
 	TestSimpleWrap touch "$@"
+}
+
+function ln() {
+	TestSimpleWrap ln "$@"
 }
 
 function test() {
