@@ -18,43 +18,54 @@ file_users=(
 	[3]=nobody
 )
 
+function TestMatrixEvalSpec() {
+	local spec=$1
+
+	if [[ "$spec" =~ ^(.)(.)-(.)(.)(.)(.)-(.)(.)(.)(.)-(.)(.)(.)(.)$ ]]
+	then
+		ignored="${BASH_REMATCH[1]}"
+		priority="${BASH_REMATCH[2]}"
+
+		p_present="${BASH_REMATCH[3]}"
+		p_kind="${BASH_REMATCH[4]}"
+		p_content="${BASH_REMATCH[5]}"
+		p_attr="${BASH_REMATCH[6]}"
+
+		f_present="${BASH_REMATCH[7]}"
+		f_kind="${BASH_REMATCH[8]}"
+		f_content="${BASH_REMATCH[9]}"
+		f_attr="${BASH_REMATCH[10]}"
+
+		c_present="${BASH_REMATCH[11]}"
+		c_kind="${BASH_REMATCH[12]}"
+		c_content="${BASH_REMATCH[13]}"
+		c_attr="${BASH_REMATCH[14]}"
+
+		fn=/dir/"$spec"
+	else
+		FatalError 'Invalid spec syntax: %s\n' "$spec"
+	fi
+}
+
 function TestMatrixFileSetup() {
-	local test_list=("$@")
-	local test_list_str=${test_list[*]}
-
-	LogEnter 'Expanding specs...\n'
 	declare -ag specs
-	# shellcheck disable=SC2191
-	specs=("
-		"ignored={0..1}"
-		"priority={0..1}"
-
-		"p_present={0..2}"
-		"p_kind={1..5}"
-		"p_content={1..1}"
-		"p_attr={1..1}"
-
-		"f_present={0..1}"
-		"f_kind={1..5}"
-		"f_content={1..2}"
-		"f_attr={1..2}"
-
-		"c_present={0..2}"
-		"c_kind={1..5}"
-		"c_content={0..3}"
-		"c_attr={1..3}"
-	")
-	LogLeave 'Done (%s specs).\n' "$(Color G "${#specs[@]}")"
+	if [[ $# -gt 0 ]]
+	then
+		specs=("$@")
+	else
+		LogEnter 'Expanding specs...\n'
+		specs=({0..1}{0..1}-{0..2}{1..5}{1..1}{1..1}-{0..1}{1..5}{1..2}{1..2}-{0..2}{1..5}{0..3}{1..3})
+		LogLeave 'Done (%s specs).\n' "$(Color G "${#specs[@]}")"
+	fi
 
 	LogEnter 'Filtering specs...\n'
 	[[ -v BASH_XTRACEFD ]] && set +x
 	local specs2=()
 	local spec
-	# shellcheck disable=SC2154
 	for spec in "${specs[@]}"
 	do
 		local ignored priority p_present p_kind p_content p_attr f_present f_kind f_content f_attr c_present c_kind c_content c_attr fn
-		eval "$spec"
+		TestMatrixEvalSpec "$spec"
 
 		# Cull varying properties of absent files
 		[[ "$p_present" != 0 || ( "$p_kind" == 1 && "$p_content" == 1 && "$p_attr" == 1 ) ]] || continue
@@ -86,10 +97,7 @@ function TestMatrixFileSetup() {
 		# Cull bad config: configurations should not mention a file if it is in the ignore list
 		if [[ "$c_present" != 0 && "$ignored" == 1 ]] ; then continue ; fi
 
-		fn="$ignored$priority-$p_present$p_kind$p_content$p_attr-$f_present$f_kind$f_content$f_attr-$c_present$c_kind$c_content$c_attr"
-		[[ -z "$test_list_str" || "$test_list_str" == *"$fn"* ]] || continue
-
-		specs2+=("$spec fn=$fn")
+		specs2+=("$spec")
 	done
 	specs=("${specs2[@]}")
 	unset specs2
@@ -97,22 +105,22 @@ function TestMatrixFileSetup() {
 	LogLeave 'Done (%s specs).\n' "$(Color G "${#specs[@]}")"
 
 	# Check that we didn't cull any given tests
-	if [[ "${#test_list[@]}" -gt 0 && "${#specs[@]}" -ne "${#test_list[@]}" ]]
+	if [[ $# -gt 0 && "${#specs[@]}" -ne $# ]]
 	then
 		local -A saw_fn
 
 		for spec in "${specs[@]}"
 		do
 			local ignored priority p_present p_kind p_content p_attr f_present f_kind f_content f_attr c_present c_kind c_content c_attr fn
-			eval "$spec"
-			saw_fn[$fn]=y
+			TestMatrixEvalSpec "$spec"
+			saw_fn[$spec]=y
 		done
 
 		LogEnter 'Some tests were culled (%s/%s):\n' \
 				 "$(Color G "${#specs[@]}")" \
-				 "$(Color G "${#test_list[@]}")"
+				 "$(Color G $#)"
 		local test
-		for test in "${test_list[@]}"
+		for test in "$@"
 		do
 			if [[ -z "${saw_fn[$test]+x}" ]]
 			then
@@ -127,16 +135,16 @@ function TestMatrixFileSetup() {
 	for spec in "${specs[@]}"
 	do
 		local ignored priority p_present p_kind p_content p_attr f_present f_kind f_content f_attr c_present c_kind c_content c_attr fn
-		eval "$spec"
+		TestMatrixEvalSpec "$spec"
 
 		if ((ignored))
 		then
-			ignore_paths+=("/dir/$fn")
+			ignore_paths+=("$fn")
 		fi
 
 		if ((priority))
 		then
-			priority_files+=("/dir/$fn")
+			priority_files+=("$fn")
 		fi
 
 		if ((p_present))
@@ -165,11 +173,11 @@ function TestMatrixFileSetup() {
 	for spec in "${specs[@]}"
 	do
 		local ignored priority p_present p_kind p_content p_attr f_present f_kind f_content f_attr c_present c_kind c_content c_attr fn
-		eval "$spec"
+		TestMatrixEvalSpec "$spec"
 
 		if ((p_present))
 		then
-			TestDeleteFile "/dir/$fn"
+			TestDeleteFile "$fn"
 		fi
 		if ((f_present))
 		then
@@ -180,35 +188,35 @@ function TestMatrixFileSetup() {
 		then
 			if [[ $c_content == 0 ]]
 			then
-				TestAddConfig "$(printf 'SetFileProperty /dir/%q owner %q' \
+				TestAddConfig "$(printf 'SetFileProperty %q owner %q' \
 										"$fn" "${file_users[$c_attr]}")"
-				TestAddConfig "$(printf 'SetFileProperty /dir/%q group %q' \
+				TestAddConfig "$(printf 'SetFileProperty %q group %q' \
 										"$fn" "${file_users[$c_attr]}")"
 				if [[ $p_kind != 3 ]]
 				then
-					TestAddConfig "$(printf 'SetFileProperty /dir/%q mode %q' \
+					TestAddConfig "$(printf 'SetFileProperty %q mode %q' \
 											"$fn" "${file_modes[$c_attr]}")"
 				fi
 			else
 				case $c_kind in
 					1) # file
 						# shellcheck disable=SC2016
-						TestAddConfig "$(printf 'printf %%s %q > $(CreateFile /dir/%q %q %q %q)' \
+						TestAddConfig "$(printf 'printf %%s %q > $(CreateFile %q %q %q %q)' \
 												"$c_content" "$fn" "${file_modes[$c_attr]}" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
 						;;
 					2) # dir
-						TestAddConfig "$(printf 'CreateDir /dir/%q %q %q %q' \
+						TestAddConfig "$(printf 'CreateDir %q %q %q %q' \
 												"$fn" "${file_modes[$c_attr]}" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
 						;;
 					3) # link
-						TestAddConfig "$(printf 'CreateLink /dir/%q %q %q %q' \
+						TestAddConfig "$(printf 'CreateLink %q %q %q %q' \
 												"$fn" "$c_content" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
 						;;
 				esac
 			fi
 		elif [[ $c_present == 2 ]]
 		then
-			TestAddConfig "$(printf 'SetFileProperty /dir/%q deleted y' \
+			TestAddConfig "$(printf 'SetFileProperty %q deleted y' \
 									"$fn")"
 		fi
 	done
@@ -222,8 +230,6 @@ function TestMatrixAddObj() {
 	local content=$4
 	local attr=$5
 
-	local path=/dir/"$fn"
-
 	local ocontent=$content
 	[[ "$kind" != 2 ]] || content= # Directories may not have "content"
 	[[ "$kind" != 4 ]] || content= # Ditto (but use content for file name)
@@ -232,8 +238,8 @@ function TestMatrixAddObj() {
 	local mode="${file_modes[$attr]}"
 	[[ "$kind" != 3 ]] || mode= # Symlinks can't have a mode
 
-	TestAddFSObj "$package" "$path" "${file_kinds[$kind]}" "$content" "$mode" "${file_users[$attr]}" "${file_users[$attr]}"
-	[[ "$kind" != 4 ]] || TestAddFSObj "$package" "$path"/"$ocontent" file "$ocontent"
+	TestAddFSObj "$package" "$fn" "${file_kinds[$kind]}" "$content" "$mode" "${file_users[$attr]}" "${file_users[$attr]}"
+	[[ "$kind" != 4 ]] || TestAddFSObj "$package" "$fn"/"$ocontent" file "$ocontent"
 }
 
 function TestMatrixCheckObj() {
@@ -285,30 +291,28 @@ function TestMatrixFileCheckApply() {
 	for spec in "${specs[@]}"
 	do
 		local ignored priority p_present p_kind p_content p_attr f_present f_kind f_content f_attr c_present c_kind c_content c_attr fn
-		eval "$spec"
+		TestMatrixEvalSpec "$spec"
 
-		LogEnter '%s\n' "$fn"
-		local path=/dir/"$fn"
-
+		LogEnter '%s\n' "$spec"
 		if [[ $c_present == 2 ]] # Present as SetFileProperty deleted y
 		then
-			test ! -e "$path" -a ! -h "$path" # Must not exist
+			test ! -e "$fn" -a ! -h "$fn" # Must not exist
 		elif [[ $c_present == 1 ]]
 		then
 			if [[ $c_content == 0 ]]
 			then
-				TestMatrixCheckObj "$path" "$p_kind" "$p_content" "$c_attr" # Kind/content as in package, attr as in config
+				TestMatrixCheckObj "$fn" "$p_kind" "$p_content" "$c_attr" # Kind/content as in package, attr as in config
 			else
-				TestMatrixCheckObj "$path" "$c_kind" "$c_content" "$c_attr" # Must be as in config
+				TestMatrixCheckObj "$fn" "$c_kind" "$c_content" "$c_attr" # Must be as in config
 			fi
 		elif [[ $f_present == 1 && $ignored == 1 && $p_present != 1 ]]
 		then
-			TestMatrixCheckObj "$path" "$f_kind" "$f_content" "$f_attr" # Must be as in filesystem
+			TestMatrixCheckObj "$fn" "$f_kind" "$f_content" "$f_attr" # Must be as in filesystem
 		elif [[ $p_present == 2 ]]
 		then
-			TestMatrixCheckObj "$path" "$p_kind" "$p_content" "$p_attr" # Must be as in package
+			TestMatrixCheckObj "$fn" "$p_kind" "$p_content" "$p_attr" # Must be as in package
 		else
-			test ! -e "$path" -a ! -h "$path" # Must not exist
+			test ! -e "$fn" -a ! -h "$fn" # Must not exist
 		fi
 		LogLeave 'OK!\n'
 	done
@@ -321,16 +325,14 @@ function TestMatrixFileCheckRoundtrip() {
 	for spec in "${specs[@]}"
 	do
 		local ignored priority p_present p_kind p_content p_attr f_present f_kind f_content f_attr c_present c_kind c_content c_attr fn
-		eval "$spec"
+		TestMatrixEvalSpec "$spec"
 
-		LogEnter '%s\n' "$fn"
-		local path=/dir/"$fn"
-
+		LogEnter '%s\n' "$spec"
 		if [[ $f_present == 0 ]]
 		then
-			test ! -e "$path" -a ! -h "$path" # Must not exist
+			test ! -e "$fn" -a ! -h "$fn" # Must not exist
 		else
-			TestMatrixCheckObj "$path" "$f_kind" "$f_content" "$f_attr" # Must be as in filesystem
+			TestMatrixCheckObj "$fn" "$f_kind" "$f_content" "$f_attr" # Must be as in filesystem
 		fi
 		LogLeave 'OK!\n'
 	done
