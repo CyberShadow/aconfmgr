@@ -97,6 +97,10 @@ function TestMatrixFileSetup() {
 		# Cull bad config: configurations should not mention a file if it is in the ignore list
 		if [[ "$c_present" != 0 && "$ignored" == 1 ]] ; then continue ; fi
 
+		# Cull bad config: can't overwrite a non-empty directory
+		if [[ "$p_present" != 0 && "$c_present" == 1 && "$p_kind" == 4 && "$c_kind" != [24] ]] ; then continue ; fi
+		if [[ "$f_present" != 0 && "$c_present" == 1 && "$f_kind" == 4 && "$c_kind" != [24] ]] ; then continue ; fi
+
 		specs2+=("$spec")
 	done
 	specs=("${specs2[@]}")
