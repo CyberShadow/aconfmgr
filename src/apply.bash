@@ -83,7 +83,8 @@ function AconfApply() {
 
 		# system
 
-		if ! ( test -d "$source" && sudo test -d "$file" )
+		# Unless both source and target are directories, delete target first
+		if ! ( test ! -h "$source" -a -d "$source" && sudo test ! -h "$file" -a -d "$file" )
 		then
 			sudo rm --force --dir "$file"
 		fi
@@ -103,7 +104,7 @@ function AconfApply() {
 		# $system_dir
 
 		local system_file="$system_dir"/files/"$file"
-		if ! ( test -d "$source" && sudo test -d "$system_file" )
+		if ! ( test ! -h "$source" -a -d "$source" && test ! -h "$system_file" -a -d "$system_file" )
 		then
 			rm --force --dir "$system_file"
 		fi
