@@ -407,6 +407,10 @@ function AconfApply() {
 		done
 		LogLeave
 
+		LogEnter 'Updating managed file list...\n'
+		( "$PACMAN" --query --list --quiet || true ) | sed 's#\/$##' | sort --unique > "$tmp_dir"/managed-files
+		LogLeave
+
 		LogEnter 'Rescanning...\n'
 		AconfAnalyzeFiles
 		LogLeave
