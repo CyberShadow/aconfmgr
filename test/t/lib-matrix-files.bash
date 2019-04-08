@@ -242,6 +242,11 @@ function TestMatrixFileSetup() {
 		then
 			TestAddConfig "$(printf 'SetFileProperty %q deleted y' \
 									"$fn")"
+			if [[ $p_present == 2 && $p_kind == 4 ]]
+			then
+				TestAddConfig "$(printf 'SetFileProperty %q/%q deleted y' \
+										"$fn" "$p_content")"
+			fi
 		fi
 	done
 	LogLeave
