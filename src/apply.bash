@@ -419,29 +419,6 @@ function AconfApply() {
 
 	LogEnter 'Configuring files...\n'
 
-	if [[ ${#config_only_files[@]} != 0 ]]
-	then
-		LogEnter 'Installing %s new files.\n' "$(Color G ${#config_only_files[@]})"
-
-		# shellcheck disable=2059
-		function Details() {
-			Log 'Installing the following new files:\n'
-			printf "$(Color W "*") $(Color C "%s" "%s")\\n" "${config_only_files[@]}"
-		}
-		Confirm Details
-
-		for file in "${config_only_files[@]}"
-		do
-			LogEnter 'Installing %s...\n' "$(Color C "%q" "$file")"
-			ParanoidConfirm ''
-			InstallFile "$file"
-			LogLeave ''
-		done
-
-		modified=y
-		LogLeave
-	fi
-
 	if [[ ${#changed_files[@]} != 0 ]]
 	then
 		LogEnter 'Overwriting %s changed files.\n' "$(Color G ${#changed_files[@]})"
@@ -457,6 +434,29 @@ function AconfApply() {
 		do
 			LogEnter 'Overwriting %s...\n' "$(Color C "%q" "$file")"
 			ParanoidConfirm Details_DiffFile
+			InstallFile "$file"
+			LogLeave ''
+		done
+
+		modified=y
+		LogLeave
+	fi
+
+	if [[ ${#config_only_files[@]} != 0 ]]
+	then
+		LogEnter 'Installing %s new files.\n' "$(Color G ${#config_only_files[@]})"
+
+		# shellcheck disable=2059
+		function Details() {
+			Log 'Installing the following new files:\n'
+			printf "$(Color W "*") $(Color C "%s" "%s")\\n" "${config_only_files[@]}"
+		}
+		Confirm Details
+
+		for file in "${config_only_files[@]}"
+		do
+			LogEnter 'Installing %s...\n' "$(Color C "%q" "$file")"
+			ParanoidConfirm ''
 			InstallFile "$file"
 			LogLeave ''
 		done
