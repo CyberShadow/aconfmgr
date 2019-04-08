@@ -414,6 +414,23 @@ BEGIN {
 			then
 				local package="${BASH_REMATCH[1]}"
 				local file="${BASH_REMATCH[2]}"
+
+				local ignored=n
+				for ignore_path in "${ignore_paths[@]}"
+				do
+					# shellcheck disable=SC2053
+					if [[ "$file" == $ignore_path ]]
+					then
+						ignored=y
+						break
+					fi
+				done
+
+				if [[ $ignored == y ]]
+				then
+					continue
+				fi
+
 				Log '%s (missing)...\r' "$(Color M "%q" "$package")"
 				printf '%s\t%s\t%q\n' "deleted" "y" "$file" >> "$system_dir"/file-props.txt
 				printf '%s\0%s\0' "$file" "$package" >> "$tmp_dir"/file-owners
