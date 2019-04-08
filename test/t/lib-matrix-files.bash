@@ -144,7 +144,7 @@ function TestMatrixFileSetup() {
 
 		if ((ignored))
 		then
-			ignore_paths+=("$fn")
+			ignore_paths+=("$fn" "$fn/*")
 		fi
 
 		if ((priority))
