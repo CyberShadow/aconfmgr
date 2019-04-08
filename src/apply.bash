@@ -49,10 +49,10 @@ function AconfApply() {
 				sudo chgrp --no-dereference "$value" "$file"
 				;;
 			*)
-				Log 'Unknown property %s with value %s for file %s'	\
-					"$(Color Y "%q" "$kind")"						\
-					"$(Color G "%q" "$value")"						\
-					"$(Color C "%q" "$file")"
+				Log 'Unknown property %s with value %s for file %s\n' \
+					"$(Color Y "%q" "$kind" )" \
+					"$(Color G "%q" "$value")" \
+					"$(Color C "%q" "$file" )"
 				Exit 1
 				;;
 		esac
