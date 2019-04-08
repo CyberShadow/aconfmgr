@@ -382,7 +382,7 @@ function AconfApply() {
 		LogEnter 'Detected %s modified files in pruned packages.\n' \
 				 "$(Color G %s "${#modified_files_in_deleted_packages[@]}")"
 
-		LogEnter 'Updating system files...\n'
+		LogEnter 'Updating system file data...\n'
 		local file
 		for file in "${modified_files_in_deleted_packages[@]}"
 		do
