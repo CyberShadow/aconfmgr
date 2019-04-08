@@ -116,6 +116,20 @@ function AconfSave() {
 			done
 		done
 
+	if [[ ${#config_only_files[@]} != 0 ]]
+	then
+		LogEnter 'Found %s extra files.\n' "$(Color G ${#config_only_files[@]})"
+		printf '\n\n# %s - Extra files\n\n\n' "$(date)" >> "$config_save_target"
+		local i
+		for ((i=${#config_only_files[@]}-1; i>=0; i--))
+		do
+			file=${config_only_files[$i]}
+			printf 'RemoveFile %q\n' "$file" >> "$config_save_target"
+		done
+		modified=y
+		LogLeave
+	fi
+
 	if [[ ${#system_only_files[@]} != 0 || ${#changed_files[@]} != 0 ]]
 	then
 		LogEnter 'Found %s new and %s changed files.\n' "$(Color G ${#system_only_files[@]})" "$(Color G ${#changed_files[@]})"
@@ -207,20 +221,6 @@ function AconfSave() {
 
 				printf '%s%s%s\n' "$func" "$(printf ' %q' "${args[@]}")" "$suffix" >> "$config_save_target"
 			done
-		modified=y
-		LogLeave
-	fi
-
-	if [[ ${#config_only_files[@]} != 0 ]]
-	then
-		LogEnter 'Found %s extra files.\n' "$(Color G ${#config_only_files[@]})"
-		printf '\n\n# %s - Extra files\n\n\n' "$(date)" >> "$config_save_target"
-		local i
-		for ((i=${#config_only_files[@]}-1; i>=0; i--))
-		do
-			file=${config_only_files[$i]}
-			printf 'RemoveFile %q\n' "$file" >> "$config_save_target"
-		done
 		modified=y
 		LogLeave
 	fi
