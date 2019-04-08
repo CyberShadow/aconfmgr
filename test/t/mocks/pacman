@@ -138,7 +138,7 @@ function pacman() {
 					local -a packages
 					if [[ "${#args[@]}" -eq 0 ]]
 					then
-						find "$test_data_dir"/packages -mindepth 1 -maxdepth 1 -printf '%P\0' | mapfile -t -d $'\0' packages
+						< "$test_data_dir"/packages.txt awk -F $'\t' '{printf "%s\0", $1}' | mapfile -t -d $'\0' packages
 					else
 						packages=("${args[@]}")
 					fi
