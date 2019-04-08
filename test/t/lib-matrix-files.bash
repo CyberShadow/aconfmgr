@@ -222,11 +222,6 @@ function TestMatrixFileSetup() {
 												"$fn" "${file_modes[$c_attr]}" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
 						TestAddConfig "$(printf 'printf %%s %q > "$(CreateFile %q/%q)"' \
 												"$c_content" "$fn" "$c_content")"
-						if [[ $p_present == 2 && $p_kind == 4 && $p_content != "$c_content" ]]
-						then
-							TestAddConfig "$(printf 'SetFileProperty %q/%q deleted y' \
-							              		    "$fn" "$p_content")"
-						fi
 						;;
 					5) # link to file
 						TestAddConfig "$(printf 'CreateLink %q %q %q %q' \
@@ -237,6 +232,12 @@ function TestMatrixFileSetup() {
 												"$fn" "/d$c_content" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
 						;;
 				esac
+
+				if [[ $p_present == 2 && $p_kind == 4 && ( $c_kind != 4 || $p_content != "$c_content" ) ]]
+				then
+					TestAddConfig "$(printf 'SetFileProperty %q/%q deleted y' \
+											"$fn" "$p_content")"
+				fi
 			fi
 		elif [[ $c_present == 2 ]]
 		then
