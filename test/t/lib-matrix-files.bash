@@ -206,7 +206,7 @@ function TestMatrixFileSetup() {
 				# shellcheck disable=SC2016
 				case $c_kind in
 					1) # file
-						TestAddConfig "$(printf 'printf %%s %q > $(CreateFile %q %q %q %q)' \
+						TestAddConfig "$(printf 'printf %%s %q > "$(CreateFile %q %q %q %q)"' \
 												"$c_content" "$fn" "${file_modes[$c_attr]}" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
 						;;
 					2) # empty dir
@@ -220,8 +220,8 @@ function TestMatrixFileSetup() {
 					4) # non-empty dir
 						TestAddConfig "$(printf 'CreateDir %q %q %q %q' \
 												"$fn" "${file_modes[$c_attr]}" "${file_users[$c_attr]}" "${file_users[$c_attr]}")"
-						TestAddConfig "$(printf 'printf %%s %q > $(CreateFile %q %q %q %q)' \
-												"$c_content" "$fn"/"$c_content")"
+						TestAddConfig "$(printf 'printf %%s %q > "$(CreateFile %q/%q)"' \
+												"$c_content" "$fn" "$c_content")"
 						;;
 					5) # link to file
 						TestAddConfig "$(printf 'CreateLink %q %q %q %q' \
