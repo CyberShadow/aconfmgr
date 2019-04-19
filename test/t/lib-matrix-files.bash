@@ -342,7 +342,10 @@ function TestMatrixFileCheckApply() {
 			else
 				TestMatrixCheckObj "$fn" "$c_kind" "$c_content" "$c_attr" # Must be as in config
 			fi
-		elif [[ $f_present == 1 && $ignored == 1 && $p_present != 1 ]]
+		elif [[ $ignored == 1 && $p_present != 1 && $f_present == 1 ]]
+		then
+			TestMatrixCheckObj "$fn" "$f_kind" "$f_content" "$f_attr" # Must be as in filesystem
+		elif [[ $ignored == 1 && $p_present == 1 && $p_kind != 4 && $f_present == 1 && $f_kind == 4 ]] # pacman will not delete a non-empty directory
 		then
 			TestMatrixCheckObj "$fn" "$f_kind" "$f_content" "$f_attr" # Must be as in filesystem
 		elif [[ $p_present == 2 ]]
