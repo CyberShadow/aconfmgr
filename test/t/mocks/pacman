@@ -268,7 +268,10 @@ function pacman() {
 							rm -f "$path"
 						fi
 
-						rm -f "$test_data_dir"/file-props/"$file".{mode,owner,group}
+						if [[ ! -h "$path" && ! -e "$path" ]] # deleted successfully
+						then
+							rm -f "$test_data_dir"/file-props/"$file".{mode,owner,group}
+						fi
 					done
 			done
 			echo pacman "$@" >> "$test_data_dir"/pacman.log
