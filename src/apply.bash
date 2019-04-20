@@ -318,7 +318,7 @@ function AconfApply() {
 	if [[ ${#uninstalled_packages[@]} -gt 0 ]]
 	then
 		local -a uninstalled_package_sources
-		printf '%s\n' "${uninstalled_packages[@]}" | sed s#/.*## | mapfile -t uninstalled_package_sources
+		printf '%s\n' "${uninstalled_packages[@]}" | sed s#/.*## | uniq | mapfile -t uninstalled_package_sources
 
 		local source
 		for source in "${uninstalled_package_sources[@]}"
