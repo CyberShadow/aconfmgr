@@ -4,8 +4,8 @@
 # Initialization
 
 function TestInit() {
-	touch "$test_data_dir"/packages.txt
 	mkdir -p "$test_data_dir"/packages
+	mkdir -p "$test_data_dir"/installed-packages
 
 	test_fs_root="$test_data_dir"/files
 }
@@ -122,17 +122,21 @@ function TestInstallPackage() {
 	local package=$1
 	local inst_as=$2
 
-	local kind
-	kind=$(cat "$test_data_dir"/packages/"$package"/kind)
+	local package_dir="$test_data_dir"/packages/"$package"
 
-	printf '%s\t%s\t%s\n' "$package" "$kind" "$inst_as" >> "$test_data_dir"/packages.txt
+	local kind
+	kind=$(cat "$package_dir"/kind)
 
 	local path
-	find "$test_data_dir"/packages/"$package"/files -mindepth 1 -maxdepth 1 -print0 | \
+	find "$package_dir"/files -mindepth 1 -maxdepth 1 -print0 | \
 		while read -r -d $'\0' path
 		do
 			cp -a "$path" "$test_data_dir"/files/
 		done
+
+	cp -a "$package_dir" "$test_data_dir"/installed-packages/
+	printf -- '%s' "$kind" > "$test_data_dir"/installed-packages/"$package"/kind
+	printf -- '%s' "$inst_as" > "$test_data_dir"/installed-packages/"$package"/inst_as
 }
 
 function TestExpectPacManLog() {

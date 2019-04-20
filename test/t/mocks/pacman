@@ -84,9 +84,14 @@ function pacman() {
 					$opt_quiet || FatalError 'Mocked pacman --query without --quiet\n'
 
 					local found=false
-					local name kind inst_as
-					while IFS=$'\t' read -r name kind inst_as
+					local package
+					find "$test_data_dir"/installed-packages -mindepth 1 -maxdepth 1 -printf '%P\0' | \
+					while read -r -d $'\0' package
 					do
+						local kind inst_as
+						kind=$(cat "$test_data_dir"/installed-packages/"$package"/kind)
+						inst_as=$(cat "$test_data_dir"/installed-packages/"$package"/inst_as)
+
 						if $opt_native && [[ "$kind" != native ]]
 						then
 							continue
@@ -112,9 +117,9 @@ function pacman() {
 							continue
 						fi
 
-						printf "%s\n" "$name"
+						printf "%s\n" "$package"
 						found=true
-					done < "$test_data_dir"/packages.txt
+					done
 
 					if ! $found
 					then
@@ -138,7 +143,7 @@ function pacman() {
 					local -a packages
 					if [[ "${#args[@]}" -eq 0 ]]
 					then
-						< "$test_data_dir"/packages.txt awk -F $'\t' '{printf "%s\0", $1}' | mapfile -t -d $'\0' packages
+						find "$test_data_dir"/installed-packages -mindepth 1 -maxdepth 1 -printf '%P\0' | mapfile -t -d $'\0' packages
 					else
 						packages=("${args[@]}")
 					fi
@@ -146,7 +151,7 @@ function pacman() {
 					local package
 					for package in "${packages[@]}"
 					do
-						find "$test_data_dir"/packages/"$package"/files \
+						find "$test_data_dir"/installed-packages/"$package"/files \
 							 -mindepth 1 \
 							 -printf '%P\n' \
 							| sed 's#^#/#'
@@ -170,15 +175,16 @@ function pacman() {
 
 						local found=false
 						local package _
-						while IFS=$'\t' read -r package _
+						find "$test_data_dir"/installed-packages -mindepth 1 -maxdepth 1 -printf '%P\0' | \
+						while read -r -d $'\0' package
 						do
-							local fn="$test_data_dir"/packages/"$package"/files/"$filename"
+							local fn="$test_data_dir"/installed-packages/"$package"/files/"$filename"
 							if [[ -h "$fn" || -e "$fn" ]]
 							then
 								printf '%s\n' "$package"
 								found=true
 							fi
-						done < "$test_data_dir"/packages.txt
+						done
 
 						if ! $found
 						then
@@ -225,22 +231,23 @@ function pacman() {
 					local kind
 					kind=$(cat "$test_data_dir"/packages/"$package"/kind)
 					[[ "$kind" == native ]] || FatalError 'Cannot install non-native packages (%s, kind=%s) via pacman!\n' "$package" "$kind"
-					printf '%s\t%s\t%s\n' "$package" native "$inst_as" >> "$test_data_dir"/packages.txt
+					cp -a "$test_data_dir"/packages/"$package" "$test_data_dir"/installed-packages/"$package"
+					printf -- '%s' "$inst_as" > "$test_data_dir"/installed-packages/"$package"/inst_as
 				done
 
 				echo pacman "$@" >> "$test_data_dir"/pacman.log
 			fi
 			;;
 		database)
-			local arg
-			for arg in "${args[@]}"
+			local package
+			for package in "${args[@]}"
 			do
 				if $opt_asdeps
 				then
-					sed -i 's/^\('"$(printf %q "$arg")"'\t.*\t\).*/\1orphan/' "$test_data_dir"/packages.txt
+					printf orphan > "$test_data_dir"/installed-packages/"$package"/inst_as
 				elif $opt_asexplicit
 				then
-					sed -i 's/^\('"$(printf %q "$arg")"'\t.*\t\).*/\1explicit/' "$test_data_dir"/packages.txt
+					printf explicit > "$test_data_dir"/installed-packages/"$package"/inst_as
 				else
 					FatalError 'Mocked pacman --database without --asdeps/--asexplicit\n'
 				fi
@@ -251,10 +258,8 @@ function pacman() {
 			local package
 			for package in "${args[@]}"
 			do
-				sed -i "$(printf "/^%q\\t/d" "$package")" "$test_data_dir"/packages.txt
-
 				local file
-				find "$test_data_dir"/packages/"$package"/files \
+				find "$test_data_dir"/installed-packages/"$package"/files \
 					 -mindepth 1 \
 					 -printf '%P\0' \
 					| \
@@ -273,6 +278,8 @@ function pacman() {
 							rm -f "$test_data_dir"/file-props/"$file".{mode,owner,group}
 						fi
 					done
+
+				rm -rf "$test_data_dir"/installed-packages/"$package"
 			done
 			echo pacman "$@" >> "$test_data_dir"/pacman.log
 			;;

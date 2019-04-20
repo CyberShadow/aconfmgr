@@ -342,7 +342,7 @@ function TestPacCheckCompare() {
 	local query_cmd=("$@")
 
 	local root1="$test_data_dir"
-	local root2="$test_data_dir"/packages/"$package"
+	local root2="$test_data_dir"/installed-packages/"$package"
 
 	local attr1 attr2
 	attr1=$(TestGetAttr "$root1" "$path" "$ext_attr" "${query_cmd[@]}")
@@ -360,13 +360,14 @@ function TestFileMd5sum() {
 }
 
 function paccheck() {
-	local package
-	while IFS=$'\t' read -r package _
+	find "$test_data_dir"/installed-packages -mindepth 1 -maxdepth 1 -printf '%P\0' | \
+	while read -r -d $'\0' package
 	do
 		local modified=false
 
 		local path
-		find "$test_data_dir"/packages/"$package"/files -mindepth 1 -printf '%P\0' | \
+		local package_root="$test_data_dir"/installed-packages/"$package"
+		find "$package_root"/files -mindepth 1 -printf '%P\0' | \
 			while read -r -d $'\0' path
 			do
 				local package_path="$test_data_dir"/packages/"$package"/files/"$path"
@@ -397,7 +398,7 @@ function paccheck() {
 		then
 			printf '%s: all files match database\n' "$package"
 		fi
-	done < "$test_data_dir"/packages.txt
+	done
 }
 
 function AconfNeedProgram() {
