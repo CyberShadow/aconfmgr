@@ -271,6 +271,28 @@ EOF
 	rm -rf "$test_data_dir"/package-files/"$package"
 }
 
+# Delete an installable package.
+function TestDeletePackage() {
+	local package=$1
+	local kind=$2
+
+	local dir="$test_data_dir"/packages/"$kind"/"$package"
+	test -d "$dir"
+	rm -rf "$dir"
+
+	if [[ "$kind" == native ]]
+	then
+		sudo find /aconfmgr-repo/ -name "$package"'-*.pkg.tar.xz' -delete
+		sudo repo-remove /aconfmgr-repo/aconfmgr.db.tar "$package"
+		sudo pacman -Sy
+	fi
+
+	if [[ "$kind" == foreign && -f ~/aur-initialized ]]
+	then
+		Log 'TOOO: delete packages from AUR\n'
+	fi
+}
+
 # Create dummy parent package to distinguish dependency from orphan packages.
 function TestCreateParentPackage() {
 	local dir="$test_data_dir"/parent-package
