@@ -250,6 +250,55 @@ function AconfApply() {
 		LogLeave
 	fi
 
+	# Orphan packages
+
+	local -a files_in_deleted_packages=()
+
+	if "$PACMAN" --query --unrequired --unrequired --deps --quiet > /dev/null
+	then
+		LogEnter 'Pruning orphan packages...\n'
+
+		# We have to loop, since pacman's dependency scanning doesn't seem to be recursive
+		local iter=1
+		while true
+		do
+			LogEnter 'Iteration %s:\n' "$(Color G "$iter")"
+
+			LogEnter 'Querying orphan packages...\n'
+			local -a orphan_packages
+			( "$PACMAN" --query --unrequired --unrequired --deps --quiet || true ) | mapfile -t orphan_packages
+			LogLeave
+
+			if [[ ${#orphan_packages[@]} != 0 ]]
+			then
+				LogEnter 'Pruning %s orphan packages.\n' "$(Color G ${#orphan_packages[@]})"
+
+				function Details() { Log 'Removing the following orphan packages:%s\n' "$(Color M " %q" "${orphan_packages[@]}")" ; }
+				ParanoidConfirm Details
+
+				local -a deleted_files=()
+				"$PACMAN" --query --list --quiet "${orphan_packages[@]}" | sed 's#^\(.*\)/$#\1#' | mapfile -t deleted_files
+				files_in_deleted_packages+=("${deleted_files[@]}")
+
+				sudo "${pacman_opts[@]}" --remove "${orphan_packages[@]}"
+
+				LogLeave
+			fi
+
+			iter=$((iter+1))
+
+			LogLeave # Iteration
+
+			if [[ ${#orphan_packages[@]} == 0 ]]
+			then
+				break
+			fi
+		done
+
+		modified=y
+		LogLeave # Removing orphan packages
+	fi
+
 
 	# Missing native packages (native packages that are listed in the configuration, but not installed)
 	local -a missing_native_packages
@@ -308,55 +357,6 @@ function AconfApply() {
 
 		modified=y
 		LogLeave
-	fi
-
-	# Orphan packages
-
-	local -a files_in_deleted_packages=()
-
-	if "$PACMAN" --query --unrequired --unrequired --deps --quiet > /dev/null
-	then
-		LogEnter 'Pruning orphan packages...\n'
-
-		# We have to loop, since pacman's dependency scanning doesn't seem to be recursive
-		local iter=1
-		while true
-		do
-			LogEnter 'Iteration %s:\n' "$(Color G "$iter")"
-
-			LogEnter 'Querying orphan packages...\n'
-			local -a orphan_packages
-			( "$PACMAN" --query --unrequired --unrequired --deps --quiet || true ) | mapfile -t orphan_packages
-			LogLeave
-
-			if [[ ${#orphan_packages[@]} != 0 ]]
-			then
-				LogEnter 'Pruning %s orphan packages.\n' "$(Color G ${#orphan_packages[@]})"
-
-				function Details() { Log 'Removing the following orphan packages:%s\n' "$(Color M " %q" "${orphan_packages[@]}")" ; }
-				ParanoidConfirm Details
-
-				local -a deleted_files=()
-				"$PACMAN" --query --list --quiet "${orphan_packages[@]}" | sed 's#^\(.*\)/$#\1#' | mapfile -t deleted_files
-				files_in_deleted_packages+=("${deleted_files[@]}")
-
-				sudo "${pacman_opts[@]}" --remove "${orphan_packages[@]}"
-
-				LogLeave
-			fi
-
-			iter=$((iter+1))
-
-			LogLeave # Iteration
-
-			if [[ ${#orphan_packages[@]} == 0 ]]
-			then
-				break
-			fi
-		done
-
-		modified=y
-		LogLeave # Removing orphan packages
 	fi
 
 	LogLeave # Configuring packages
