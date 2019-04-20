@@ -131,6 +131,16 @@ function TestCreatePackage() {
 	rm -rf "$test_data_dir"/package-files/"$package"
 }
 
+# Delete an installable package.
+function TestDeletePackage() {
+	local package=$1
+	local kind=$2
+
+	local dir="$test_data_dir"/packages/"$kind"/"$package"
+	test -d "$dir"
+	rm -rf "$dir"
+}
+
 function TestInstallPackage() {
 	local package=$1
 	local kind=$2
