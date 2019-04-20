@@ -46,7 +46,7 @@ function TestMatrixPackageSetup() {
 		[[ "$s_present" == 1 || ( "$s_dependence" == 1 ) ]] || continue
 
 		# Installing foreign packages is not mocked yet
-		if [[ "$c_kind" == 2 ]]  ; then continue ; fi
+		if [[ "$c_kind" == 2 && ${ACONFMGR_INTEGRATION:-0} -eq 0 ]] ; then continue ; fi
 
 		# Cull bad config: configurations should not both ignore and install a package
 		if [[ "$c_present" == 1 && "$ignored" == 1 ]] ; then continue ; fi
@@ -70,7 +70,11 @@ function TestMatrixPackageSetup() {
 		local ignored s_present s_kind s_dependence c_present c_kind name
 		eval "$spec"
 
-		TestCreatePackage "$name" "${package_kinds[$s_kind]}"
+		local kind
+		for kind in 1 2
+		do
+			TestCreatePackage "$name" "${package_kinds[$kind]}"
+		done
 
 		if ((s_present))
 		then
@@ -88,6 +92,14 @@ function TestMatrixPackageSetup() {
 			TestAddConfig "$(printf 'AddPackage%s %q' \
 			                        "${package_kind_switch[$c_kind]}" "$name")"
 		fi
+
+		for kind in 1 2
+		do
+			if [[ "$kind" -ne "$c_kind" ]]
+			then
+				TestDeletePackage "$name" "${package_kinds[$kind]}"
+			fi
+		done
 	done
 	LogLeave
 }
