@@ -267,6 +267,8 @@ EOF
 			git push aur@aur.archlinux.org:"$package".git master
 		)
 	fi
+
+	rm -rf "$test_data_dir"/package-files/"$package"
 }
 
 # Create dummy parent package to distinguish dependency from orphan packages.

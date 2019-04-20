@@ -127,6 +127,8 @@ function TestCreatePackage() {
 	do
 		touch "$package_dir"/groups/"$group"
 	done
+
+	rm -rf "$test_data_dir"/package-files/"$package"
 }
 
 function TestInstallPackage() {
