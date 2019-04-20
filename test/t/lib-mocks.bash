@@ -370,8 +370,8 @@ function paccheck() {
 		find "$package_root"/files -mindepth 1 -printf '%P\0' | \
 			while read -r -d $'\0' path
 			do
-				local package_path="$test_data_dir"/packages/"$package"/files/"$path"
-				# local package_prop_path="$test_data_dir"/packages/"$package"/file-props/"$path"
+				local package_path="$package_root"/files/"$path"
+				# local package_prop_path="$test_data_dir"/packages/"$kind"/"$package"/file-props/"$path"
 				local fs_path="$test_data_dir"/files/"$path"
 				# local fs_prop_path="$test_data_dir"/file-props/"$path"
 
@@ -409,8 +409,14 @@ function AconfRestoreFile() {
 	local package=$1
 	local file=$2
 
+	local kind=native # Guess kind
+	if [[ ! -d "$test_data_dir"/packages/"$kind"/"$package" ]]
+	then
+		kind=foreign
+	fi
+
 	local system_file="$test_data_dir"/files$file
-	local package_file="$test_data_dir"/packages/"$package"/files"$file"
+	local package_file="$test_data_dir"/packages/"$kind"/"$package"/files"$file"
 
 	if [[ -d "$system_file" && -d "$package_file" ]]
 	then
@@ -432,7 +438,7 @@ function AconfRestoreFile() {
 	for prop in owner group mode
 	do
 		local system_prop="$test_data_dir"/file-props"$file"."$prop"
-		local package_prop="$test_data_dir"/packages/"$package"/file-props"$file"."$prop"
+		local package_prop="$test_data_dir"/packages/"$kind"/"$package"/file-props"$file"."$prop"
 		rm -f "$system_prop"
 		if [[ -e "$package_prop" ]]
 		then

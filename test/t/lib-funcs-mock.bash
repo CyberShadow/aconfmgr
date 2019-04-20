@@ -32,7 +32,7 @@ function TestAddFSObj() {
 	then
 		root="$test_data_dir"
 	else
-		root="$test_data_dir"/packages/"$package"
+		root="$test_data_dir"/package-files/"$package"
 	fi
 
 	case "$type" in
@@ -87,45 +87,54 @@ function TestCreatePackage() {
 	local package_file="$test_data_dir"/files/var/cache/pacman/pkg/"$package"-"$version"-"$arch".pkg.tar.xz
 	mkdir -p "$test_data_dir"/files/var/cache/pacman/pkg
 
-	mkdir -p "$test_data_dir"/packages/"$package"/files
-	printf '%s' "$kind" > "$test_data_dir"/packages/"$package"/kind
+	local package_dir="$test_data_dir"/packages/"$kind"/"$package"
+	mkdir -p "$package_dir"
 
-	printf 'pkgname = %s\n' "$package" > "$test_data_dir"/packages/"$package"/.PKGINFO
-	tar --create -f "$package_file" -C "$test_data_dir"/packages/"$package" .PKGINFO
+	if [[ -d "$test_data_dir"/package-files/"$package"/files ]]
+	then
+		mv "$test_data_dir"/package-files/"$package"/files "$package_dir"/
+	else
+		mkdir "$package_dir"/files
+	fi
+	if [[ -d "$test_data_dir"/package-files/"$package"/file-props ]]
+	then
+		mv "$test_data_dir"/package-files/"$package"/file-props "$package_dir"/
+	fi
 
-	find "$test_data_dir"/packages/"$package"/files -exec touch --no-dereference --date "$time" {} +
+	printf 'pkgname = %s\n' "$package" > "$package_dir"/.PKGINFO
+	tar --create -f "$package_file" -C "$package_dir" .PKGINFO
+
+	find "$package_dir"/files -exec touch --no-dereference --date "$time" {} +
 
 	local path
-	find "$test_data_dir"/packages/"$package"/files -mindepth 1 -maxdepth 1 -printf '%P\0' | \
+	find "$package_dir"/files -mindepth 1 -maxdepth 1 -printf '%P\0' | \
 		while read -r -d $'\0' path
 		do
-			# local package_path="$test_data_dir"/packages/"$package"/files/"$path"
-			local package_prop_path="$test_data_dir"/packages/"$package"/file-props/"$path"
+			# local package_path="$package_dir"/files/"$path"
+			local package_prop_path="$package_dir"/file-props/"$path"
 
 			local opts=()
 			if [[ -e "$package_prop_path".owner ]] ; then opts+=(--owner "$(cat "$package_prop_path".owner)") ; fi
 			if [[ -e "$package_prop_path".group ]] ; then opts+=(--group "$(cat "$package_prop_path".group)") ; fi
 			if [[ -e "$package_prop_path".mode  ]] ; then opts+=(--mode  "$(cat "$package_prop_path".mode )") ; fi
 
-			tar --append -f "$package_file" "${opts[@]}" -C "$test_data_dir"/packages/"$package"/files "$path"
+			tar --append -f "$package_file" "${opts[@]}" -C "$package_dir"/files "$path"
 		done
 
-	mkdir -p "$test_data_dir"/packages/"$package"/groups
+	mkdir -p "$package_dir"/groups
 	local group
 	for group in "${groups[@]}"
 	do
-		touch "$test_data_dir"/packages/"$package"/groups/"$group"
+		touch "$package_dir"/groups/"$group"
 	done
 }
 
 function TestInstallPackage() {
 	local package=$1
-	local inst_as=$2
+	local kind=$2
+	local inst_as=$3
 
-	local package_dir="$test_data_dir"/packages/"$package"
-
-	local kind
-	kind=$(cat "$package_dir"/kind)
+	local package_dir="$test_data_dir"/packages/"$kind"/"$package"
 
 	local path
 	find "$package_dir"/files -mindepth 1 -maxdepth 1 -print0 | \

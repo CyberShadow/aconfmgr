@@ -206,11 +206,12 @@ function pacman() {
 				[[ ${#args[@]} -eq 1 ]] || FatalError 'Mocked pacman --groups with more or less than 1 argument\n'
 				local group=${args[0]}
 
+				local kind=native
 				local package
-				find "$test_data_dir"/packages -mindepth 1 -maxdepth 1 -printf '%P\0' | \
+				find "$test_data_dir"/packages/"$kind" -mindepth 1 -maxdepth 1 -printf '%P\0' | \
 					while read -r -d $'\0' package
 					do
-						if [[ -f "$test_data_dir"/packages/"$package"/groups/"$group" ]]
+						if [[ -f "$test_data_dir"/packages/"$kind"/"$package"/groups/"$group" ]]
 						then
 							printf '%s\n' "$package"
 						fi
@@ -228,10 +229,10 @@ function pacman() {
 				local package
 				for package in "${args[@]}"
 				do
-					local kind
-					kind=$(cat "$test_data_dir"/packages/"$package"/kind)
-					[[ "$kind" == native ]] || FatalError 'Cannot install non-native packages (%s, kind=%s) via pacman!\n' "$package" "$kind"
-					cp -a "$test_data_dir"/packages/"$package" "$test_data_dir"/installed-packages/"$package"
+					local kind=native
+					test -d "$test_data_dir"/packages/"$kind"/"$package" || FatalError 'No such %s package: %s\n' "$kind" "$package"
+					cp -a "$test_data_dir"/packages/"$kind"/"$package" "$test_data_dir"/installed-packages/"$package"
+					printf -- '%s' "$kind" > "$test_data_dir"/installed-packages/"$package"/kind
 					printf -- '%s' "$inst_as" > "$test_data_dir"/installed-packages/"$package"/inst_as
 				done
 

@@ -254,7 +254,7 @@ function TestAddPackage() {
 	local inst_as=$3
 
 	TestCreatePackage "$package" "$kind"
-	TestInstallPackage "$package" "$inst_as"
+	TestInstallPackage "$package" "$kind" "$inst_as"
 }
 
 

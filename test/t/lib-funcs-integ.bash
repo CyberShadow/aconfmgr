@@ -99,7 +99,7 @@ function TestAddFSObj() {
 		root=
 		prefix=(sudo)
 	else
-		root="$test_data_dir"/packages/"$package"/files
+		root="$test_data_dir"/package-files/"$package"/files
 		mkdir -p "$root"
 		prefix=()
 	fi
@@ -131,7 +131,7 @@ function TestAddFSObj() {
 		if [[ -n "$owner" ]] ; then "${prefix[@]}" chown --no-dereference "$owner" "$fn" ; fi
 		if [[ -n "$group" ]] ; then "${prefix[@]}" chgrp --no-dereference "$group" "$fn" ; fi
 	else
-		tar rf "$test_data_dir"/packages/"$package"/files.tar \
+		tar rf "$test_data_dir"/package-files/"$package"/files.tar \
 			-C "$root" \
 			--owner="${owner:-root}" \
 			--group="${owner:-root}" \
@@ -194,14 +194,13 @@ function TestCreatePackage() {
 		eval "$arg"
 	done
 
-	local dir="$test_data_dir"/packages/"$package"
+	local dir="$test_data_dir"/packages/"$kind"/"$package"
 	mkdir -p "$dir"
-	printf '%s' "$kind" > "$dir"/kind
 	touch --date "$time" "$dir"/time
 
 	mkdir "$dir"/build
 
-	local tar="$dir"/files.tar
+	local tar="$test_data_dir"/package-files/"$package"/files.tar
 	if [[ -f "$tar" ]]
 	then
 		cp "$tar" "$dir"/build/
@@ -298,12 +297,10 @@ test_adopted_packages=()
 
 function TestInstallPackage() {
 	local package=$1
-	local inst_as=$2
+	local kind=$2
+	local inst_as=$3
 
-	local dir="$test_data_dir"/packages/"$package"
-
-	local kind
-	kind=$(cat "$dir"/kind)
+	local dir="$test_data_dir"/packages/"$kind"/"$package"
 
 	local args=(sudo pacman --noconfirm)
 	case "$inst_as" in
@@ -446,11 +443,12 @@ function TestNeedAURPackage() {
 # override existing declarations.
 function TestUpdateAurPackage() {
 	local package=$1
+	local kind=foreign
 	shift
 	local lines=("$@")
 
 	(
-		cd "$test_data_dir"/packages/"$package"/build
+		cd "$test_data_dir"/packages/"$kind"/"$package"/build
 		local line
 		printf '%s\n' "${lines[@]}" >> PKGBUILD
 		TestMakePkg . --printsrcinfo > .SRCINFO

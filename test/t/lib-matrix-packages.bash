@@ -74,7 +74,7 @@ function TestMatrixPackageSetup() {
 
 		if ((s_present))
 		then
-			TestInstallPackage "$name" "${package_dependences[$s_dependence]}"
+			TestInstallPackage "$name" "${package_kinds[$s_kind]}" "${package_dependences[$s_dependence]}"
 		fi
 
 		if ((ignored))
