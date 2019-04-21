@@ -17,6 +17,11 @@ package_dependences=(
 )
 
 function TestMatrixPackageSetup() {
+	if ((${ACONFMGR_INTEGRATION:-0}))
+	then
+		TestNeedAUR
+	fi
+
 	LogEnter 'Expanding specs...\n'
 	declare -ag specs
 	# shellcheck disable=SC2191
