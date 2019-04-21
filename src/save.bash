@@ -33,7 +33,7 @@ function AconfSave() {
 			do
 				Log '%s (%s)...\r' "$(Color M "%q" "$package")" "$source"
 				local description
-				description="$(LC_ALL=C "$PACMAN" --query --info "$package" | grep '^Description' | cut -d ':' -f 2)"
+				description=$("$source"_GetPackageDescription "$package")
 				local switch
 				case "$source" in
 					pacman)

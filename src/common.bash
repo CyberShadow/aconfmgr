@@ -6,8 +6,6 @@
 
 # Globals
 
-PACMAN=${PACMAN:-pacman}
-
 output_dir="$tmp_dir"/output
 system_dir="$tmp_dir"/system # Current system configuration, to be compared against the output directory
 
@@ -168,17 +166,9 @@ function AconfCompileSystem() {
 
 	LogEnter 'Querying package list...\n'
 	local source
-	for source in pacman aur
+	for source in "${package_sources[@]}"
 	do
-		local args=("$PACMAN" --query --quiet --explicit)
-		if [[ $source == pacman ]]
-		then
-			args+=(--native)
-		else
-			args+=(--foreign)
-		fi
-
-		( "${args[@]}" || true ) \
+		"$source"_GetExplicitlyInstalledPackages \
 			| awk -v source="$source" '{print source "/" $0}' \
 			| ( grep -vFxf <(PrintArray ignore_packages) || true ) \
 				  >> "$system_dir"/packages.txt
@@ -206,7 +196,7 @@ function AconfCompileSystem() {
 
 	LogEnter 'Enumerating managed files...\n'
 	mkdir --parents "$tmp_dir"
-	( "$PACMAN" --query --list --quiet || true ) | sed 's#\/$##' | sort --unique > "$tmp_dir"/managed-files
+	"$distro"_GetAllPackagesFiles | sort --unique > "$tmp_dir"/managed-files
 	LogLeave
 
 	LogEnter 'Searching for lost files...\n'
@@ -351,7 +341,6 @@ BEGIN {
 
 	LogEnter 'Searching for modified files...\n'
 
-	AconfNeedProgram paccheck pacutils n
 	local modified_file_count=0
 	local -A saw_file
 
@@ -361,104 +350,51 @@ BEGIN {
 
 	touch "$tmp_dir"/file-owners
 
-	sudo sh -c "LC_ALL=C stdbuf -o0 paccheck --md5sum --files --file-properties --backup --noupgrade 2>&1 || true" | \
-		while read -r line
+	local package prop value file
+	"$distro"_FindModifiedFiles | \
+		while IFS=$'\t' read -r -d '' package prop value file
 		do
-			if [[ $line =~ ^(.*):\ \'(.*)\'\ (type|size|modification\ time|md5sum|UID|GID|permission|symlink\ target)\ mismatch\ \(expected\ (.*)\)$ ]]
+			if [[ "$prop" == progress ]]
 			then
-				local package="${BASH_REMATCH[1]}"
-				local file="${BASH_REMATCH[2]}"
-				local kind="${BASH_REMATCH[3]}"
-				local value="${BASH_REMATCH[4]}"
-
-				local ignored=n
-				for ignore_path in "${ignore_paths[@]}"
-				do
-					# shellcheck disable=SC2053
-					if [[ "$file" == $ignore_path ]]
-					then
-						ignored=y
-						break
-					fi
-				done
-
-				if [[ $ignored == n ]]
-				then
-					if [[ -z "${saw_file[$file]+x}" ]]
-					then
-						saw_file[$file]=y
-						Log '%s: %s\n' "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
-						found_files+=("$file")
-						modified_file_count=$((modified_file_count+1))
-					fi
-
-					local prop
-					case "$kind" in
-						UID)
-							prop=owner
-							value=${value#*/}
-							;;
-						GID)
-							prop=group
-							value=${value#*/}
-							;;
-						permission)
-							prop=mode
-							;;
-						type|size|modification\ time|md5sum|symlink\ target)
-							prop=
-							found_file_edited[$file]=y
-							;;
-						*)
-							prop=
-							;;
-					esac
-
-					if [[ -n "$prop" ]]
-					then
-						local key="$file:$prop"
-						orig_file_props[$key]=$value
-
-						printf '%s\t%s\t%q\n' "$prop" "$value" "$file" >> "$system_dir"/orig-file-props.txt
-					fi
-				fi
-				printf '%s\0%s\0' "$file" "$package" >> "$tmp_dir"/file-owners
-			elif [[ $line =~ ^(.*):\ \'(.*)\'\ missing\ file$ ]]
-			then
-				local package="${BASH_REMATCH[1]}"
-				local file="${BASH_REMATCH[2]}"
-
-				local ignored=n
-				for ignore_path in "${ignore_paths[@]}"
-				do
-					# shellcheck disable=SC2053
-					if [[ "$file" == $ignore_path ]]
-					then
-						ignored=y
-						break
-					fi
-				done
-
-				if [[ $ignored == y ]]
-				then
-					continue
-				fi
-
-				Log '%s (missing)...\r' "$(Color M "%q" "$package")"
-				printf '%s\t%s\t%q\n' "deleted" "y" "$file" >> "$system_dir"/file-props.txt
-				printf '%s\0%s\0' "$file" "$package" >> "$tmp_dir"/file-owners
-			elif [[ $line =~ ^warning:\ (.*):\ \'(.*)\'\ read\ error\ \(No\ such\ file\ or\ directory\)$ ]]
-			then
-				local package="${BASH_REMATCH[1]}"
-				local file="${BASH_REMATCH[2]}"
-				# Ignore
-			elif [[ $line =~ ^(.*):\ all\ files\ match\ (database|mtree|mtree\ md5sums)$ ]]
-			then
-				local package="${BASH_REMATCH[1]}"
 				Log '%s...\r' "$(Color M "%q" "$package")"
-				#echo "Now at ${BASH_REMATCH[1]}"
 			else
-				Log 'Unknown paccheck output line: %s\n' "$(Color Y "%q" "$line")"
+				printf '%s\0%s\0' "$file" "$package" >> "$tmp_dir"/file-owners
+
+				local ignored=false
+				for ignore_path in "${ignore_paths[@]}"
+				do
+					# shellcheck disable=SC2053
+					if [[ "$file" == $ignore_path ]]
+					then
+						ignored=true
+						break
+					fi
+				done
+				if $ignored ; then continue ; fi
+
+				if [[ -z "${saw_file[$file]+x}" ]]
+				then
+					saw_file[$file]=y
+					Log '%s: %s\n' "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
+					if [[ "$prop" != deleted ]]
+					then
+						found_files+=("$file")
+					fi
+					modified_file_count=$((modified_file_count+1))
+				fi
+
+				if [[ "$prop" == data ]]
+				then
+					found_file_edited[$file]=y
+				elif [[ "$prop" == deleted ]]
+				then
+					printf '%s\t%s\t%q\n' "deleted" "y" "$file" >> "$system_dir"/file-props.txt
+				else
+					local key="$file:$prop"
+					orig_file_props[$key]=$value
+
+					printf '%s\t%s\t%q\n' "$prop" "$value" "$file" >> "$system_dir"/orig-file-props.txt
+				fi
 			fi
 		done
 	LogLeave 'Done (%s modified files).\n' "$(Color G %s $modified_file_count)"
@@ -802,581 +738,36 @@ function AconfCompile() {
 
 ####################################################################################################
 
-pacman_opts=("$PACMAN")
-aurman_opts=(aurman)
-pacaur_opts=(pacaur)
-yaourt_opts=(yaourt)
-yay_opts=(yay)
-makepkg_opts=(makepkg)
 diff_opts=(diff '--color=auto')
-
-aur_helper=
-aur_helpers=(aurman pacaur yaourt yay makepkg)
-
-# Only aconfmgr can use makepkg under root
-if [[ $EUID == 0 ]]
-then
-	aur_helper=makepkg
-fi
-
-function DetectAurHelper() {
-	if [[ -n "$aur_helper" ]]
-	then
-		return
-	fi
-
-	LogEnter 'Detecting AUR helper...\n'
-
-	local helper
-	for helper in "${aur_helpers[@]}"
-	do
-		if hash "$helper" 2> /dev/null
-		then
-			aur_helper=$helper
-			LogLeave '%s... Yes\n' "$(Color C %s "$helper")"
-			return
-		fi
-		Log '%s... No\n' "$(Color C %s "$helper")"
-	done
-
-	Log 'Can'\''t find even makepkg!?\n'
-	Exit 1
-}
-
-base_devel_installed=n
-
-function AconfMakePkg() {
-	local install=true
-	if [[ "$1" == --noinstall ]]
-	then
-		install=false
-		shift
-	fi
-
-	local package="$1"
-	local asdeps="${2:-false}"
-
-	LogEnter 'Building foreign package %s from source.\n' "$(Color M %q "$package")"
-
-	local pkg_dir="$tmp_dir"/aur/"$package"
-	Log 'Using directory %s.\n' "$(Color C %q "$pkg_dir")"
-
-	rm -rf "$pkg_dir"
-	mkdir --parents "$pkg_dir"
-
-	# Needed to clone the AUR repo. Should be replaced with curl/tar.
-	AconfNeedProgram git git n
-
-	if [[ $base_devel_installed == n ]]
-	then
-		LogEnter 'Making sure the %s group is installed...\n' "$(Color M base-devel)"
-		ParanoidConfirm ''
-		local base_devel_all base_devel_missing
-		"$PACMAN" --sync --quiet --group base-devel | mapfile -t base_devel_all
-		( "$PACMAN" --deptest "${base_devel_all[@]}" || true ) | mapfile -t base_devel_missing
-		if [[ ${#base_devel_missing[@]} != 0 ]]
-		then
-			AconfInstallNative "${base_devel_missing[@]}"
-		fi
-
-		LogLeave
-		base_devel_installed=y
-	fi
-
-	LogEnter 'Cloning...\n'
-	git clone "https://aur.archlinux.org/$package.git" "$pkg_dir"
-	LogLeave
-
-	if [[ ! -f "$pkg_dir"/PKGBUILD ]]
-	then
-		Log 'No package description file found!\n'
-
-		if [[ "$package" == cower ]]
-		then
-			FatalError 'Failed to download aconfmgr dependency!\n'
-		fi
-
-		LogEnter 'Assuming this package is part of a package base:\n'
-
-		LogEnter 'Retrieving package info...\n'
-		AconfNeedProgram cower cower y
-		local pkg_base
-		pkg_base=$(cower --format %b --info "$package")
-		LogLeave 'Done, package base is %s.\n' "$(Color M %q "$pkg_base")"
-
-		AconfMakePkg "$pkg_base" "$asdeps" # recurse
-		LogLeave # Package base
-		LogLeave # Package
-		return
-	fi
-
-	AconfMakePkgDir "$package" "$asdeps" "$install" "$pkg_dir"
-}
-
-function AconfMakePkgDir() {
-	local package=$1
-	local asdeps=$2
-	local install=$3
-	local pkg_dir=$4
-
-	local gnupg_home
-	gnupg_home="$(realpath -m "$tmp_dir/gnupg")"
-	local makepkg_user=nobody # when running as root
-
-	local infofile infofilename
-	for infofilename in .SRCINFO .AURINFO
-	do
-		infofile="$pkg_dir"/"$infofilename"
-		if test -f "$infofile"
-		then
-			LogEnter 'Checking dependencies...\n'
-
-			local depends missing_depends dependency arch
-			arch="$(uname -m)"
-			# Filter out packages from the same base
-			( grep -E $'^\t(make|check)?depends(_'"$arch"')? = ' "$infofile" || true ) \
-				| sed 's/^.* = \([^<>=]*\)\([<>=].*\)\?$/\1/g' \
-				| ( grep -vFf <(( grep '^pkgname = ' "$infofile" || true) \
-									| sed 's/^.* = \(.*\)$/\1/g' ) \
-						|| true ) \
-				| mapfile -t depends
-
-			if [[ ${#depends[@]} != 0 ]]
-			then
-				( "$PACMAN" --deptest "${depends[@]}" || true ) | mapfile -t missing_depends
-				if [[ ${#missing_depends[@]} != 0 ]]
-				then
-					for dependency in "${missing_depends[@]}"
-					do
-						LogEnter '%s:\n' "$(Color M %q "$dependency")"
-						if "$PACMAN" --query --info "$dependency" > /dev/null 2>&1
-						then
-							Log 'Already installed.\n' # Shouldn't happen, actually
-						elif "$PACMAN" --sync --info "$dependency" > /dev/null 2>&1
-						then
-							Log 'Installing from repositories...\n'
-							AconfInstallNative --asdeps "$dependency"
-							Log 'Installed.\n'
-						else
-							local installed=false
-
-							# Check if this package is provided by something in pacman repos.
-							# `pacman -Si` will not give us that information,
-							# however, `pacman -S` still works.
-							AconfNeedProgram pacsift pacutils n
-							local providers
-							providers=$(pacsift --sync --exact --satisfies="$dependency" <&-)
-							if [[ -n "$providers" ]]
-							then
-								Log 'Installing provider package from repositories...\n'
-								AconfInstallNative --asdeps "$dependency"
-								Log 'Installed.\n'
-								installed=true
-							fi
-
-							if ! $installed
-							then
-								Log 'Installing from AUR...\n'
-								AconfMakePkg "$dependency" true
-								Log 'Installed.\n'
-							fi
-						fi
-
-						LogLeave ''
-					done
-				fi
-			fi
-
-			LogLeave
-
-			local keys
-			( grep -E $'^\tvalidpgpkeys = ' "$infofile" || true ) | sed 's/^.* = \(.*\)$/\1/' | mapfile -t keys
-			if [[ ${#keys[@]} != 0 ]]
-			then
-				LogEnter 'Checking PGP keys...\n'
-
-				local key
-				for key in "${keys[@]}"
-				do
-					export GNUPGHOME="$gnupg_home"
-
-					if [[ ! -d "$GNUPGHOME" ]]
-					then
-						LogEnter 'Creating %s...\n' "$(Color C %s "$GNUPGHOME")"
-						mkdir --parents "$GNUPGHOME"
-						gpg --gen-key --batch <<EOF
-Key-Type: DSA
-Key-Length: 1024
-Name-Real: aconfmgr
-%no-protection
-EOF
-						LogLeave
-					fi
-
-					LogEnter 'Adding key %s...\n' "$(Color Y %q "$key")"
-					#ParanoidConfirm ''
-
-					local ok=false
-					local keyserver
-					for keyserver in keys.gnupg.net pgp.mit.edu # subkeys.pgp.net
-					do
-						LogEnter 'Trying keyserver %s...\n' "$(Color C %s "$keyserver")"
-						if gpg --keyserver "$keyserver" --recv-key "$key"
-						then
-							ok=true
-							LogLeave 'OK!\n'
-							break
-						else
-							LogLeave 'Error...\n'
-						fi
-					done
-
-					if ! $ok
-					then
-						FatalError 'No keyservers succeeded.\n'
-					fi
-
-					LogEnter 'Signing key...\n'
-					gpg --quick-lsign-key "$key"
-					LogLeave
-
-					if [[ $EUID == 0 ]]
-					then
-						chmod 700 "$gnupg_home"
-						chown -R $makepkg_user: "$gnupg_home"
-					fi
-
-					LogLeave
-				done
-
-				LogLeave
-			fi
-		fi
-	done
-
-	LogEnter 'Evaluating environment...\n'
-	local path
-	# shellcheck disable=SC2016
-	path=$(env -i sh -c 'source /etc/profile 1>&2 ; printf -- %s "$PATH"')
-	LogLeave
-
-	LogEnter 'Building...\n'
-	(
-		cd "$pkg_dir"
-		mkdir --parents home
-		local args=(env -i "PATH=$path" "HOME=$PWD/home" "GNUPGHOME=$gnupg_home" "${makepkg_opts[@]}")
-
-		if [[ $EUID == 0 ]]
-		then
-			chown -R "$makepkg_user": .
-			su -s /bin/bash "$makepkg_user" -c "GNUPGHOME=$(realpath ../../gnupg) $(printf ' %q' "${args[@]}")"
-
-			if $install
-			then
-				if $asdeps
-				then
-					"${pacman_opts[@]}" --upgrade --asdeps ./*.pkg.tar.xz
-				else
-					"${pacman_opts[@]}" --upgrade ./*.pkg.tar.xz
-				fi
-			fi
-		else
-			if $asdeps
-			then
-				args+=(--asdeps)
-			fi
-
-			if $install
-			then
-				args+=(--install)
-			fi
-
-			"${args[@]}"
-		fi
-	)
-	LogLeave
-
-	LogLeave
-}
-
-function AconfInstallNative() {
-	local asdeps=false asdeps_arr=()
-	if [[ "$1" == --asdeps ]]
-	then
-		asdeps=true
-		asdeps_arr=(--asdeps)
-		shift
-	fi
-
-	local target_packages=("$@")
-	if [[ $prompt_mode == never ]]
-	then
-		# Some prompts default to 'no'
-		( yes || true ) | sudo "${pacman_opts[@]}" --confirm --sync "${asdeps_arr[@]}" "${target_packages[@]}"
-	else
-		sudo "${pacman_opts[@]}" --sync "${asdeps_arr[@]}" "${target_packages[@]}"
-	fi
-}
-
-function AconfInstallForeign() {
-	local asdeps=false asdeps_arr=()
-	if [[ "$1" == --asdeps ]]
-	then
-		asdeps=true
-		asdeps_arr=(--asdeps)
-		shift
-	fi
-
-	local target_packages=("$@")
-
-	DetectAurHelper
-
-	case "$aur_helper" in
-		aurman)
-			RunExternal "${aurman_opts[@]}" --sync --aur "${asdeps_arr[@]}" "${target_packages[@]}"
-			;;
-		pacaur)
-			RunExternal "${pacaur_opts[@]}" --sync --aur "${asdeps_arr[@]}" "${target_packages[@]}"
-			;;
-		yaourt)
-			RunExternal "${yaourt_opts[@]}" --sync --aur "${asdeps_arr[@]}" "${target_packages[@]}"
-			;;
-		yay)
-			RunExternal "${yay_opts[@]}" --sync --aur "${asdeps_arr[@]}" "${target_packages[@]}"
-			;;
-		makepkg)
-			local package
-			for package in "${target_packages[@]}"
-			do
-				AconfMakePkg "$package" "$asdeps"
-			done
-			;;
-		*)
-			Log 'Error: unknown AUR helper %q\n' "$aur_helper"
-			false
-			;;
-	esac
-}
 
 function AconfNeedProgram() {
 	local program="$1" # program that needs to be in PATH
 	local package="$2" # package the program is available in
 	local foreign="$3" # whether this is a foreign package
 
+	local source
+	if [[ $foreign == y ]]
+	then
+		source=aur
+	else
+		source=pacman
+	fi
+
 	if ! hash "$program" 2> /dev/null
 	then
-		if [[ $foreign == y ]]
-		then
-			LogEnter 'Installing foreign dependency %s:\n' "$(Color M %q "$package")"
-			ParanoidConfirm ''
-			AconfInstallForeign --asdeps "$package"
-		else
-			LogEnter 'Installing native dependency %s:\n' "$(Color M %q "$package")"
-			ParanoidConfirm ''
-			AconfInstallNative --asdeps "$package"
-		fi
+		LogEnter 'Installing dependency %s using %s:\n' "$(Color M %q "$package")" "$source"
+		ParanoidConfirm ''
+		"$source"_InstallPackages --asdeps "$package"
 		LogLeave 'Installed.\n'
 	fi
 }
 
-# Get the path to the package file (.pkg.tar.xz) for the specified package.
+# Get the path to the package file (.pkg.tar.xz etc.) for the specified package.
 # Download or build the package if necessary.
 function AconfNeedPackageFile() {
-	set -e
 	local package="$1"
 
-	local info foreign
-	if info="$("$PACMAN" --query --info "$package")"
-	then
-		if "$PACMAN" --query --quiet --foreign "$package" > /dev/null
-		then
-			foreign=true
-		else
-			foreign=false
-		fi
-	else
-		if info="$("$PACMAN" --sync --info "$package")"
-		then
-			foreign=false
-		else
-			foreign=true
-		fi
-	fi
-
-	local version='' architecture='' filename
-	if [[ -n "$info" ]]
-	then
-		version="$(grep '^Version' <<< "$info" | sed 's/^.* : //g')"
-		architecture="$(grep '^Architecture' <<< "$info" | sed 's/^.* : //g')"
-		filename="$package-$version-$architecture.pkg.tar.xz"
-	fi
-	local filemask="$package-*-*.pkg.tar.xz"
-
-	# try without downloading first
-	local downloaded
-	for downloaded in false true
-	do
-		local precise
-		for precise in true false
-		do
-			# if we don't have the exact version, we can only do non-precise
-			if $precise && [[ -z "$version" ]]
-			then
-				continue
-			fi
-
-			local dirs=()
-			if $foreign
-			then
-				DetectAurHelper
-				local -A tried_helper=()
-
-				local helper
-				for helper in "$aur_helper" "${aur_helpers[@]}"
-				do
-					if [[ ${tried_helper[$helper]+x} ]]
-					then
-						continue
-					fi
-					tried_helper[$helper]=y
-
-					case "$helper" in
-						aurman)
-							dirs+=("${XDG_CACHE_HOME:-$HOME/.cache}/aurman/$package")
-							;;
-						pacaur)
-							dirs+=("${XDG_CACHE_HOME:-$HOME/.cache}/pacaur/$package")
-							;;
-						yaourt)
-							# yaourt does not save .pkg.xz files
-							;;
-						yay)
-							dirs+=("${XDG_CACHE_HOME:-$HOME/.cache}/yay/$package")
-							;;
-						makepkg)
-							dirs+=("$tmp_dir"/aur/"$package")
-							;;
-						*)
-							Log 'Error: unknown AUR helper %q\n' "$aur_helper"
-							false
-							;;
-					esac
-				done
-			else
-				local dir
-				( LC_ALL=C pacman --verbose 2>/dev/null || true ) \
-					| sed -n 's/^Cache Dirs: \(.*\)$/\1/p' \
-					| sed 's/  /\n/g' \
-					| while read -r dir
-				do
-					if [[ -n "$dir" ]]
-					then
-						dirs+=("$dir")
-					fi
-				done
-			fi
-
-			local files=()
-			local dir
-			for dir in "${dirs[@]}"
-			do
-				if $precise
-				then
-					if sudo test -f "$dir"/"$filename"
-					then
-						files+=("$dir"/"$filename")
-					fi
-				else
-					if sudo test -d "$dir"
-					then
-						sudo find "$dir" -type f -name "$filemask" -print0 | \
-							while read -r -d $'\0' file
-							do
-								files+=("$file")
-							done
-					fi
-				fi
-			done
-
-			local file
-			for file in "${files[@]}"
-			do
-				local correct
-				if $precise
-				then
-					correct=true
-				else
-					local pkgname
-					pkgname=$(bsdtar -x --to-stdout --file "$file" .PKGINFO | \
-								  sed -n 's/^pkgname = \(.*\)$/\1/p')
-					if [[ "$pkgname" == "$package" ]]
-					then
-						correct=true
-					else
-						correct=false
-					fi
-				fi
-
-				if $correct
-				then
-					printf '%s' "$file"
-					return
-				fi
-			done
-		done
-
-		if $downloaded
-		then
-			Log 'Unable to find package file for package %s!\n' "$(Color M %q "$package")"
-			Exit 1
-		else
-			if $foreign
-			then
-				LogEnter 'Building foreign package %s\n' "$(Color M %q "$package")"
-				ParanoidConfirm ''
-
-				local helper
-				for helper in "$aur_helper" "${aur_helpers[@]}"
-				do
-					case "$helper" in
-						aurman)
-							# aurman does not have a --makepkg option
-							;;
-						pacaur)
-							if command -v "${pacaur_opts[0]}" > /dev/null
-							then
-								RunExternal "${pacaur_opts[@]}" --makepkg --aur --makepkg "$package" 1>&2
-								break
-							fi
-							;;
-						yaourt)
-							# yaourt does not save .pkg.xz files
-							continue
-							;;
-						yay)
-							# yay does not have a --makepkg option
-							continue
-							;;
-						makepkg)
-							AconfMakePkg --noinstall "$package"
-							break
-							;;
-						*)
-							Log 'Error: unknown AUR helper %q\n' "$aur_helper"
-							false
-							;;
-					esac
-				done
-
-				LogLeave
-			else
-				LogEnter "Downloading package %s (%s) to pacman's cache\\n" "$(Color M %q "$package")" "$(Color C %q "$filename")"
-				ParanoidConfirm ''
-				sudo "$PACMAN" --sync --download --nodeps --nodeps --noconfirm "$package" 1>&2
-				LogLeave
-			fi
-		fi
-	done
+	"$distro"_NeedPackageFile "$package"
 }
 
 # Extract the original file from a package to stdout
@@ -1384,16 +775,7 @@ function AconfGetPackageOriginalFile() {
 	local package="$1" # Package to extract the file from
 	local file="$2" # Absolute path to file in package
 
-	local package_file
-	package_file="$(AconfNeedPackageFile "$package")"
-
-	local args=(bsdtar -x --to-stdout --file "$package_file" "${file/\//}")
-	if [[ -r "$package_file" ]]
-	then
-		"${args[@]}"
-	else
-		sudo "${args[@]}"
-	fi
+	"$distro"_GetPackageOriginalFile "$package" "$file"
 }
 
 function AconfRestoreFile() {
@@ -1410,7 +792,7 @@ function AconfRestoreFile() {
 
 	mkdir -p "$tmp_base"
 	local tmp_file="$tmp_base""$file"
-	sudo tar x --directory "$tmp_base" --file "$package_file" --no-recursion "${file/\//}"
+	"$distro"_ExtractPackageOriginalFile "$package_file" "$file" "$tmp_base"
 
 	AconfReplace "$tmp_file" "$file"
 	sudo rm -rf "$tmp_base"

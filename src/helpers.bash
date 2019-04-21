@@ -37,10 +37,22 @@ function AddPackage() {
 #
 
 function AddPackageGroup() {
+	local foreign=false
+	if [[ "$1" == "--foreign" ]]
+	then
+		shift
+		foreign=true
+	fi
 	local group=$1
 
+	local source=pacman
+	if $foreign
+	then
+		source=aur
+	fi
+
 	local package
-	pacman --sync --quiet --groups "$group" | \
+	"$source"_GetPackagesInGroup "$group" | \
 		while read -r package
 		do
 			AddPackage "$package"
@@ -214,7 +226,7 @@ function GetPackageOriginalFile() {
 
 	mkdir --parents "$(dirname "$output_file")"
 
-	AconfGetPackageOriginalFile	"$package" "$file" > "$output_file"
+	AconfGetPackageOriginalFile "$package" "$file" > "$output_file"
 
 	printf '%s' "$output_file"
 }

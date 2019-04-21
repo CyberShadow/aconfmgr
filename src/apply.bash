@@ -220,7 +220,7 @@ function AconfApply() {
 		function Details() { Log 'Unpinning (setting install reason to '\''as dependency'\'') the following packages:%s\n' "$(Color M " %q" "${unknown_packages[@]}")" ; }
 		Confirm Details
 
-		Print0Array unknown_packages | sudo xargs -0 "$PACMAN" --database --asdeps
+		"$distro"_UnpinPackages "${unknown_packages[@]}"
 
 		modified=y
 		LogLeave
@@ -236,14 +236,17 @@ function AconfApply() {
 	# Missing installed/unpinned packages (packages that are implicitly installed,
 	# and listed in the configuration, but not marked as explicitly installed)
 	local -a missing_unpinned_packages
-	comm -12 \
-		 <(PrintArray missing_packages) \
-		 <((
-			  ("$PACMAN" --query --quiet --native  || true) | sed s#^#pacman/#
-			  ("$PACMAN" --query --quiet --foreign || true) | sed s#^#aur/#
-		  ) | sort) \
-			  | sed s#.*/## \
-			  | mapfile -t missing_unpinned_packages # names only
+	local source
+	for source in "${package_sources[@]}"
+	do
+		"$source"_GetInstalledPackages | awk -v source="$source" '{print source "/" $0}'
+	done \
+		| sort \
+		| comm -12 \
+			   <(PrintArray missing_packages) \
+			   /dev/stdin \
+		| sed s#.*/## \
+		| mapfile -t missing_unpinned_packages # names only
 
 	if [[ ${#missing_unpinned_packages[@]} != 0 ]]
 	then
@@ -252,7 +255,7 @@ function AconfApply() {
 		function Details() { Log 'Pinning (setting install reason to '\''explicitly installed'\'') the following packages:%s\n' "$(Color M " %q" "${missing_unpinned_packages[@]}")" ; }
 		Confirm Details
 
-		Print0Array missing_unpinned_packages | sudo xargs -0 "$PACMAN" --database --asexplicit
+		"$distro"_PinPackages "${missing_unpinned_packages[@]}"
 
 		modified=y
 		LogLeave
@@ -262,45 +265,42 @@ function AconfApply() {
 
 	local -a files_in_deleted_packages=()
 
-	if "$PACMAN" --query --unrequired --unrequired --deps --quiet > /dev/null
+	LogEnter 'Querying orphan packages...\n'
+	local -a orphan_packages
+	"$distro"_GetOrphanPackages | mapfile -t orphan_packages
+	LogLeave
+
+	if [[ "${#orphan_packages[@]}" -gt 0 ]]
 	then
 		LogEnter 'Pruning orphan packages...\n'
 
 		# We have to loop, since pacman's dependency scanning doesn't seem to be recursive
 		local iter=1
-		while true
+		while [[ ${#orphan_packages[@]} -gt 0 ]]
 		do
 			LogEnter 'Iteration %s:\n' "$(Color G "$iter")"
 
-			LogEnter 'Querying orphan packages...\n'
-			local -a orphan_packages
-			( "$PACMAN" --query --unrequired --unrequired --deps --quiet || true ) | mapfile -t orphan_packages
+			LogEnter 'Pruning %s orphan packages.\n' "$(Color G ${#orphan_packages[@]})"
+
+			function Details() { Log 'Removing the following orphan packages:%s\n' "$(Color M " %q" "${orphan_packages[@]}")" ; }
+			ParanoidConfirm Details
+
+			local -a deleted_files=()
+			"$distro"_GetPackagesFiles "${orphan_packages[@]}" | mapfile -t deleted_files
+			files_in_deleted_packages+=("${deleted_files[@]}")
+
+			"$distro"_RemovePackages "${orphan_packages[@]}"
+
 			LogLeave
 
-			if [[ ${#orphan_packages[@]} != 0 ]]
-			then
-				LogEnter 'Pruning %s orphan packages.\n' "$(Color G ${#orphan_packages[@]})"
-
-				function Details() { Log 'Removing the following orphan packages:%s\n' "$(Color M " %q" "${orphan_packages[@]}")" ; }
-				ParanoidConfirm Details
-
-				local -a deleted_files=()
-				"$PACMAN" --query --list --quiet "${orphan_packages[@]}" | sed 's#^\(.*\)/$#\1#' | mapfile -t deleted_files
-				files_in_deleted_packages+=("${deleted_files[@]}")
-
-				sudo "${pacman_opts[@]}" --remove "${orphan_packages[@]}"
-
-				LogLeave
-			fi
+			LogEnter 'Querying orphan packages...\n'
+			local -a orphan_packages
+			"$distro"_GetOrphanPackages | mapfile -t orphan_packages
+			LogLeave
 
 			iter=$((iter+1))
 
 			LogLeave # Iteration
-
-			if [[ ${#orphan_packages[@]} == 0 ]]
-			then
-				break
-			fi
 		done
 
 		modified=y
@@ -310,10 +310,13 @@ function AconfApply() {
 
 	# Missing packages (packages that are listed in the configuration, but not installed)
 	local -a uninstalled_packages
-	comm -23 <(PrintArray packages) <((
-										 ("$PACMAN" --query --quiet --native  || true) | sed s#^#pacman/#
-										 ("$PACMAN" --query --quiet --foreign || true) | sed s#^#aur/#
-									 ) | sort) | mapfile -t uninstalled_packages
+	for source in "${package_sources[@]}"
+	do
+		"$source"_GetInstalledPackages | awk -v source="$source" '{print source "/" $0}'
+	done \
+		| sort \
+		| comm -23 <(PrintArray packages) /dev/stdin \
+		| mapfile -t uninstalled_packages
 
 	if [[ ${#uninstalled_packages[@]} -gt 0 ]]
 	then
@@ -326,58 +329,10 @@ function AconfApply() {
 			local uninstalled_source_packages
 			printf '%s\n' "${uninstalled_packages[@]}" | awk -F / -v source="$source" '$1==source' | sed s#.*/## | mapfile -t uninstalled_source_packages
 
-			case "$source" in
-				pacman)
-					LogEnter 'Installing %s missing native packages.\n' "$(Color G ${#uninstalled_source_packages[@]})"
-
-					function Details() { Log 'Installing the following native packages:%s\n' "$(Color M " %q" "${uninstalled_source_packages[@]}")" ; }
-					ParanoidConfirm Details
-
-					AconfInstallNative "${uninstalled_source_packages[@]}"
-
-					modified=y
-					LogLeave
-					;;
-
-				aur)
-					LogEnter 'Installing %s missing foreign packages.\n' "$(Color G ${#uninstalled_source_packages[@]})"
-
-					function Details() { Log 'Installing the following foreign packages:%s\n' "$(Color M " %q" "${uninstalled_source_packages[@]}")" ; }
-					Confirm Details
-
-					# If an AUR helper is present in the list of packages to be installed,
-					# install it first, then use it to install the rest of the foreign packages.
-					function InstallAurHelper() {
-						local package helper
-						for package in "${uninstalled_source_packages[@]}"
-						do
-							for helper in "${aur_helpers[@]}"
-							do
-								if [[ "$package" == "$helper" ]]
-								then
-									LogEnter 'Installing AUR helper %s...\n' "$(Color M %q "$helper")"
-									ParanoidConfirm ''
-									AconfInstallForeign "$package"
-									aur_helper="$package"
-									LogLeave
-									return
-								fi
-							done
-						done
-					}
-					if [[ $EUID != 0 ]]
-					then
-						InstallAurHelper
-					fi
-
-					AconfInstallForeign "${uninstalled_source_packages[@]}"
-
-					modified=y
-					LogLeave
-					;;
-				*)
-					FatalError 'Unknown package source: %q\n' "$source"
-			esac
+			LogEnter 'Installing %s missing %s packages.\n' "$(Color G ${#uninstalled_source_packages[@]})" "$source"
+			"$source"_Apply_InstallPackages "${uninstalled_source_packages[@]}"
+			modified=y
+			LogLeave
 		done
 	fi
 
@@ -431,7 +386,7 @@ function AconfApply() {
 		LogLeave
 
 		LogEnter 'Updating managed file list...\n'
-		( "$PACMAN" --query --list --quiet || true ) | sed 's#\/$##' | sort --unique > "$tmp_dir"/managed-files
+		"$distro"_GetAllPackagesFiles | sort --unique > "$tmp_dir"/managed-files
 		LogLeave
 
 		LogEnter 'Rescanning...\n'
@@ -655,7 +610,7 @@ function AconfApply() {
 			then
 				package=${file_owners[$file]}
 			else
-				package="$( ("$PACMAN" --query --owns --quiet "$file" || true) | head -n 1)"
+				package="$("$distro"_GetPackageOwningFile "$file")"
 
 				if [[ -z "$package" ]]
 				then

@@ -6,6 +6,8 @@ aconfmgr_version=0.0.0
 
 # shellcheck source=common.bash
 source "$src_dir"/common.bash
+# shellcheck source=distros/arch.bash
+source "$src_dir"/distros/arch.bash
 # shellcheck source=save.bash
 source "$src_dir"/save.bash
 # shellcheck source=apply.bash
