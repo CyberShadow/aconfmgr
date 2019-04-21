@@ -442,6 +442,7 @@ function AconfRestoreFile() {
 		rm -f "$system_prop"
 		if [[ -e "$package_prop" ]]
 		then
+			mkdir --parents "$(dirname "$system_prop")"
 			cp "$package_prop" "$system_prop"
 		fi
 	done
