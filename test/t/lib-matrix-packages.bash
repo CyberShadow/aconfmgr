@@ -26,7 +26,7 @@ function TestMatrixPackageSetup() {
 	declare -ag specs
 	# shellcheck disable=SC2191
 	specs=("
-		"ignored={0..1}"
+		"ignored={0..2}"
 
 		"s_present={0..1}"
 		"s_kind={1..2}"
@@ -54,7 +54,7 @@ function TestMatrixPackageSetup() {
 		if [[ "$c_kind" == 2 && ${ACONFMGR_INTEGRATION:-0} -eq 0 ]] ; then continue ; fi
 
 		# Cull bad config: configurations should not both ignore and install a package
-		if [[ "$c_present" == 1 && "$ignored" == 1 ]] ; then continue ; fi
+		if [[ "$c_present" != 0 && "$ignored" != 0 ]] ; then continue ; fi
 
 		# Cull bad config: installing mismatched package kind
 		if [[ "$s_present" == 0 && "$c_present" == 1 && "$s_kind" != "$c_kind" ]] ; then continue ; fi
@@ -89,7 +89,7 @@ function TestMatrixPackageSetup() {
 		if ((ignored))
 		then
 			TestAddConfig "$(printf 'IgnorePackage%s %q' \
-			                        "${package_kind_switch[$c_kind]}" "$name")"
+			                        "${package_kind_switch[$ignored]}" "$name")"
 		fi
 
 		if ((c_present))
@@ -135,7 +135,7 @@ function TestMatrixPackageCheckApply() {
 		elif ((s_dependence==1)) # Orphan
 		then
 			expected=n
-		elif ((s_present && ignored && s_kind == c_kind)) # On system, but ignored (and ignoring the right kind)
+		elif ((s_present && ignored && s_kind == ignored)) # On system, but ignored (and ignoring the right kind)
 		then
 			expected=y
 		elif ((s_present && s_dependence == 2)) # Dependency of pinned
