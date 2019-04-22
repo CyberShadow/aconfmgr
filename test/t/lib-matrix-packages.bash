@@ -117,7 +117,7 @@ function TestMatrixPackageCheckApply() {
 	local package
 	for package in "${packages[@]}"
 	do
-		package_present[$package]=y
+		package_present[$package]=1
 	done
 
 	local spec
@@ -128,25 +128,26 @@ function TestMatrixPackageCheckApply() {
 
 		LogEnter '%s\n' "$name"
 
-		local expected
+		local x_present
 		if ((c_present)) # In config
 		then
-			expected=y
+			x_present=1
 		elif ((s_dependence==1)) # Orphan
 		then
-			expected=n
+			x_present=0
 		elif ((s_present && ignored && c_kind == ignored)) # On system, but ignored (and ignoring the right kind)
 		then
-			expected=y
+			x_present=1
 		elif ((s_present && s_dependence == 2)) # Dependency of pinned
 		then
-			expected=y
+			x_present=1
 		else
-			expected=n
+			x_present=0
 		fi
 
-		[[ "${package_present[$name]:-n}" == "$expected" ]] || \
-			FatalError 'Wrong package installation state: expected %s, result %s\n' "$expected" "${package_present[$name]:-n}"
+		local r_present="${package_present[$name]:-0}"
+		[[ "$r_present" == "$x_present" ]] || \
+			FatalError 'Wrong package installation state: expected %s, result %s\n' "$x_present" "$r_present"
 		LogLeave 'OK!\n'
 	done
 
@@ -161,7 +162,7 @@ function TestMatrixPackageCheckRoundtrip() {
 	local package
 	for package in "${packages[@]}"
 	do
-		package_present[$package]=y
+		package_present[$package]=1
 	done
 
 	local spec
@@ -172,16 +173,17 @@ function TestMatrixPackageCheckRoundtrip() {
 
 		LogEnter '%s\n' "$name"
 
-		local expected
+		local x_present
 		if ((s_present && s_dependence > 1))
 		then
-			expected=y
+			x_present=1
 		else
-			expected=n
+			x_present=0
 		fi
 
-		[[ "${package_present[$name]:-n}" == "$expected" ]] || \
-			FatalError 'Wrong package installation state: expected %s, result %s\n' "$expected" "${package_present[$name]:-n}"
+		local r_present="${package_present[$name]:-0}"
+		[[ "$r_present" == "$x_present" ]] || \
+			FatalError 'Wrong package installation state: expected %s, result %s\n' "$x_present" "$r_present"
 		LogLeave 'OK!\n'
 	done
 
