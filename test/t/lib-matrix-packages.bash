@@ -78,6 +78,7 @@ function TestMatrixPackageSetup() {
 		local kind
 		for kind in 1 2
 		do
+			TestAddPackageFile "$name" /"$name"/kind "$kind"
 			TestCreatePackage "$name" "${package_kinds[$kind]}"
 		done
 
@@ -128,19 +129,28 @@ function TestMatrixPackageCheckApply() {
 
 		LogEnter '%s\n' "$name"
 
-		local x_present
+		local x_present x_kind
 		if ((c_present)) # In config
 		then
 			x_present=1
+			if ((s_present))
+			then
+				# aconfmgr will currently not reinstall a package if its kind changes.
+				x_kind=$s_kind
+			else
+				x_kind=$c_kind
+			fi
 		elif ((s_dependence==1)) # Orphan
 		then
 			x_present=0
 		elif ((s_present && ignored && c_kind == ignored)) # On system, but ignored (and ignoring the right kind)
 		then
 			x_present=1
+			x_kind=$s_kind
 		elif ((s_present && s_dependence == 2)) # Dependency of pinned
 		then
 			x_present=1
+			x_kind=$s_kind
 		else
 			x_present=0
 		fi
@@ -148,6 +158,15 @@ function TestMatrixPackageCheckApply() {
 		local r_present="${package_present[$name]:-0}"
 		[[ "$r_present" == "$x_present" ]] || \
 			FatalError 'Wrong package installation state: expected %s, result %s\n' "$x_present" "$r_present"
+
+		if (( r_present ))
+		then
+			local r_kind
+			r_kind=$(cat /"$name"/kind)
+			[[ "$r_kind" == "$x_kind" ]] || \
+				FatalError 'Wrong package installation kind: expected %s, result %s\n' "$x_kind" "$r_kind"
+		fi
+
 		LogLeave 'OK!\n'
 	done
 
@@ -173,10 +192,11 @@ function TestMatrixPackageCheckRoundtrip() {
 
 		LogEnter '%s\n' "$name"
 
-		local x_present
+		local x_present x_kind
 		if ((s_present && s_dependence > 1))
 		then
 			x_present=1
+			x_kind=$s_kind
 		else
 			x_present=0
 		fi
@@ -184,6 +204,15 @@ function TestMatrixPackageCheckRoundtrip() {
 		local r_present="${package_present[$name]:-0}"
 		[[ "$r_present" == "$x_present" ]] || \
 			FatalError 'Wrong package installation state: expected %s, result %s\n' "$x_present" "$r_present"
+
+		if (( r_present ))
+		then
+			local r_kind
+			r_kind=$(cat /"$name"/kind)
+			[[ "$r_kind" == "$x_kind" ]] || \
+				FatalError 'Wrong package installation kind: expected %s, result %s\n' "$x_kind" "$r_kind"
+		fi
+
 		LogLeave 'OK!\n'
 	done
 
