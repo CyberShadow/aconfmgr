@@ -2,6 +2,8 @@
 
 # shellcheck source=../lib-init-mock.bash
 source ./lib-init-mock.bash
+# shellcheck source=../lib-funcs-mock.bash
+source ./lib-funcs-mock.bash
 
 # External mock to allow error handling inside `if pacman ...`
 
@@ -235,9 +237,7 @@ function pacman() {
 				for package in "${args[@]}"
 				do
 					local kind=native
-					test -d "$test_data_dir"/packages/"$kind"/"$package" || FatalError 'No such %s package: %s\n' "$kind" "$package"
-					cp -a "$test_data_dir"/packages/"$kind"/"$package" "$test_data_dir"/installed-packages/"$package"
-					printf -- '%s' "$inst_as" > "$test_data_dir"/installed-packages/"$package"/inst_as
+					TestInstallPackage "$package" "$kind" "$inst_as"
 				done
 
 				echo pacman "$@" >> "$test_data_dir"/pacman.log
