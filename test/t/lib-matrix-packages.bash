@@ -135,7 +135,7 @@ function TestMatrixPackageCheckApply() {
 		elif ((s_dependence==1)) # Orphan
 		then
 			expected=n
-		elif ((s_present && ignored && s_kind == ignored)) # On system, but ignored (and ignoring the right kind)
+		elif ((s_present && ignored && c_kind == ignored)) # On system, but ignored (and ignoring the right kind)
 		then
 			expected=y
 		elif ((s_present && s_dependence == 2)) # Dependency of pinned
