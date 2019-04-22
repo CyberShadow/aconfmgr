@@ -147,6 +147,7 @@ function TestInstallPackage() {
 	local inst_as=$3
 
 	local package_dir="$test_data_dir"/packages/"$kind"/"$package"
+	test -d "$package_dir" || FatalError 'No such %s package: %s\n' "$kind" "$package"
 
 	local path
 	find "$package_dir"/files -mindepth 1 -maxdepth 1 -print0 | \
