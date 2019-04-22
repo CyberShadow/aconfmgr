@@ -111,7 +111,9 @@ function TestMatrixPackageSetup() {
 }
 
 # shellcheck disable=SC2030,SC2031
-function TestMatrixPackageCheckApply() {
+function TestMatrixPackageCheck() {
+	local test_kind=$1
+
 	local -a packages=()
 	( "$PACMAN" --query --quiet || true ) | mapfile -t packages
 	local -A package_present
@@ -130,29 +132,43 @@ function TestMatrixPackageCheckApply() {
 		LogEnter '%s\n' "$name"
 
 		local x_present x_kind
-		if ((c_present)) # In config
+		if [[ "$test_kind" == apply ]]
 		then
-			x_present=1
-			if ((s_present))
+			if ((c_present)) # In config
 			then
-				# aconfmgr will currently not reinstall a package if its kind changes.
+				x_present=1
+				if ((s_present))
+				then
+					# aconfmgr will currently not reinstall a package if its kind changes.
+					x_kind=$s_kind
+				else
+					x_kind=$c_kind
+				fi
+			elif ((s_dependence==1)) # Orphan
+			then
+				x_present=0
+			elif ((s_present && ignored && c_kind == ignored)) # On system, but ignored (and ignoring the right kind)
+			then
+				x_present=1
+				x_kind=$s_kind
+			elif ((s_present && s_dependence == 2)) # Dependency of pinned
+			then
+				x_present=1
 				x_kind=$s_kind
 			else
-				x_kind=$c_kind
+				x_present=0
 			fi
-		elif ((s_dependence==1)) # Orphan
+		elif [[ "$test_kind" == roundtrip ]]
 		then
-			x_present=0
-		elif ((s_present && ignored && c_kind == ignored)) # On system, but ignored (and ignoring the right kind)
-		then
-			x_present=1
-			x_kind=$s_kind
-		elif ((s_present && s_dependence == 2)) # Dependency of pinned
-		then
-			x_present=1
-			x_kind=$s_kind
+			if ((s_present && s_dependence > 1))
+			then
+				x_present=1
+				x_kind=$s_kind
+			else
+				x_present=0
+			fi
 		else
-			x_present=0
+			false
 		fi
 
 		local r_present="${package_present[$name]:-0}"
@@ -173,48 +189,10 @@ function TestMatrixPackageCheckApply() {
 	unset specs package_kinds package_kind_switch package_dependences
 }
 
-# shellcheck disable=SC2030,SC2031
+function TestMatrixPackageCheckApply() {
+	TestMatrixPackageCheck apply
+}
+
 function TestMatrixPackageCheckRoundtrip() {
-	local -a packages=()
-	( "$PACMAN" --query --quiet || true ) | mapfile -t packages
-	local -A package_present
-	local package
-	for package in "${packages[@]}"
-	do
-		package_present[$package]=1
-	done
-
-	local spec
-	for spec in "${specs[@]}"
-	do
-		local ignored s_present s_kind s_dependence c_present c_kind name
-		eval "$spec"
-
-		LogEnter '%s\n' "$name"
-
-		local x_present x_kind
-		if ((s_present && s_dependence > 1))
-		then
-			x_present=1
-			x_kind=$s_kind
-		else
-			x_present=0
-		fi
-
-		local r_present="${package_present[$name]:-0}"
-		[[ "$r_present" == "$x_present" ]] || \
-			FatalError 'Wrong package installation state: expected %s, result %s\n' "$x_present" "$r_present"
-
-		if (( r_present ))
-		then
-			local r_kind
-			r_kind=$(cat /"$name"/kind)
-			[[ "$r_kind" == "$x_kind" ]] || \
-				FatalError 'Wrong package installation kind: expected %s, result %s\n' "$x_kind" "$r_kind"
-		fi
-
-		LogLeave 'OK!\n'
-	done
-
-	unset specs package_kinds package_kind_switch package_dependences
+	TestMatrixPackageCheck roundtrip
 }
