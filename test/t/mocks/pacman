@@ -89,7 +89,12 @@ function pacman() {
 					while read -r -d $'\0' package
 					do
 						local kind inst_as
-						kind=$(cat "$test_data_dir"/installed-packages/"$package"/kind)
+						if [[ -d "$test_data_dir"/packages/native/"$package" ]]
+						then
+							kind=native
+						else
+							kind=foreign
+						fi
 						inst_as=$(cat "$test_data_dir"/installed-packages/"$package"/inst_as)
 
 						if $opt_native && [[ "$kind" != native ]]
@@ -232,7 +237,6 @@ function pacman() {
 					local kind=native
 					test -d "$test_data_dir"/packages/"$kind"/"$package" || FatalError 'No such %s package: %s\n' "$kind" "$package"
 					cp -a "$test_data_dir"/packages/"$kind"/"$package" "$test_data_dir"/installed-packages/"$package"
-					printf -- '%s' "$kind" > "$test_data_dir"/installed-packages/"$package"/kind
 					printf -- '%s' "$inst_as" > "$test_data_dir"/installed-packages/"$package"/inst_as
 				done
 
