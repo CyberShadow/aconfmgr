@@ -156,7 +156,6 @@ function TestInstallPackage() {
 		done
 
 	cp -a "$package_dir" "$test_data_dir"/installed-packages/
-	printf -- '%s' "$kind" > "$test_data_dir"/installed-packages/"$package"/kind
 	printf -- '%s' "$inst_as" > "$test_data_dir"/installed-packages/"$package"/inst_as
 }
 
