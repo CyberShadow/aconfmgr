@@ -994,7 +994,7 @@ function OnError() {
 	then
 		local df dir
 		df=$(($(stat -f --format="%a*%S" "$tmp_dir")))
-		if ! dir="$(realpath "$(dirname "$tmp_dir")")"
+		if ! dir="$(realpath "$(dirname "$tmp_dir")" 2> /dev/null)"
 		then
 			dir="$(dirname "$tmp_dir")"
 		fi
