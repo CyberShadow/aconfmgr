@@ -33,7 +33,7 @@ $(TMP) :
 # Download shellcheck
 
 SHELLCHECK_VERSION=0.6.0
-SHELLCHECK_TAR_SHA1=e336e841bcfd91916b6b362f0ed45d4ab5dfb741
+SHELLCHECK_TAR_SHA512=d88733e95aea8e970c373a3f677a3eb272f14c12d3e9c93f81463b5fe406b43acdd3046d10c092f40c070a96a5fac1cf7e18b35ed790d76ecced6af32e2c8a85
 SHELLCHECK_TAR_DIR=shellcheck-v$(SHELLCHECK_VERSION)
 SHELLCHECK_TAR_FN=$(SHELLCHECK_TAR_DIR).linux.x86_64.tar.xz
 SHELLCHECK_TAR_URL_BASE=https://shellcheck.storage.googleapis.com/
@@ -44,7 +44,7 @@ SHELLCHECK_ARGS=
 
 $(SHELLCHECK_TAR) : | $(TMP)
 	curl --fail --output $@.tmp $(SHELLCHECK_TAR_URL)
-	printf "%s %s\n" $(SHELLCHECK_TAR_SHA1) $@.tmp | sha1sum -c
+	printf "%s %s\n" $(SHELLCHECK_TAR_SHA512) $@.tmp | sha512sum -c
 	mv $@.tmp $@
 
 $(SHELLCHECK) : | $(SHELLCHECK_TAR)
