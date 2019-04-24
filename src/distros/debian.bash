@@ -154,26 +154,11 @@ function debian_FindModifiedFiles() {
 	do
 		printf '%s\t%s\t%s\t%s\0' "$package" progress '' ''
 
-		sudo env LC_ALL=C true debsums --list-missing -a "$package" 2>&1 | \
-			while read -r line
+		local file
+		sudo env LC_ALL=C sh -c "$(printf 'debsums -a -c %q || true' "$package")" | \
+			while read -r file
 			do
-				if [[ $line =~ ^(.*[^\ ])\ *(OK|FAILED)$ ]]
-				then
-					local file="${BASH_REMATCH[1]}"
-					local result="${BASH_REMATCH[2]}"
-
-					if [[ "$result" == OK ]]
-					then
-						continue
-					elif [[ "$result" == FAILED ]]
-					then
-						printf '%s\t%s\t%s\t%q\0' "$package" data - "$file"
-					else
-						Log 'Unknown debsums result%s\n' "$(Color Y "%q" "$result")"
-					fi
-				else
-					Log 'Unknown debsums output line: %s\n' "$(Color Y "%q" "$line")"
-				fi
+				printf '%s\t%s\t%s\t%q\0' "$package" data - "$file"
 			done
 	done < <(apt_GetInstalledPackages) # use process substitution to work around bash bug
 }
