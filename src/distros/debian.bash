@@ -42,7 +42,9 @@ function apt_GetPackageDescription() {
 function apt_GetPackagesInGroup() {
 	local group=$1
 
-	FatalError 'TODO\n'
+	# Debian tasks are the closest equivalent to groups.
+	AconfNeedProgram tasksel tasksel n 1>&2
+	tasksel --task-packages "$group"
 }
 
 function debian_GetPackagesFiles() {
@@ -66,7 +68,24 @@ function apt_GetExplicitlyInstalledPackages() {
 function debian_GetPackageOwningFile() {
 	local file=$1
 
-	FatalError 'TODO\n'
+	local line
+	dpkg-query -S "$file" | \
+		while read -r line
+		do
+			if [[ "$line" =~ ^(.*?):\ (.*)$ ]]
+			then
+				local package="${BASH_REMATCH[1]}"
+				local path="${BASH_REMATCH[2]}"
+
+				if [[ "$path" == "$file" ]]
+				then
+					printf -- '%s\n' "$package"
+					return
+				fi
+			else
+				Log '%s: Unknown line from dpkg -S: %q\n' "$(Color Y Warning)" "$line"
+			fi
+		done
 }
 
 function debian_GetOrphanPackages() {
@@ -109,7 +128,10 @@ function debian_NeedPackageFile() {
 	set -e
 	local package="$1"
 
-	FatalError 'TODO\n'
+	# TODO: use current version
+	# TODO: use configured path
+	# TODO: fix special characters in package name
+	find /var/cache/apt/archives -name "$package"'_*.deb' | tail -1
 }
 
 # Extract the original file from a package to stdout
@@ -117,7 +139,7 @@ function debian_GetPackageOriginalFile() {
 	local package="$1" # Package to extract the file from
 	local file="$2" # Absolute path to file in package
 
-	FatalError 'TODO\n'
+	dpkg-deb --fsys-tarfile "$archive" | tar x --to-stdout --no-recursion ."$file" # ./usr/...
 }
 
 # Extract the original file from a package to a directory
@@ -126,7 +148,7 @@ function debian_ExtractPackageOriginalFile() {
 	local file="$2" # Path to the packaged file within the archive
 	local target="$3" # Absolute path to the base directory to extract to
 
-	FatalError 'TODO\n'
+	dpkg-deb --fsys-tarfile "$archive" | sudo tar x --directory "$target" --no-recursion ."$file" # ./usr/...
 }
 
 # function BashBugFunc() {
