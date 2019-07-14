@@ -3,7 +3,7 @@ backend = mysql
 host = localhost
 socket = /opt/aur/run/mysqld.sock
 name = AUR
-user = root
+user = aur
 password = 
 
 [options]

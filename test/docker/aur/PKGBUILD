@@ -16,7 +16,7 @@ source=(git+https://github.com/lfos/aurweb#tag=v$_aurweb_ver
 		setup.sh)
 md5sums=('SKIP'
          '5eb22ab4188ee2d28f68a9f506044582'
-         'cf3f5b8e539f6657be89187f947a8d45'
+         '8f3a5f4d3ff9e8c5a78979c53d734a50'
          'fe93c80924b4a5064c51064ab7d37eed'
          '9cd425efe85356ca36f08e2dc773f31f'
          'f0e1159864a04bad3b1f903bc7301d80'
