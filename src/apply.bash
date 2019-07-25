@@ -83,22 +83,47 @@ function AconfApply() {
 
 		# system
 
-		# Unless both source and target are directories, delete target first
-		if ! { test ! -h "$source" -a -d "$source" && sudo test ! -h "$file" -a -d "$file" ; }
+		local target="$file".aconfmgr-new
+		sudo rm --force --dir "$target"
+
+		# Is the target a directory?
+		if sudo test ! -h "$file" -a -d "$file"
 		then
-			sudo rm --force --dir "$file"
+			# Is the source a directory?
+			if test ! -h "$source" -a -d "$source"
+			then
+				# Update the target's properties in-place.
+				target=$file
+			else
+				# Delete the existing directory.
+				# install/mv can't replace a directory with a non-directory.
+				sudo rm --force --dir "$file"
+			fi
+		else
+			# Is the source a directory?
+			if test ! -h "$source" -a -d "$source"
+			then
+				# Delete the existing non-directory.
+				# install/mv can't replace a non-directory with a directory either.
+				sudo rm --force "$file"
+			fi
 		fi
 
-		sudo mkdir --parents "$(dirname "$file")"
+		sudo mkdir --parents "$(dirname "$target")"
 		if [[ -h "$source" ]]
 		then
-			sudo cp --no-dereference "$source" "$file"
-			sudo chown --no-dereference root:root "$file"
+			sudo cp --no-dereference "$source" "$target"
+			sudo chown --no-dereference root:root "$target"
 		elif [[ -d "$source" ]]
 		then
-			sudo install --mode=755 --owner=root --group=root -d "$file"
+			sudo install --mode=755 --owner=root --group=root -d "$target"
 		else
-			sudo install --mode=$default_file_mode --owner=root --group=root "$source" "$file"
+			sudo install --mode=$default_file_mode --owner=root --group=root "$source" "$target"
+		fi
+
+		if [[ "$target" != "$file" ]]
+		then
+			sudo mv --force --no-target-directory "$target" "$file"
 		fi
 
 		# $system_dir
