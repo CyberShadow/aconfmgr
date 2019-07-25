@@ -5,6 +5,7 @@
 
 function TestInit() {
 	mkdir -p "$test_data_dir"/files
+	mkdir -p "$test_data_dir"/file-props
 	mkdir -p "$test_data_dir"/packages
 	mkdir -p "$test_data_dir"/installed-packages
 
@@ -100,6 +101,8 @@ function TestCreatePackage() {
 	if [[ -d "$test_data_dir"/package-files/"$package"/file-props ]]
 	then
 		mv "$test_data_dir"/package-files/"$package"/file-props "$package_dir"/
+	else
+		mkdir "$package_dir"/file-props
 	fi
 
 	printf 'pkgname = %s\n' "$package" > "$package_dir"/.PKGINFO
@@ -155,6 +158,11 @@ function TestInstallPackage() {
 		while read -r -d $'\0' path
 		do
 			cp -a "$path" "$test_data_dir"/files/
+		done
+	find "$package_dir"/file-props -mindepth 1 -maxdepth 1 -print0 | \
+		while read -r -d $'\0' path
+		do
+			cp -a "$path" "$test_data_dir"/file-props/
 		done
 
 	cp -a "$package_dir" "$test_data_dir"/installed-packages/
