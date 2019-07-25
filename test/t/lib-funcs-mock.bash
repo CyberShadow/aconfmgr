@@ -4,6 +4,7 @@
 # Initialization
 
 function TestInit() {
+	mkdir -p "$test_data_dir"/files
 	mkdir -p "$test_data_dir"/packages
 	mkdir -p "$test_data_dir"/installed-packages
 

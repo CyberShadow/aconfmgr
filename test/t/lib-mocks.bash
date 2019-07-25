@@ -47,8 +47,6 @@ function find() {
 			fi
 		done
 
-		mkdir -p "$test_data_dir"/files
-
 		local line
 		command find "${args[@]}" | \
 			while read -r -d $'\0' line
