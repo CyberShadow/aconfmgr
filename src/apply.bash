@@ -116,9 +116,17 @@ function AconfApply() {
 			sudo chown --no-dereference root:root "$target"
 		elif [[ -d "$source" ]]
 		then
-			sudo install --mode=755 --owner=root --group=root -d "$target"
+			sudo install -d \
+				 --mode="${output_file_props[$file:mode]:-755}" \
+				 --owner="${output_file_props[$file:owner]:-0}" \
+				 --group="${output_file_props[$file:group]:-0}" \
+				 "$target"
 		else
-			sudo install --mode=$default_file_mode --owner=root --group=root "$source" "$target"
+			sudo install \
+				 --mode="${output_file_props[$file:mode]:-$default_file_mode}" \
+				 --owner="${output_file_props[$file:owner]:-0}" \
+				 --group="${output_file_props[$file:group]:-0}" \
+				 "$source" "$target"
 		fi
 
 		if [[ "$target" != "$file" ]]
