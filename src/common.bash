@@ -883,7 +883,7 @@ function AconfMakePkg() {
 	then
 		Log 'No package description file found!\n'
 
-		if [[ "$package" == cower ]]
+		if [[ "$package" == auracle-git ]]
 		then
 			FatalError 'Failed to download aconfmgr dependency!\n'
 		fi
@@ -891,9 +891,9 @@ function AconfMakePkg() {
 		LogEnter 'Assuming this package is part of a package base:\n'
 
 		LogEnter 'Retrieving package info...\n'
-		AconfNeedProgram cower cower y
+		AconfNeedProgram auracle auracle-git y
 		local pkg_base
-		pkg_base=$(cower --format %b --info "$package")
+		pkg_base=$(auracle info --format '{pkgbase}' "$package")
 		LogLeave 'Done, package base is %s.\n' "$(Color M %q "$pkg_base")"
 
 		AconfMakePkg "$pkg_base" "$asdeps" # recurse
