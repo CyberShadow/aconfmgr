@@ -32,6 +32,9 @@ function Usage() {
 	printf '  -c, --config DIR         Set the path to your configuration directory\n'
 	printf '      --skip-inspection    Skip the system inspection step\n'
 	printf '                           (reuse previous results)\n'
+	printf '      --skip-checksums     Skip checksum verification of installed packages\n'
+	printf '                           (faster and generally safe,\n'
+	printf '                            but may miss changes in exceptional circumstances)\n'
 	printf '      --aur-helper HELPER  Set AUR helper to use for installing foreign packages\n'
 	printf '      --color WHEN         When to use colors in output (always/auto/never)\n'
 	printf '      --paranoid           Always prompt before making any changes to the system\n'
@@ -76,6 +79,10 @@ function Main() {
 				;;
 			--skip-inspection)
 				skip_inspection=y
+				shift
+				;;
+			--skip-checksums)
+				skip_checksums=y
 				shift
 				;;
 			--aur-helper)

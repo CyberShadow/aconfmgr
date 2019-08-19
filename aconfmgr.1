@@ -48,6 +48,17 @@ See also \fBFILES\fR below.
 Skip the system inspection step, and reuse results from previous run.
 
 .TP
+.B \-\-skip-checksums
+Skip the checksum verification of files belonging to installed packages.
+
+When enabled, changes to a package's files are still detected through modification
+time, size and other properties.
+
+Enabling this option is generally safe and greatly speeds up execution speed,
+but can fail to detect changes to a file's contents in exceptional circumstances,
+such as fiilesystem corruption, intentional manipulation or badly behaved programs.
+
+.TP
 \fB\-\-aur-helper\fR \fIHELPER\fR
 Set the AUR helper to use for installing foreign packages.
 
