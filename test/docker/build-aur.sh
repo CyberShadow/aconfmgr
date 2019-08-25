@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Build the AUR package for use in Docker.
-# Invoked from Dockerfile.aur.
+# Invoked from the Dockerfile.
 
 set -eEuo pipefail
 shopt -s lastpipe
