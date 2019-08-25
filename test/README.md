@@ -75,3 +75,21 @@ Because the full test matrix is very large, it is not run as part of CI.
 Only particular specs which have been observed to fail previously (regressions) are tested.
 
 For details, see the files `*matrix*.sh` and `m-*.sh` in the test suite.
+
+
+Dependency pinning
+------------------
+
+All dependencies of the test suite are pinned to a known-working version.
+This is to ensure that the test suite does not break unexpectedly,
+and allows distinguishing whether test failures occur due to changes in aconfmgr or one of the dependencies.
+
+To ensure that aconfmgr and its test suite keeps working with the latest version of its dependencies,
+the pinned versions are regularly bumped by [a bot](https://github.com/CyberShadow-Renovate).
+If CI execution succeeds with the new dependency version, it is automatically merged into master.
+
+The following dependencies are thus pinned / updated:
+
+- Arch Linux base tarball (used to build Docker containers to run the test suite in integration mode)
+- ShellCheck (bash source linter)
+- AUR helpers.
