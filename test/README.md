@@ -24,6 +24,18 @@ For details, see:
   the Travis CI configuration file.
 
 
+Test scripts
+------------
+
+Each test case in the test suite is specified in a self-contained test script (`test/t/t-*.sh`).
+Test scripts source the test library, which in turn sources aconfmgr source files.
+Test cases generally consist of setup, run, and check sections.
+
+For details, see
+[t-0_sample.sh](https://github.com/CyberShadow/aconfmgr/blob/master/test/t/t-0_sample.sh),
+a sample dummy test case for illustration purposes.
+
+
 Mock mode
 ---------
 
