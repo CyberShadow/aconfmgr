@@ -6,7 +6,7 @@ TestNeedAUR
 
 TestPhase_Setup ###############################################################
 
-sudo pacman -R --noconfirm automake
+command sudo pacman -R --noconfirm automake
 TestAddConfig RemovePackage automake
 TestAddConfig IgnorePackage automake
 
