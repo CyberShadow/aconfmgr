@@ -503,7 +503,8 @@ BEGIN {
 				then
 					Log '%s: copying large file %s (%s bytes). Add %s to configuration to ignore.\n' "$(Color Y "Warning")" "$(Color C "%q" "$file")" "$(Color G "$size")" "$(Color Y "IgnorePath %q" "$file")"
 				fi
-				( sudo cat "$file" ) > "$system_dir"/files/"$file"
+				# shellcheck disable=SC2024
+				sudo cat "$file" > "$system_dir"/files/"$file"
 			elif [[ "$type" == "directory" ]]
 			then
 				mkdir --parents "$system_dir"/files/"$file"
