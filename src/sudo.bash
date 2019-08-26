@@ -147,5 +147,8 @@ function sudo() {
 
 	wait "$cat1"
 	wait "$cat2"
+
+	rm "$aconf_fifo_dir"/sudo-"$ticket"-{meta,input,output,error}
+
 	return "$status"
 }
