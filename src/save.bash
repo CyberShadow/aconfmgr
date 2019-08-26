@@ -6,6 +6,7 @@ function AconfSave() {
 	local config_save_target=$config_dir/99-unsorted.sh
 	local modified=n
 
+	AconfInit
 	AconfCompile
 
 	LogEnter 'Saving configuration...\n'

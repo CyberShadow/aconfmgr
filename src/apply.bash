@@ -165,6 +165,7 @@ function AconfApply() {
 		fi
 	}
 
+	AconfInit
 	AconfCompile
 
 	LogEnter 'Applying configuration...\n'

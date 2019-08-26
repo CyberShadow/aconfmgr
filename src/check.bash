@@ -5,6 +5,8 @@
 function AconfCheck() {
 	lint_config=true
 
+	AconfInit
+
 	LogEnter 'Checking configuration...\n'
 
 	AconfCompileOutput

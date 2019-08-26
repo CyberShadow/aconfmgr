@@ -72,6 +72,10 @@ warn_tmp_df_threshold=$((1024*1024))  # Warn on error if free space in $tmp_dir 
 
 ####################################################################################################
 
+function AconfInit() {
+	:
+}
+
 function LogLeaveDirStats() {
 	local dir="$1"
 	Log 'Finalizing...\r'
