@@ -64,3 +64,4 @@ then
 fi
 
 TestInit
+AconfInit
