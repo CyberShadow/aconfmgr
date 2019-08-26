@@ -137,6 +137,15 @@ function sudo() {
 	local status
 	read -r -d $'\0' status < "$aconf_fifo_dir"/sudo-"$ticket"-meta
 
-	wait "$cat0" "$cat1" "$cat2"
+	if [ -t 0 ]
+	then
+		kill "$cat0"
+		wait "$cat0" || true
+	else
+		wait "$cat0"
+	fi
+
+	wait "$cat1"
+	wait "$cat2"
 	return "$status"
 }
