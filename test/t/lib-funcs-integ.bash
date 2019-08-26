@@ -77,7 +77,7 @@ function TestPhase_RunHook() {
 		TestCreateParentPackage
 	fi
 
-	sudo rm -f /var/log/pacman.log
+	command sudo rm -f /var/log/pacman.log
 }
 
 ###############################################################################
@@ -97,7 +97,7 @@ function TestAddFSObj() {
 	if [[ -z "$package" ]]
 	then
 		root=
-		prefix=(sudo)
+		prefix=(command sudo)
 	else
 		root="$test_data_dir"/package-files/"$package"/files
 		mkdir -p "$root"
@@ -143,7 +143,7 @@ function TestAddFSObj() {
 function TestDeleteFile() {
 	local path=$1
 
-	sudo rm -rf "$path"
+	command sudo rm -rf "$path"
 }
 
 ###############################################################################
@@ -245,9 +245,9 @@ EOF
 
 	if [[ "$kind" == native ]]
 	then
-		sudo repo-add /aconfmgr-repo/aconfmgr.db.tar "$pkg_path"
-		sudo cp "$pkg_path" /aconfmgr-repo/
-		sudo pacman -Sy
+		command sudo repo-add /aconfmgr-repo/aconfmgr.db.tar "$pkg_path"
+		command sudo cp "$pkg_path" /aconfmgr-repo/
+		command sudo pacman -Sy
 	fi
 
 	if [[ "$kind" == foreign && -f ~/aur-initialized ]]
@@ -282,9 +282,9 @@ function TestDeletePackage() {
 
 	if [[ "$kind" == native ]]
 	then
-		sudo find /aconfmgr-repo/ -name "$package"'-*.pkg.tar.xz' -delete
-		sudo repo-remove /aconfmgr-repo/aconfmgr.db.tar "$package"
-		sudo pacman -Sy
+		command sudo find /aconfmgr-repo/ -name "$package"'-*.pkg.tar.xz' -delete
+		command sudo repo-remove /aconfmgr-repo/aconfmgr.db.tar "$package"
+		command sudo pacman -Sy
 	fi
 
 	if [[ "$kind" == foreign && -f ~/aur-initialized ]]
@@ -312,7 +312,7 @@ EOF
 
 	TestMakePkg "$dir"
 
-	sudo pacman -U --noconfirm /tmp/aconfmgr-build/parent-package-1.0-1-any.pkg.tar.xz
+	command sudo pacman -U --noconfirm /tmp/aconfmgr-build/parent-package-1.0-1-any.pkg.tar.xz
 }
 
 # Packages to give a parent to,
@@ -326,7 +326,7 @@ function TestInstallPackage() {
 
 	local dir="$test_data_dir"/packages/"$kind"/"$package"
 
-	local args=(sudo pacman --noconfirm)
+	local args=(command sudo pacman --noconfirm)
 	case "$inst_as" in
 		explicit)
 			args+=(--asexplicit)
@@ -352,7 +352,7 @@ function TestInstallPackage() {
 }
 
 function TestExpectPacManLog() {
-	sudo touch /var/log/pacman.log
+	command sudo touch /var/log/pacman.log
 	diff -u /dev/stdin <( sed -n 's/^.*\[PACMAN\] Running '\''pacman \(--noconfirm \)\?\(.*\)'\''$/\2/p' /var/log/pacman.log )
 }
 
@@ -427,7 +427,7 @@ function TestNeedAURPackage() {
 		# Docker bind-mounts /etc/hosts; sed -i doesn't work
 		local hosts
 		hosts=$(cat /etc/hosts)
-		printf -- %s "$hosts" | sed "$transform" | sudo tee /etc/hosts > /dev/null
+		printf -- %s "$hosts" | sed "$transform" | command sudo tee /etc/hosts > /dev/null
 	}
 
 	LogEnter 'Copying package %s from AUR...\n' "$(Color M "%q" "$package")"
@@ -506,7 +506,7 @@ function TestAURHelper() {
 	LogLeave 'OK\n'
 
 	LogEnter 'Test getting a file from a non-installed package:\n'
-	sudo pacman -R --noconfirm test-package
+	command sudo pacman -R --noconfirm test-package
 	diff -u "$(GetPackageOriginalFile test-package /testfile.txt)" <(printf 'File contents')
 	LogLeave 'OK\n'
 

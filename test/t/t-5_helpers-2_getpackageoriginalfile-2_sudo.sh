@@ -12,7 +12,7 @@ TestCreatePackage test-package native
 
 TestAddConfig 'echo bar >> $(GetPackageOriginalFile test-package /testfile.txt)'
 
-sudo chmod 700 /var/cache/pacman/pkg
+command sudo chmod 700 /var/cache/pacman/pkg
 
 TestPhase_Run #################################################################
 AconfApply
