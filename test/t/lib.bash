@@ -10,10 +10,23 @@
 source ./lib-init.bash
 
 source ../../src/common.bash
+source ../../src/sudo.bash
 source ../../src/save.bash
 source ../../src/apply.bash
 source ../../src/check.bash
 source ../../src/helpers.bash
+
+if [[ $# -gt 0 ]]
+then
+	if [[ "$1" == sudo-server ]]
+	then
+		AconfSudoServer "${@:2}"
+		Exit
+	fi
+
+	FatalError 'Unrecognized command line:%s\n' \
+			   "$(Color C "$(printf ' %q' "$@")")"
+fi
 
 LogEnter 'Running test case %s...\n' "$(Color C "$test_name")"
 LogEnter 'Setting up test suite...\n'

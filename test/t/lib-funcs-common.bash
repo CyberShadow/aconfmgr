@@ -100,6 +100,11 @@ test_globals_whitelist=(
 	system_dir
 	tmp_dir
 
+	# Internal state (sudo)
+	aconf_fifo_dir
+	aconf_self
+	aconf_sudo_input
+
 	# Internal state (AconfAnalyzeFiles)
 	system_only_files
 	changed_files

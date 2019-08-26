@@ -73,7 +73,7 @@ warn_tmp_df_threshold=$((1024*1024))  # Warn on error if free space in $tmp_dir 
 ####################################################################################################
 
 function AconfInit() {
-	:
+	AconfSudoInit
 }
 
 function LogLeaveDirStats() {
@@ -1654,11 +1654,6 @@ function PrintQArray() {
 		fi
 	fi
 }
-
-if [[ $EUID == 0 ]]
-then
-	function sudo() { "$@" ; }
-fi
 
 # Run external bash script.
 # No-op, except when running under the test suite with bashcov,

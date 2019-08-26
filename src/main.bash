@@ -6,6 +6,8 @@ aconfmgr_version=0.0.0
 
 # shellcheck source=common.bash
 source "$src_dir"/common.bash
+# shellcheck source=sudo.bash
+source "$src_dir"/sudo.bash
 # shellcheck source=save.bash
 source "$src_dir"/save.bash
 # shellcheck source=apply.bash
@@ -114,6 +116,10 @@ function Main() {
 			-v|--verbose)
 				verbose=$((verbose+1))
 				shift
+				;;
+			sudo-server)
+				AconfSudoServer "${@:2}"
+				Exit
 				;;
 			*)
 				UsageError "Unrecognized option: %s" "$1"
