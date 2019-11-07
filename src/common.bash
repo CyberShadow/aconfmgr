@@ -696,6 +696,8 @@ function AconfAnalyzeFiles() {
 
 	typeset -ag changed_files=()
 
+	AconfNeedProgram diff diffutils n
+
 	( comm -12 --zero-terminated "$tmp_dir"/output-files "$tmp_dir"/system-files ) | \
 		while read -r -d $'\0' file
 		do
