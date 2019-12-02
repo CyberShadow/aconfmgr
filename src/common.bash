@@ -1064,7 +1064,7 @@ EOF
 		if [[ $EUID == 0 ]]
 		then
 			chown -R "$makepkg_user": .
-			su -s /bin/bash "$makepkg_user" -c "GNUPGHOME=$(realpath ../../gnupg) $(printf ' %q' "${args[@]}")"
+			su -s /bin/bash "$makepkg_user" -c "GNUPGHOME=$(realpath ../../gnupg) $(printf ' %q' "${args[@]}")" 1>&2
 
 			if $install
 			then
@@ -1086,7 +1086,7 @@ EOF
 				args+=(--install)
 			fi
 
-			"${args[@]}"
+			"${args[@]}" 1>&2
 		fi
 	)
 	LogLeave
