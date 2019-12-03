@@ -1031,10 +1031,6 @@ EOF
 						FatalError 'No keyservers succeeded.\n'
 					fi
 
-					LogEnter 'Signing key...\n'
-					gpg --quick-lsign-key "$key"
-					LogLeave
-
 					if [[ $EUID == 0 ]]
 					then
 						chmod 700 "$gnupg_home"
