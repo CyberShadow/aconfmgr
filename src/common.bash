@@ -506,7 +506,7 @@ BEGIN {
 			then
 				mkdir --parents "$system_dir"/files/"$file"
 			else
-				Log '%s: Skipping file %s with unknown type %s. Add to %s to ignore.\n' "$(Color Y "Warning")" "$(Color C "%q" "$file")" "$(Color G "$type")" "$(Color Y "ignore_paths")"
+				Log '%s: Skipping file %s with unknown type %s. Add %s to configuration to ignore.\n' "$(Color Y "Warning")" "$(Color C "%q" "$file")" "$(Color G "$type")" "$(Color Y "IgnorePath %q" "$file")"
 				continue
 			fi
 		fi
