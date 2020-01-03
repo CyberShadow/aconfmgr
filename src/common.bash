@@ -280,7 +280,8 @@ BEGIN {
 							"$(Color G "$lost_file_count")" \
 							"$(Color C "%q" "$(dirname "$file")")"
 						LogLeave 'Perhaps add %s (or a parent directory) to configuration to ignore it.\n' \
-							"$(Color Y "IgnorePath %q" "$(dirname "$file")"/'*')"
+								 "$(Color Y "IgnorePath %q" "$(dirname "$file")"/'*')"
+						warn_file_count_threshold=$((warn_file_count_threshold * 10))
 					fi
 					;;
 				I) # Ignored
