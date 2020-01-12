@@ -23,9 +23,9 @@ env -i -C aur su -s /bin/bash nobody -c 'makepkg --printsrcinfo' > aur/.SRCINFO
 AconfMakePkgDir aur false false "$PWD"/aur
 
 mkdir /aconfmgr-packages/aur/
-cp -v aur/*.pkg.tar.xz /aconfmgr-packages/aur/
+cp -v aur/*.pkg.tar.* /aconfmgr-packages/aur/
 
 mkdir /aconfmgr-packages/cache/
-ln -v /var/cache/pacman/pkg/*.pkg.tar.xz /aconfmgr-packages/cache/
+ln -v /var/cache/pacman/pkg/*.pkg.tar.* /aconfmgr-packages/cache/
 
 Exit 0

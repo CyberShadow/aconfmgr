@@ -159,6 +159,15 @@ function TestMakePkg() {
 	rm -rf /tmp/aconfmgr-build
 	cp -a "$dir" /tmp/aconfmgr-build
 
+	{
+		cat /etc/makepkg.conf
+		cat <<-'EOF'
+			PKGEXT='.pkg.tar.zst'
+			COMPRESSZST=(zstd -c -T0 -18 -)
+		EOF
+	} > /tmp/aconfmgr-build/makepkg.conf
+	args+=(--config /tmp/aconfmgr-build/makepkg.conf)
+
 	local timestamp=0
 	if [[ -f "$dir"/time ]]
 	then
@@ -185,7 +194,7 @@ function TestCreatePackage() {
 	local provides=()
 	local time=@0
 	local pkgbuild
-	local pkg_fn="$package"-"$pkgver"-"$pkgrel"-"$arch".pkg.tar.xz
+	local pkg_fn="$package"-"$pkgver"-"$pkgrel"-"$arch".pkg.tar.zst
 
 	shift 2
 	local arg
@@ -241,7 +250,8 @@ EOF
 
 	local pkg_path=/tmp/aconfmgr-build/"$pkg_fn"
 	test -f "$pkg_path" || FatalError 'Package expected to exist: %q\n' "$pkg_path"
-	cp "$pkg_path" "$dir"/package.pkg.tar.xz
+	cp "$pkg_path" "$dir"/
+	ln -s "$pkg_fn" "$dir"/pkg
 
 	if [[ "$kind" == native ]]
 	then
@@ -282,7 +292,7 @@ function TestDeletePackage() {
 
 	if [[ "$kind" == native ]]
 	then
-		command sudo find /aconfmgr-repo/ -name "$package"'-*.pkg.tar.xz' -delete
+		command sudo find /aconfmgr-repo/ -name "$package"'-*.pkg.tar.*' -delete
 		command sudo repo-remove /aconfmgr-repo/aconfmgr.db.tar "$package"
 		command sudo pacman -Sy
 	fi
@@ -312,7 +322,7 @@ EOF
 
 	TestMakePkg "$dir"
 
-	command sudo pacman -U --noconfirm /tmp/aconfmgr-build/parent-package-1.0-1-any.pkg.tar.xz
+	command sudo pacman -U --noconfirm /tmp/aconfmgr-build/parent-package-1.0-1-any.pkg.tar.*
 }
 
 # Packages to give a parent to,
@@ -346,7 +356,7 @@ function TestInstallPackage() {
 	then
 		"${args[@]}" -S "$package"
 	else
-		"${args[@]}" -U "$dir"/package.pkg.tar.xz
+		"${args[@]}" -U "$dir"/"$(readlink "$dir"/pkg)"
 	fi
 
 }

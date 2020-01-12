@@ -23,7 +23,7 @@ package_test-subpackage() {
 EOF
 
 TestAddPackageFile test-package-base /testfile.txt 'File contents'
-TestCreatePackage test-package-base foreign "$(printf pkgbuild=%q "$pkgbuild")" pkg_fn=test-subpackage-1-1-any.pkg.tar.xz
+TestCreatePackage test-package-base foreign "$(printf pkgbuild=%q "$pkgbuild")" pkg_fn=test-subpackage-1-1-any.pkg.tar.zst
 TestAddConfig AddPackage --foreign test-subpackage
 unset pkgbuild
 

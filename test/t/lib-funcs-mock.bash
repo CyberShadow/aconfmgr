@@ -86,7 +86,7 @@ function TestCreatePackage() {
 		eval "$arg"
 	done
 
-	local package_file="$test_data_dir"/files/var/cache/pacman/pkg/"$package"-"$version"-"$arch".pkg.tar.xz
+	local package_file="$test_data_dir"/files/var/cache/pacman/pkg/"$package"-"$version"-"$arch".pkg.tar.zst
 	mkdir -p "$test_data_dir"/files/var/cache/pacman/pkg
 
 	local package_dir="$test_data_dir"/packages/"$kind"/"$package"

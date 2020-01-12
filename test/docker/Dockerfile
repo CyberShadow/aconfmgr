@@ -15,7 +15,7 @@ RUN cp -ln /aconfmgr-packages/cache/* /var/cache/pacman/pkg/
 
 RUN mkdir /aconfmgr-repo/
 RUN cp /aconfmgr-packages/aur/* /aconfmgr-repo/
-RUN repo-add /aconfmgr-repo/aconfmgr.db.tar /aconfmgr-repo/*.pkg.tar.xz
+RUN repo-add /aconfmgr-repo/aconfmgr.db.tar /aconfmgr-repo/*.pkg.tar.*
 
 RUN printf '[aconfmgr]''\n''SigLevel = Optional TrustAll''\n''Server = file:///aconfmgr-repo/''\n' >> /etc/pacman.conf
 RUN pacman -Sy
