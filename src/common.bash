@@ -1203,9 +1203,9 @@ function AconfNeedPackageFile() {
 	then
 		version="$(grep '^Version' <<< "$info" | sed 's/^.* : //g')"
 		architecture="$(grep '^Architecture' <<< "$info" | sed 's/^.* : //g')"
-		filemask_precise=$(printf "%q-%q-%q.pkg.tar.*" "$package" "$version" "$architecture")
+		filemask_precise=$(printf "%q-%q-%q.pkg.*" "$package" "$version" "$architecture")
 	fi
-	filemask_any=$(printf "%q-*-*.pkg.tar.*" "$package")
+	filemask_any=$(printf "%q-*-*.pkg.*" "$package")
 
 	# try without downloading first
 	local downloaded
