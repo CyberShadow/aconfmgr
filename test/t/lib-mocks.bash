@@ -29,14 +29,12 @@ function find() {
 	if [[ "$1" != /* ]]
 	then
 		command find "$@"
-	elif [[ "$1" == / ]]
-	then
-		# Assume this is the find invocation for finding lost files in
-		# common.sh.  Prefix arguments with our "virtual filesystem"
+	else
+		# Prefix arguments with our "virtual filesystem"
 		# directory and then remove it from the output.
 
 		args=()
-		local arg
+		local arg delim=$'\n' postprocess=true in_printf=false
 		for arg in "$@"
 		do
 			if [[ "$arg" == /* ]]
@@ -44,25 +42,64 @@ function find() {
 				args+=("$test_data_dir"/files"$arg")
 			else
 				args+=("$arg")
+
+				if $in_printf
+				then
+					in_printf=false
+
+					if [[ "$arg" == *%s* ]]
+					then
+						postprocess=true
+					else
+						postprocess=false
+					fi
+
+					if [[ "$arg" == *'\n' ]]
+					then
+						delim=$'\n'
+					elif [[ "$arg" == *'\0' ]]
+					then
+						delim=$'\0'
+					fi
+				elif [[ "$arg" == -printf ]]
+				then
+					in_printf=true
+				elif [[ "$arg" == -print0 ]]
+				then
+					delim=$'\0'
+					postprocess=true
+				fi
 			fi
 		done
 
 		local line
 		command find "${args[@]}" | \
-			while read -r -d $'\0' line
-			do
-				file=${line:1}
-				action=${line:0:1}
-				if [[ "$file" == "$test_data_dir"/files/* ]]
-				then
-					file=${file#$test_data_dir/files}
-				else
-					FatalError 'Unexpected find output line: %s\n' "$line"
-				fi
-				printf '%s%s\0' "$action" "$file"
-			done
-	else
-		TestSimpleWrap find "$@"
+			if $postprocess
+			then
+				while read -r -d "$delim" line
+				do
+					if [[ "$1" == / ]]
+					then
+						# Assume this is the find invocation for finding
+						# lost files in common.sh.
+						file=${line:1}
+						action=${line:0:1}
+					else
+						file=$line
+						action=''
+					fi
+
+					if [[ "$file" == "$test_data_dir"/files/* ]]
+					then
+						file=${file#$test_data_dir/files}
+					else
+						FatalError 'Unexpected find output line: %s\n' "$line"
+					fi
+					printf '%s%s\0' "$action" "$file"
+				done
+			else
+				cat
+			fi
 	fi
 }
 
