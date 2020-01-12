@@ -8,7 +8,7 @@ TestAddFile /testfile.txt baz
 TestAddPackageFile test-package /testfile.txt foo
 TestCreatePackage test-package native
 
-TestAddConfig 'echo bar >> $(GetPackageOriginalFile test-package /testfile.txt)'
+TestAddConfig 'echo bar >> "$(GetPackageOriginalFile test-package /testfile.txt)"'
 
 TestPhase_Run #################################################################
 AconfApply

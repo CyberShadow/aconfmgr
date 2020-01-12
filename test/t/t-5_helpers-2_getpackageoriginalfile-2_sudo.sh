@@ -10,7 +10,7 @@ TestPhase_Setup ###############################################################
 TestAddPackageFile test-package /testfile.txt foo
 TestCreatePackage test-package native
 
-TestAddConfig 'echo bar >> $(GetPackageOriginalFile test-package /testfile.txt)'
+TestAddConfig 'echo bar >> "$(GetPackageOriginalFile test-package /testfile.txt)"'
 
 command sudo chmod 700 /var/cache/pacman/pkg
 
