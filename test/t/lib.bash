@@ -15,7 +15,7 @@ source ../../src/apply.bash
 source ../../src/check.bash
 source ../../src/helpers.bash
 
-LogEnter 'Running test case %s...\n' "$(Color C "$test_name")"
+LogEnter 'Running test case %s ...\n' "$(Color C "$test_name")"
 LogEnter 'Setting up test suite...\n'
 
 for dir in "$config_dir" "$tmp_dir" "$test_data_dir"
