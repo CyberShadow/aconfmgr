@@ -1065,11 +1065,14 @@ EOF
 
 			if $install
 			then
+				local pkglist
+				su -s /bin/bash "$makepkg_user" -c "GNUPGHOME=$(realpath ../../gnupg) $(printf ' %q' "${args[@]}" --packagelist)" | mapfile -t pkglist
+
 				if $asdeps
 				then
-					"${pacman_opts[@]}" --upgrade --asdeps ./*.pkg.tar.xz
+					"${pacman_opts[@]}" --upgrade --asdeps "${pkglist[@]}"
 				else
-					"${pacman_opts[@]}" --upgrade ./*.pkg.tar.xz
+					"${pacman_opts[@]}" --upgrade "${pkglist[@]}"
 				fi
 			fi
 		else
@@ -1171,7 +1174,7 @@ function AconfNeedProgram() {
 	fi
 }
 
-# Get the path to the package file (.pkg.tar.xz) for the specified package.
+# Get the path to the package file (.pkg.tar.*) for the specified package.
 # Download or build the package if necessary.
 function AconfNeedPackageFile() {
 	set -e
@@ -1195,14 +1198,14 @@ function AconfNeedPackageFile() {
 		fi
 	fi
 
-	local version='' architecture='' filename
+	local version='' architecture='' filemask_precise filemask_any
 	if [[ -n "$info" ]]
 	then
 		version="$(grep '^Version' <<< "$info" | sed 's/^.* : //g')"
 		architecture="$(grep '^Architecture' <<< "$info" | sed 's/^.* : //g')"
-		filename="$package-$version-$architecture.pkg.tar.xz"
+		filemask_precise=$(printf "%q-%q-%q.pkg.tar.*" "$package" "$version" "$architecture")
 	fi
-	local filemask="$package-*-*.pkg.tar.xz"
+	filemask_any=$(printf "%q-*-*.pkg.tar.*" "$package")
 
 	# try without downloading first
 	local downloaded
@@ -1215,6 +1218,14 @@ function AconfNeedPackageFile() {
 			if $precise && [[ -z "$version" ]]
 			then
 				continue
+			fi
+
+			local filemask
+			if $precise
+			then
+				filemask=$filemask_precise
+			else
+				filemask=$filemask_any
 			fi
 
 			local dirs=()
@@ -1272,21 +1283,13 @@ function AconfNeedPackageFile() {
 			local dir
 			for dir in "${dirs[@]}"
 			do
-				if $precise
+				if sudo test -d "$dir"
 				then
-					if sudo test -f "$dir"/"$filename"
-					then
-						files+=("$dir"/"$filename")
-					fi
-				else
-					if sudo test -d "$dir"
-					then
-						sudo find "$dir" -type f -name "$filemask" -print0 | \
-							while read -r -d $'\0' file
-							do
-								files+=("$file")
-							done
-					fi
+					sudo find "$dir" -type f -name "$filemask" -print0 | \
+						while read -r -d $'\0' file
+						do
+							files+=("$file")
+						done
 				fi
 			done
 
@@ -1362,7 +1365,7 @@ function AconfNeedPackageFile() {
 
 				LogLeave
 			else
-				LogEnter "Downloading package %s (%s) to pacman's cache\\n" "$(Color M %q "$package")" "$(Color C %q "$filename")"
+				LogEnter "Downloading package %s (%s) to pacman's cache\\n" "$(Color M %q "$package")" "$(Color C %s "$filemask_precise")"
 				ParanoidConfirm ''
 				sudo "$PACMAN" --sync --download --nodeps --nodeps --noconfirm "$package" 1>&2
 				LogLeave
