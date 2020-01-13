@@ -3,8 +3,7 @@ source ./lib.bash
 
 # Test installing base-devel if needed.
 TestNeedAUR
-# shellcheck disable=SC2016
-TestNeedAURPackage auracle-git 78e0ab5a1d51705e762b1ca5b409b30b82b897c9 'source=("${source[@]/%/#commit=181e42cb1a780001c2c6fe6cda2f7f1080b249e5}")'
+TestNeedAuracle
 
 TestPhase_Setup ###############################################################
 

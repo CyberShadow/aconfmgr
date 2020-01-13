@@ -473,6 +473,15 @@ function TestNeedAURPackage() {
 	LogLeave
 }
 
+function TestNeedPacaur() {
+	TestNeedAURPackage pacaur da18900a6fe888654867748fa976f8ae0ab96334
+}
+
+function TestNeedAuracle() {
+	# shellcheck disable=SC2016
+	TestNeedAURPackage auracle-git 78e0ab5a1d51705e762b1ca5b409b30b82b897c9 'source=("${source[@]/%/#commit=181e42cb1a780001c2c6fe6cda2f7f1080b249e5}")'
+}
+
 # Upload a new version of an AUR package with the given lines to
 # override existing declarations.
 function TestUpdateAurPackage() {
