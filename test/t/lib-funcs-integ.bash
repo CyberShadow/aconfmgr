@@ -478,8 +478,18 @@ function TestNeedPacaur() {
 }
 
 function TestNeedAuracle() {
-	# shellcheck disable=SC2016
-	TestNeedAURPackage auracle-git 78e0ab5a1d51705e762b1ca5b409b30b82b897c9 'source=("${source[@]/%/#commit=181e42cb1a780001c2c6fe6cda2f7f1080b249e5}")'
+	# shellcheck disable=SC2016,SC1004
+	TestNeedAURPackage auracle-git 78e0ab5a1d51705e762b1ca5b409b30b82b897c9 "$(cat <<-'EOF'
+		source=("${source[@]/%/#commit=181e42cb1a780001c2c6fe6cda2f7f1080b249e5}")
+
+		prepare() {
+			cd "$_pkgname"
+			local from='https://wrapdb.mesonbuild.com/v1/projects/\(.*\)/\(.*\)/\(.*\)/get_zip'
+			local to='https://github.com/mesonbuild/\1/releases/download/\2-\3/\1.zip'
+			sed -i "s#$from#$to#g" subprojects/*.wrap
+		}
+		EOF
+)"
 }
 
 # Upload a new version of an AUR package with the given lines to
