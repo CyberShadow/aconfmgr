@@ -1016,7 +1016,7 @@ EOF
 
 					local ok=false
 					local keyserver
-					for keyserver in keys.gnupg.net pgp.mit.edu # subkeys.pgp.net
+					for keyserver in keys.gnupg.net pgp.mit.edu pool.sks-keyservers.net keyserver.ubuntu.com # subkeys.pgp.net
 					do
 						LogEnter 'Trying keyserver %s...\n' "$(Color C %s "$keyserver")"
 						if gpg --keyserver "$keyserver" --recv-key "$key"
