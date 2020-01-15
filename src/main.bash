@@ -52,19 +52,19 @@ function UsageError() {
 }
 
 function Main() {
-	local command=
+	local action=
 	local color=
 
 	while [[ $# != 0 ]]
 	do
 		case "$1" in
 			save|apply|check)
-				if [[ -n "$command" ]]
+				if [[ -n "$action" ]]
 				then
-					UsageError "A command has already been specified"
+					UsageError "An action has already been specified"
 				fi
 
-				command="$1"
+				action="$1"
 				shift
 				;;
 			-h|--help|help)
@@ -155,7 +155,7 @@ function Main() {
 			;;
 	esac
 
-	case "$command" in
+	case "$action" in
 		save)
 			AconfSave
 			;;
