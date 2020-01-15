@@ -80,6 +80,7 @@ test_globals_whitelist=(
 	PACMAN
 
 	# Command-line settings
+	aconfmgr_action
 	aur_helper
 	prompt_mode
 	skip_inspection
