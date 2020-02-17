@@ -133,7 +133,7 @@ function AconfSave() {
 	if [[ ${#system_only_files[@]} != 0 || ${#changed_files[@]} != 0 ]]
 	then
 		LogEnter 'Found %s new and %s changed files.\n' "$(Color G ${#system_only_files[@]})" "$(Color G ${#changed_files[@]})"
-		printf '\n\n# %s - New files\n\n\n' "$(date)" >> "$config_save_target"
+		printf '\n\n# %s - New / changed files\n\n\n' "$(date)" >> "$config_save_target"
 		( Print0Array system_only_files ; Print0Array changed_files ) | \
 			while read -r -d $'\0' file
 			do
