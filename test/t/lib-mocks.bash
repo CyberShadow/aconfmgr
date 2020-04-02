@@ -415,7 +415,7 @@ function paccheck() {
 					TestPacCheckCompare "$package" "$path" type                type  /usr/bin/stat --format=%F || modified=true
 					TestPacCheckCompare "$package" "$path" size                size  /usr/bin/stat --format=%s || modified=true
 					TestPacCheckCompare "$package" "$path" 'modification time' ''    /usr/bin/stat --format=%y || modified=true
-					[[ ! -f "$fs_path" || ! -f "$package_path" ]] || \
+					[[ ! -f "$fs_path" || ! -f "$package_path" || $skip_checksums != n ]] || \
 					TestPacCheckCompare "$package" "$path" md5sum              ''    TestFileMd5sum            || modified=true
 					TestPacCheckCompare "$package" "$path" UID                 owner /usr/bin/stat --format=%U || modified=true
 					TestPacCheckCompare "$package" "$path" GID                 group /usr/bin/stat --format=%G || modified=true
