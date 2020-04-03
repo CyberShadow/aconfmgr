@@ -134,7 +134,7 @@ function TestAddFSObj() {
 		tar rf "$test_data_dir"/package-files/"$package"/files.tar \
 			-C "$root" \
 			--owner="${owner:-root}" \
-			--group="${owner:-root}" \
+			--group="${group:-root}" \
 			./"$path"
 		rm -rf "$root"
 	fi

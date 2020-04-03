@@ -84,6 +84,7 @@ test_globals_whitelist=(
 	aur_helper
 	prompt_mode
 	skip_inspection
+	skip_checksums
 	verbose
 
 	# Config-tweakable settings

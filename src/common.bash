@@ -151,6 +151,7 @@ function AconfCompileOutput() {
 }
 
 skip_inspection=n
+skip_checksums=n
 
 # Collect system state into $system_dir
 function AconfCompileSystem() {
@@ -353,7 +354,13 @@ BEGIN {
 
 	touch "$tmp_dir"/file-owners
 
-	sudo sh -c "LC_ALL=C stdbuf -o0 paccheck --md5sum --files --file-properties --backup --noupgrade <&- 2>&1 || true" | \
+	local paccheck_opts=(paccheck --files --file-properties --backup --noupgrade)
+	if [[ $skip_checksums == n ]]
+	then
+		paccheck_opts+=(--md5sum)
+	fi
+
+	sudo sh -c "LC_ALL=C stdbuf -o0 $(printf ' %q' "${paccheck_opts[@]}") <&- 2>&1 || true" | \
 		while read -r line
 		do
 			if [[ $line =~ ^(.*):\ \'(.*)\'\ (type|size|modification\ time|md5sum|UID|GID|permission|symlink\ target)\ mismatch\ \(expected\ (.*)\)$ ]]
