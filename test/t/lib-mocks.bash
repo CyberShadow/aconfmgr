@@ -34,10 +34,16 @@ function find() {
 		# directory and then remove it from the output.
 
 		args=()
-		local arg delim=$'\n' postprocess=true in_printf=false
+		local arg delim=$'\n' postprocess=true in_printf=false in_regex=false
 		for arg in "$@"
 		do
-			if [[ "$arg" == /* ]]
+			if $in_regex
+			then
+				in_regex=false
+
+				local regex_escaped_dir=$(sed 's/./[&]/g' <<< "$test_data_dir"/files)
+				args+=("$regex_escaped_dir($arg)") # Group |-delimited patterns
+			elif [[ "$arg" == /* ]]
 			then
 				args+=("$test_data_dir"/files"$arg")
 			else
@@ -64,6 +70,9 @@ function find() {
 				elif [[ "$arg" == -printf ]]
 				then
 					in_printf=true
+				elif [[ "$arg" == -regex ]]
+				then
+					in_regex=true
 				elif [[ "$arg" == -print0 ]]
 				then
 					delim=$'\0'
