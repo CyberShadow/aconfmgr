@@ -2,7 +2,7 @@
 source ./lib.bash
 
 TestNeedAUR
-TestNeedAURPackage yay c5e6c3fd08ac7eb5512fd10feadd02602ab2f9ae
+TestNeedAURPackage yay 8f9f8b9276c6c5d3e1798473de0f8a9567535b7f
 AconfMakePkg yay
 TestAddConfig AddPackage --foreign yay
 TestAURHelper yay "${XDG_CACHE_HOME:-$HOME/.cache}/yay" false
