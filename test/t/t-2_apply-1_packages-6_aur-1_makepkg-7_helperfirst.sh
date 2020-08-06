@@ -21,6 +21,8 @@ TestPhase_Check ###############################################################
 diff -u <(cat /testfile.txt) <(printf 'File contents')
 
 # Check that it was built by pacaur
-test -f ~/.cache/pacaur/a-test-package/a-test-package-1.0-1-x86_64.pkg.tar.xz
+pkgext=$(source /etc/makepkg.conf ; printf -- %s "$PKGEXT")
+test -f ~/.cache/pacaur/a-test-package/a-test-package-1.0-1-x86_64"$pkgext"
+unset pkgext
 
 TestDone ######################################################################
