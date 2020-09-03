@@ -28,7 +28,6 @@ AddPackage automake
 AddPackage binutils
 AddPackage bison
 AddPackage fakeroot
-AddPackage file
 AddPackage flex
 AddPackage gcc
 AddPackage gettext
