@@ -25,6 +25,7 @@ Since the system configuration is described as shell scripts, it is trivially ex
   * [Configuration syntax](#configuration-syntax)
   * [Ignoring some changes](#ignoring-some-changes)
     * [Ignoring files](#ignoring-files)
+    * [Ignoring parts of files](#ignoring-parts-of-files)
     * [Ignoring packages](#ignoring-packages)
   * [Inlining files](#inlining-files)
     * [Inlining file content entirely](#inlining-file-content-entirely)
@@ -115,6 +116,7 @@ The list of provided helper functions:
 - `RemoveFile PATH` - Removes an earlier-added file.
 - `SetFileProperty PATH TYPE VALUE` - Sets a file property.
 - `IgnorePath PATTERN` - Adds the specified pattern to the list of [ignored paths](#ignoring-files).
+- `AddFileContentFilter PATTERN FUNCTION` - Adds the specified rule to the list of [file content filters](#ignoring-parts-of-files).
 
 You are free to define your own custom helper functions as part of your configuration, e.g. by placing them in a `00-helpers.sh` file.
 
@@ -141,6 +143,26 @@ IgnorePath '/var/lib/pacman/sync/*.db.sig' # repo sigs
 ```
 
 Make sure to quote the pattern argument to prevent globbing at configuration parse time.
+
+#### Ignoring parts of files
+
+If only some parts of a file are relevant to the system configuration, and the rest can be safely omitted or normalized to some default value, a filter rule can be configured to normalize how the contents of a file appears to aconfmgr. For example, this is applicable if a file contains a timestamp or some randomly-generated or frequently-changing value, which can be safely discarded.
+
+To configure a file content rule, first define a function which specifies how to filter the file. The function is called with the file name as the only parameter, the file contents on its stdin, and is expected to provide the filtered contents on its stdout:
+
+```bash
+function NetworkManagerConnectionFilter() {
+	grep -v '^timestamp='
+}
+```
+
+Then, register the rule by calling the `AddFileContentFilter` helper function:
+
+```bash
+AddFileContentFilter '/etc/NetworkManager/system-connections/*.nmconnection' NetworkManagerConnectionFilter
+```
+
+Only one function may be configured per unique pattern. The most recently added rule takes precedence over any rules with matching patterns preceding it.
 
 #### Ignoring packages
 

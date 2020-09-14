@@ -91,6 +91,7 @@ test_globals_whitelist=(
 	default_file_mode
 	ignore_paths
 	priority_files
+	file_content_filters
 
 	warn_file_count_threshold
 	warn_size_threshold

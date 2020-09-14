@@ -283,4 +283,25 @@ function IgnorePath() {
 	ignore_paths+=("$@")
 }
 
+#
+# AddFileContentFilter PATTERN FUNCTION
+#
+# Adds a filter for paths matching the given PATTERN (bash syntax).
+#
+# The function is called with the file name as the only parameter, the
+# file contents on its stdin, and is expected to provide the filtered
+# contents on its stdout.
+#
+# Only one function can be configured per unique PATTERN.  The most
+# recently added PATTERN takes precedence over any matching patterns
+# preceding it.
+#
+
+function AddFileContentFilter() {
+	local pattern=$1
+	local function=$2
+
+	file_content_filters[$pattern]=$function
+}
+
 : # include in coverage

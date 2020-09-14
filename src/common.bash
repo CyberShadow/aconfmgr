@@ -66,6 +66,16 @@ priority_files=(
 	/etc/makepkg.conf
 )
 
+# File content filters
+# These are useful for files which contain some unpredictable element,
+# such as a timestamp, which can't be considered as part of the system
+# configuration, and can be safely omitted from the file.
+# This is an associative array of patterns mapping to function
+# names. The function is called with the file name as the only
+# parameter, the file contents on its stdin, and is expected to
+# provide the filtered contents on its stdout.
+declare -A file_content_filters
+
 # Some limits for common-sense warnings.
 # Feel free to override these in your configuration.
 warn_size_threshold=$((10*1024*1024)) # Warn on copying files bigger than this
@@ -563,8 +573,25 @@ BEGIN {
 				then
 					Log '%s: copying large file %s (%s bytes). Add %s to configuration to ignore.\n' "$(Color Y "Warning")" "$(Color C "%q" "$file")" "$(Color G "$size")" "$(Color Y "IgnorePath %q" "$file")"
 				fi
-				# shellcheck disable=SC2024
-				sudo cat "$file" > "$system_dir"/files/"$file"
+
+				local filter_pattern filter_func
+				unset filter_func
+				for filter_pattern in "${!file_content_filters[@]}"
+				do
+					# shellcheck disable=SC2053
+					if [[ "$file" == $filter_pattern ]]
+					then
+						filter_func=${file_content_filters[$filter_pattern]}
+					fi
+				done
+
+				if [[ -v filter_func ]]
+				then
+					sudo cat "$file" | "$filter_func" "$file" > "$system_dir"/files/"$file"
+				else
+					# shellcheck disable=SC2024
+					sudo cat "$file" > "$system_dir"/files/"$file"
+				fi
 			elif [[ "$type" == "directory" ]]
 			then
 				mkdir --parents "$system_dir"/files/"$file"
