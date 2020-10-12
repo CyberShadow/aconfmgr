@@ -12,6 +12,8 @@ source "$src_dir"/save.bash
 source "$src_dir"/apply.bash
 # shellcheck source=check.bash
 source "$src_dir"/check.bash
+# shellcheck source=diff.bash
+source "$src_dir"/diff.bash
 # shellcheck source=helpers.bash
 source "$src_dir"/helpers.bash
 
@@ -26,6 +28,7 @@ function Usage() {
 	printf '  save    Update the configuration to reflect the current state of the system\n'
 	printf '  apply   Update the system to reflect the current contents of the configuration\n'
 	printf '  check   Syntax-check and lint the configuration\n'
+	printf '  diff    Compare configuration and system\n'
 	echo
 	printf 'Supported options:\n'
 	printf '  -h, --help               Print this message\n'
@@ -62,7 +65,7 @@ function Main() {
 	while [[ $# != 0 ]]
 	do
 		case "$1" in
-			save|apply|check)
+			save|apply|check|diff)
 				if [[ -n "$aconfmgr_action" ]]
 				then
 					UsageError "An action has already been specified"
@@ -70,6 +73,12 @@ function Main() {
 
 				aconfmgr_action="$1"
 				shift
+
+				if [[ "$aconfmgr_action" == diff ]]
+				then
+					aconfmgr_action_args=("$@")
+					break
+				fi
 				;;
 			-h|--help|help)
 				Usage
@@ -180,6 +189,9 @@ function Main() {
 			;;
 		check)
 			AconfCheck
+			;;
+		diff)
+			AconfDiff
 			;;
 		*)
 			Usage

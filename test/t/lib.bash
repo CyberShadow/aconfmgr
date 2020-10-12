@@ -13,6 +13,7 @@ source ../../src/common.bash
 source ../../src/save.bash
 source ../../src/apply.bash
 source ../../src/check.bash
+source ../../src/diff.bash
 source ../../src/helpers.bash
 
 LogEnter 'Running test case %s ...\n' "$(Color C "$test_name")"

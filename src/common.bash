@@ -30,6 +30,7 @@ declare -i config_warnings=0
 umask $((666 - default_file_mode))
 
 aconfmgr_action=
+aconfmgr_action_args=()
 
 ####################################################################################################
 

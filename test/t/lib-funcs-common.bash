@@ -81,6 +81,7 @@ test_globals_whitelist=(
 
 	# Command-line settings
 	aconfmgr_action
+	aconfmgr_action_args
 	aur_helper
 	prompt_mode
 	skip_config
