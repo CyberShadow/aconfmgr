@@ -30,6 +30,8 @@ function Usage() {
 	printf 'Supported options:\n'
 	printf '  -h, --help               Print this message\n'
 	printf '  -c, --config DIR         Set the path to your configuration directory\n'
+	printf '      --skip-config        Skip the configuration parsing step\n'
+	printf '                           (reuse previous results)\n'
 	printf '      --skip-inspection    Skip the system inspection step\n'
 	printf '                           (reuse previous results)\n'
 	printf '      --skip-checksums     Skip checksum verification of installed packages\n'
@@ -76,6 +78,10 @@ function Main() {
 			-c|--config)
 				config_dir="$2"
 				shift 2
+				;;
+			--skip-config)
+				skip_config=y
+				shift
 				;;
 			--skip-inspection)
 				skip_inspection=y

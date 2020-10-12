@@ -93,9 +93,17 @@ function LogLeaveDirStats() {
 			 "$(Color G "$(find "$dir"/files -not -type d | wc -l)")"
 }
 
+skip_config=n
+
 # Run user configuration scripts, to collect desired state into #output_dir
 function AconfCompileOutput() {
 	LogEnter 'Compiling user configuration...\n'
+
+	if [[ $skip_config == y ]]
+	then
+		LogLeave 'Skipped.\n'
+		return
+	fi
 
 	rm -rf "$output_dir"
 	mkdir --parents "$output_dir"

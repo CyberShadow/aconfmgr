@@ -83,6 +83,7 @@ test_globals_whitelist=(
 	aconfmgr_action
 	aur_helper
 	prompt_mode
+	skip_config
 	skip_inspection
 	skip_checksums
 	verbose
