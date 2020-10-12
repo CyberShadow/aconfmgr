@@ -4,8 +4,8 @@ source ./lib.bash
 # Test ignored files (simple path without shell patterns).
 
 TestPhase_Setup ###############################################################
-TestAddFile /lostfile.txt 'Lost file contents'
-TestAddConfig IgnorePath /lostfile.txt
+TestAddFile /strayfile.txt 'Stray file contents'
+TestAddConfig IgnorePath /strayfile.txt
 
 TestPhase_Run #################################################################
 AconfSave

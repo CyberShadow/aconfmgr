@@ -1,20 +1,19 @@
 #!/bin/bash
 source ./lib.bash
 
-# Test saving lost files inside a directory.
-# This test verifies that aconfmgr is not emitting unnecessary CreateDir lines.
+# Test saving stray files with unusual properties.
 
 TestPhase_Setup ###############################################################
-TestAddFile /dir/lostfile.txt 'Lost file contents'
+TestAddFile /strayfile.txt 'Stray file contents' 777 billy wheel
 
 TestPhase_Run #################################################################
 AconfSave
 
 TestPhase_Check ###############################################################
 TestExpectConfig <<EOF
-CopyFile /dir/lostfile.txt
+CopyFile /strayfile.txt 777 billy wheel
 EOF
 
-diff -u "$config_dir"/files/dir/lostfile.txt <(printf "Lost file contents")
+diff -u "$config_dir"/files/strayfile.txt <(printf "Stray file contents")
 
 TestDone ######################################################################

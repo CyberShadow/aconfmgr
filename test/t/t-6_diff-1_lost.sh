@@ -1,7 +1,7 @@
 #!/bin/bash
 source ./lib.bash
 
-# Test 'aconfmgr diff' with lost files.
+# Test 'aconfmgr diff' with stray files.
 
 TestPhase_Setup ###############################################################
 TestAddFile /testfile.txt $'foo\n'

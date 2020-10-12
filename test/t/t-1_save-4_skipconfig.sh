@@ -17,6 +17,6 @@ AconfSave
 TestPhase_Check ###############################################################
 TestExpectConfig <<EOF
 EOF
-test ! -e "$config_dir"/files/lostfile.txt
+test ! -e "$config_dir"/files/strayfile.txt
 
 TestDone ######################################################################

@@ -90,7 +90,7 @@ function find() {
 					if [[ "$1" == / ]]
 					then
 						# Assume this is the find invocation for finding
-						# lost files in common.sh.
+						# stray files in common.sh.
 						file=${line:1}
 						action=${line:0:1}
 					else

@@ -510,18 +510,18 @@ function AconfApply() {
 	then
 		LogEnter 'Processing system-only files...\n'
 
-		# Delete unknown lost files (files not present in config and belonging to no package)
+		# Delete unknown stray files (files not present in config and belonging to no package)
 
-		LogEnter 'Filtering system-only lost files...\n'
-		local system_only_lost_files=0
+		LogEnter 'Filtering system-only stray files...\n'
+		local system_only_stray_files=0
 		tr '\n' '\0' < "$tmp_dir"/owned-files > "$tmp_dir"/owned-files-0
 		comm -13 --zero-terminated "$tmp_dir"/owned-files-0 <(Print0Array system_only_files) | \
 			while read -r -d $'\0' file
 			do
 				files_to_delete+=("$file")
-				system_only_lost_files=$((system_only_lost_files+1))
+				system_only_stray_files=$((system_only_stray_files+1))
 			done
-		LogLeave 'Done (%s system-only lost files).\n' "$(Color G %s $system_only_lost_files)"
+		LogLeave 'Done (%s system-only stray files).\n' "$(Color G %s $system_only_stray_files)"
 
 		# Restore unknown owned files (files not present in config and belonging to a package)
 

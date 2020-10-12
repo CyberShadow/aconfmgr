@@ -1,16 +1,19 @@
 #!/bin/bash
 source ./lib.bash
 
-# Test modifying a lost file.
+# Test saving stray files.
 
 TestPhase_Setup ###############################################################
-TestAddFile /testfile.txt foo
-TestAddConfig 'echo bar > $(CreateFile /testfile.txt)'
+TestAddFile /strayfile.txt 'Stray file contents'
 
 TestPhase_Run #################################################################
-AconfApply
+AconfSave
 
 TestPhase_Check ###############################################################
-diff -u "$test_fs_root"/testfile.txt /dev/stdin <<<bar
+TestExpectConfig <<EOF
+CopyFile /strayfile.txt
+EOF
+
+diff -u "$config_dir"/files/strayfile.txt <(printf "Stray file contents")
 
 TestDone ######################################################################
