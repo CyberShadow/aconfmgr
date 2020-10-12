@@ -441,8 +441,8 @@ function AconfApply() {
 		done
 		LogLeave
 
-		LogEnter 'Updating managed file list...\n'
-		( "$PACMAN" --query --list --quiet || true ) | sed 's#\/$##' | sort --unique > "$tmp_dir"/managed-files
+		LogEnter 'Updating owned file list...\n'
+		( "$PACMAN" --query --list --quiet || true ) | sed 's#\/$##' | sort --unique > "$tmp_dir"/owned-files
 		LogLeave
 
 		LogEnter 'Rescanning...\n'
@@ -514,8 +514,8 @@ function AconfApply() {
 
 		LogEnter 'Filtering system-only lost files...\n'
 		local system_only_lost_files=0
-		tr '\n' '\0' < "$tmp_dir"/managed-files > "$tmp_dir"/managed-files-0
-		comm -13 --zero-terminated "$tmp_dir"/managed-files-0 <(Print0Array system_only_files) | \
+		tr '\n' '\0' < "$tmp_dir"/owned-files > "$tmp_dir"/owned-files-0
+		comm -13 --zero-terminated "$tmp_dir"/owned-files-0 <(Print0Array system_only_files) | \
 			while read -r -d $'\0' file
 			do
 				files_to_delete+=("$file")
@@ -523,11 +523,11 @@ function AconfApply() {
 			done
 		LogLeave 'Done (%s system-only lost files).\n' "$(Color G %s $system_only_lost_files)"
 
-		# Restore unknown managed files (files not present in config and belonging to a package)
+		# Restore unknown owned files (files not present in config and belonging to a package)
 
-		LogEnter 'Filtering system-only managed files...\n'
-		local system_only_managed_files=0
-		comm -12 --zero-terminated "$tmp_dir"/managed-files-0 <(Print0Array system_only_files) | \
+		LogEnter 'Filtering system-only owned files...\n'
+		local system_only_owned_files=0
+		comm -12 --zero-terminated "$tmp_dir"/owned-files-0 <(Print0Array system_only_files) | \
 			while read -r -d $'\0' file
 			do
 				if [[ "${output_file_props[$file:deleted]:-}" == y ]]
@@ -536,9 +536,9 @@ function AconfApply() {
 				fi
 
 				files_to_restore+=("$file")
-				system_only_managed_files=$((system_only_managed_files+1))
+				system_only_owned_files=$((system_only_owned_files+1))
 			done
-		LogLeave 'Done (%s system-only managed files).\n' "$(Color G %s $system_only_managed_files)"
+		LogLeave 'Done (%s system-only owned files).\n' "$(Color G %s $system_only_owned_files)"
 
 		LogLeave # Processing system-only files
 	fi

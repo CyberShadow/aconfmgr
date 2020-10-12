@@ -28,14 +28,14 @@ function AconfDiff() {
 		elif [[ "$arg" == /* ]]
 		then
 			# Show diff for this path
-			if [[ ! -e "$system_dir"/files"$arg" ]] && grep -qFx "$arg" "$tmp_dir"/managed-files
+			if [[ ! -e "$system_dir"/files"$arg" ]] && grep -qFx "$arg" "$tmp_dir"/owned-files
 			then
 				# File is owned by a package - retrieve package version
 				local package
 				package=$(pacman --quiet --query --owns "$arg")
 				AconfGetPackageOriginalFile "$package" "$arg" |
 					AconfDiffRun - "$output_dir"/files"$arg"
-			elif [[ ! -e "$output_dir"/files"$arg" ]] && grep -qFx "$arg" "$tmp_dir"/managed-files
+			elif [[ ! -e "$output_dir"/files"$arg" ]] && grep -qFx "$arg" "$tmp_dir"/owned-files
 			then
 				local package
 				package=$(pacman --quiet --query --owns "$arg")

@@ -262,9 +262,9 @@ function AconfCompileSystem() {
 	local -a ignore_args
 	AconfCreateFindIgnoreArgs ignore_args "${ignore_paths[@]}"
 
-	LogEnter 'Enumerating managed files...\n'
+	LogEnter 'Enumerating owned files...\n'
 	mkdir --parents "$tmp_dir"
-	( "$PACMAN" --query --list --quiet || true ) | sed 's#\/$##' | sort --unique > "$tmp_dir"/managed-files
+	( "$PACMAN" --query --list --quiet || true ) | sed 's#\/$##' | sort --unique > "$tmp_dir"/owned-files
 	LogLeave
 
 	LogEnter 'Searching for lost files...\n'
@@ -324,7 +324,7 @@ BEGIN {
 					--fixed-strings					\
 					--line-regexp					\
 					--file							\
-					<( < "$tmp_dir"/managed-files	\
+					<( < "$tmp_dir"/owned-files		\
 						 sed -e 's#^#O#'			\
 					 )								\
 					|| true )						\
