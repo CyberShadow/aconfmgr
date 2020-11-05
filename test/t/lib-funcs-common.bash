@@ -147,6 +147,7 @@ test_globals_whitelist=(
 	pacman_opts
 	yaourt_opts
 	yay_opts
+	paru_opts
 
 	# Test suite
 	test_name

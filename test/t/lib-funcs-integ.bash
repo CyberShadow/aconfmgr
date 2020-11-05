@@ -12,6 +12,7 @@ function TestInit() {
 	aurman_opts+=(--noconfirm --noedit --skip_news)
 	yaourt_opts+=(--noconfirm)
 	yay_opts+=(--noconfirm)
+	paru_opts+=(--noconfirm)
 
 	# pacaur insists that this is set, even if it will never inoke it
 	export EDITOR=/bin/cat
