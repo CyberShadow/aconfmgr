@@ -1284,7 +1284,7 @@ function AconfNeedPackageFile() {
 	local package="$1"
 
 	local info foreign
-	if info="$("$PACMAN" --query --info "$package")"
+	if info="$(LC_ALL=C "$PACMAN" --query --info "$package")"
 	then
 		if "$PACMAN" --query --quiet --foreign "$package" > /dev/null
 		then
@@ -1293,7 +1293,7 @@ function AconfNeedPackageFile() {
 			foreign=false
 		fi
 	else
-		if info="$("$PACMAN" --sync --info "$package")"
+		if info="$(LC_ALL=C "$PACMAN" --sync --info "$package")"
 		then
 			foreign=false
 		else
