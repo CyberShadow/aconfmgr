@@ -114,6 +114,7 @@ function Main() {
 				pacaur_opts+=(--noconfirm --noedit)
 				yaourt_opts+=(--noconfirm)
 				yay_opts+=(--noconfirm)
+				paru_opts+=(--noconfirm)
 				makepkg_opts+=(--noconfirm)
 				shift
 				;;
@@ -134,6 +135,7 @@ function Main() {
 			pacaur_opts+=(--color always)
 			yaourt_opts+=(--color)
 			yay_opts+=(--color always)
+			paru_opts+=(--color always)
 			diff_opts+=('--color=always')
 		;;
 		never)
@@ -143,6 +145,7 @@ function Main() {
 			pacaur_opts+=(--color never)
 			yaourt_opts+=(--nocolor)
 			yay_opts+=(--color never)
+			paru_opts+=(--color never)
 			makepkg_opts+=(--nocolor)
 			diff_opts+=('--color=never')
 			;;
@@ -152,6 +155,7 @@ function Main() {
 			aurman_opts+=(--color auto)
 			pacaur_opts+=(--color auto)
 			yay_opts+=(--color auto)
+			paru_opts+=(--color auto)
 			;;
 		'')
 			[ -t 1 ] || DisableColor
