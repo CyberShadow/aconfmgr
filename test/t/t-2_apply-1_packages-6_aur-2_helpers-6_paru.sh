@@ -2,7 +2,7 @@
 source ./lib.bash
 
 TestNeedAUR
-TestNeedAURPackage paru c731ae9e6229a6f6a3f37719d2d8ba8053e7683c
+TestNeedAURPackage paru 300cb65847c4f8cd3b6517690d2af52502b3e3de
 AconfMakePkg paru
 TestAddConfig AddPackage --foreign paru
 TestAURHelper paru "${XDG_CACHE_HOME:-$HOME/.cache}/paru" false
