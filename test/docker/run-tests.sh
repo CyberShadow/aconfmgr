@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Build Docker image and run all integration tests.
-# Invoked from test/travis.sh.
+# Invoked from test/ci.sh.
 
 cd "$(dirname "$0")"
 

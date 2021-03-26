@@ -103,7 +103,7 @@ $(COREUTILS_BIN_DIR) : $(COREUTILS_TAR)
 	cd $(TMP)/$(COREUTILS_TAR_DIR) && ./configure --prefix=$(realpath $(TMP))/coreutils
 	make -C $(TMP)/$(COREUTILS_TAR_DIR) install
 
-# Use built bash/coreutils with BUILD_BASH=1 (on Travis CI)
+# Use built bash/coreutils with BUILD_BASH=1 (currently unused)
 
 ifeq (,$(BUILD_BASH))
  BASH=$(shell command -v bash 2> /dev/null)

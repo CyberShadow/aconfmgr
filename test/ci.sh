@@ -1,17 +1,15 @@
 #!/bin/bash
 set -euo pipefail
 
-# Travis CI test script.
-# Invoked from .travis.yml.
+# CI test script.
+# Invoked from .github/workflows/test.yml.
 
 cd "$(dirname "$0")"
-
-export COVERALLS_PARALLEL=true
 
 if ! ((${ACONFMGR_INTEGRATION:-0}))
 then
 	# Run shellcheck, unit / mock tests, coverage ...
-	make ci BUILD_BASH=1
+	make ci
 else
 	# Run integration tests
 	docker/run-tests.sh

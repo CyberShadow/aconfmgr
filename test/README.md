@@ -20,8 +20,8 @@ For details, see:
 - [test/GNUmakefile](https://github.com/CyberShadow/aconfmgr/blob/master/test/GNUmakefile),
   the makefile describing the test process.
 
-- [.travis.yml](https://github.com/CyberShadow/aconfmgr/blob/master/.travis.yml),
-  the Travis CI configuration file.
+- [.github/workflows/test.yml](https://github.com/CyberShadow/aconfmgr/blob/master/.github/workflows/test.yml),
+  the GitHub Actions workflow file.
 
 
 Test scripts

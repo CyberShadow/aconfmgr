@@ -3,11 +3,11 @@
 
 integration = ENV.fetch('ACONFMGR_INTEGRATION', '0') == '1'
 in_container = ENV.fetch('ACONFMGR_IN_CONTAINER', '0') == '1'
-in_travis = ENV.fetch('TRAVIS', 'false') == 'true'
+in_ci = ENV.fetch('CI', 'false') == 'true'
 
 formatters = []
 if not in_container then
-  if in_travis then
+  if in_ci then
     require 'coveralls'
     formatters.push(Coveralls::SimpleCov::Formatter)
   else
@@ -17,7 +17,7 @@ end
 SimpleCov.formatters = formatters
 
 if integration and not in_container then
-  # Fixed-up version created by travis.sh
+  # Fixed-up version created by ci.sh
   SimpleCov.coverage_dir 'test/tmp/integ-coverage'
 else
   SimpleCov.coverage_dir 'test/tmp/coverage'

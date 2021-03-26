@@ -1,0 +1,32 @@
+name: test
+on: [ push, pull_request ]
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        integration:
+        - 0
+        - 1
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup
+      run: |
+        sudo gem install coveralls_reborn -v 0.10.0
+        sudo gem install bashcov -v 1.8.2
+    - name: Test
+      env:
+        ACONFMGR_INTEGRATION: ${{ matrix.integration }}
+        COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        COVERALLS_PARALLEL: true
+        COVERALLS_FLAG_NAME: INTEGRATION=${{ matrix.integration }}
+        COVERALLS_SERVICE_NAME: github
+        CI_BUILD_NUMBER: ${{ github.run_number }}
+      run: |
+        test/ci.sh
+  finalize:
+    runs-on: ubuntu-20.04
+    if: always()
+    needs: test
+    steps:
+    - run: curl "https://coveralls.io/webhook?repo_name=$GITHUB_REPOSITORY&repo_token=${{ secrets.GITHUB_TOKEN }}" -d "payload[build_num]=$GITHUB_RUN_NUMBER&payload[status]=done"
