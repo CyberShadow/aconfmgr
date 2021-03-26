@@ -12,8 +12,9 @@ jobs:
     - uses: actions/checkout@v2
     - name: Setup
       run: |
-        sudo gem install coveralls_reborn -v 0.10.0
-        sudo gem install bashcov -v 1.8.2
+        sudo gem install coveralls_reborn -v 0.20.0
+        sudo gem install specific_install
+        sudo gem specific_install https://github.com/infertux/bashcov -r 4ecdf0cfb8b58453d7604d1441f6a271647a4068
     - name: Test
       env:
         ACONFMGR_INTEGRATION: ${{ matrix.integration }}
