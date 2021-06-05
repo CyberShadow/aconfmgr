@@ -1391,7 +1391,7 @@ function AconfNeedPackageFile() {
 			do
 				if sudo test -d "$dir"
 				then
-					sudo find "$dir" -type f -name "$filemask" -print0 | \
+					sudo find "$dir" -type f -name "$filemask" -not -name '*.sig' -print0 | \
 						while read -r -d $'\0' file
 						do
 							files+=("$file")
