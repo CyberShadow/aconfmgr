@@ -1,4 +1,4 @@
-# aconfmgr: A configuration manager for Arch Linux [![test](https://github.com/CyberShadow/aconfmgr/actions/workflows/test.yml/badge.svg)](https://github.com/CyberShadow/aconfmgr/actions/workflows/test.yml)
+# aconfmgr: A configuration manager for Arch Linux<br>[![test](https://github.com/CyberShadow/aconfmgr/actions/workflows/test.yml/badge.svg)](https://github.com/CyberShadow/aconfmgr/actions/workflows/test.yml)[![Coverage Status](https://coveralls.io/repos/github/CyberShadow/aconfmgr/badge.svg)](https://coveralls.io/github/CyberShadow/aconfmgr)
 
 `aconfmgr` is a package to track, manage, and restore the configuration of an Arch Linux system.
 Its goals are:
