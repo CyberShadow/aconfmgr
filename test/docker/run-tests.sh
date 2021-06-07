@@ -1,5 +1,6 @@
 #!/bin/bash
-set -euo pipefail
+set -eEuo pipefail
+shopt -s lastpipe
 
 # Build Docker image and run all integration tests.
 # Invoked from test/ci.sh.
@@ -15,7 +16,9 @@ if [[ $# -gt 0 ]]
 then
 	tests=("$@")
 else
-	tests=(t-*.sh)
+	( cd .. && ./print-test-list.sh ) |
+		sed 's/$/.sh/' |
+		mapfile -t tests
 fi
 
 # Integration tmp directory

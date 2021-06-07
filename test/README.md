@@ -62,6 +62,9 @@ The Docker service needs to be running and accessible by the current user.
 
 For details, see the [test/docker](https://github.com/CyberShadow/aconfmgr/tree/master/test/docker) directory.
 
+Under CI, the integration tests are split up into a few shards which run in parallel.
+For details, see the [print-test-list.sh](https://github.com/CyberShadow/aconfmgr/blob/master/test/print-test-list.sh) script.
+
 
 AUR integration testing
 -----------------------

@@ -5,9 +5,18 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        integration:
-        - 0
-        - 1
+        # The integration tests take a long time to run,
+        # so split them up into shards.
+        integration: [1]
+        total_shards: [5]
+        shard: [0, 1, 2, 3, 4]
+        # The non-integration tests are not sharded,
+        # and are added as a single job.
+        include:
+        - integration: 0
+          total_shards: 1
+          shard: 0
+    name: "INTEGRATION=${{ matrix.integration }} [${{ matrix.shard }} / ${{ matrix.total_shards }}]"
     steps:
     - uses: actions/checkout@v2
     - name: Setup
@@ -18,9 +27,11 @@ jobs:
     - name: Test
       env:
         ACONFMGR_INTEGRATION: ${{ matrix.integration }}
+        ACONFMGR_CI_SHARD: ${{ matrix.shard }}
+        ACONFMGR_CI_TOTAL_SHARDS: ${{ matrix.total_shards }}
         COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         COVERALLS_PARALLEL: true
-        COVERALLS_FLAG_NAME: INTEGRATION=${{ matrix.integration }}
+        COVERALLS_FLAG_NAME: "INTEGRATION=${{ matrix.integration }} [${{ matrix.shard }} / ${{ matrix.total_shards }}]"
         COVERALLS_SERVICE_NAME: github
         CI_BUILD_NUMBER: ${{ github.run_number }}
       run: |

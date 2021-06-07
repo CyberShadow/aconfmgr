@@ -6,7 +6,8 @@ set -eu
 
 cd "$(dirname "$0")"
 
-for t in ./t-*.sh
-do
-	$BASH "$t"
-done
+( cd .. && ./print-test-list.sh ) |
+	while IFS= read -r test_name
+	do
+		$BASH ./"$test_name".sh
+	done
