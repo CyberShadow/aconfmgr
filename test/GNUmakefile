@@ -145,10 +145,10 @@ $(COVERAGE_REPORT) : $(SRC) $(TESTSUITE) $(BASH_DEP) .simplecov
 
 # Docker image (integration testing)
 
-ARCH_DATE=2021.05.01
+ARCH_DATE=2021.07.01
 ARCH_TAR_FN=archlinux-bootstrap-$(ARCH_DATE)-x86_64.tar.gz
 ARCH_TAR_URL=https://archive.archlinux.org/iso/$(ARCH_DATE)/$(ARCH_TAR_FN)
-ARCH_TAR_SHA1=492161c558ba8e12f7222aa036d2275659ce0de7
+ARCH_TAR_SHA1=79b75aa1431c9713f7ecafffa04378cbcd1c0447
 ARCH_TAR_DIR=$(TMP)/arch
 ARCH_TAR=$(ARCH_TAR_DIR)/$(ARCH_TAR_FN)
 
