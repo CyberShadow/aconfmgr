@@ -1441,6 +1441,7 @@ function AconfNeedPackageFile() {
 			do
 				if sudo test -d "$dir"
 				then
+					local file
 					sudo find "$dir" -type f -name "$filemask" -not -name '*.sig' -print0 | \
 						while read -r -d $'\0' file
 						do
@@ -1842,6 +1843,20 @@ function SuperCat() {
 	else
 		sudo cat "$1"
 	fi
+}
+
+# run diff, then get rid of the filename headers which are going to be wrong
+# (e.g. /dev/fd/63 from the process substitution)
+function DiffWithoutHeaders() {
+	{ diff "$@" || true; } | sed -Ee '1,4{ /^---/d; /^\+\+\+/d; }'
+}
+
+function ChooseHeredocTerminator() {
+	local src="$1" delim=EOF
+
+	while grep -q "^$delim" "$src"; do delim="$delim$delim"; done
+
+	echo $delim
 }
 
 if ! ( empty_array=() ; : "${empty_array[@]}" )

@@ -20,8 +20,8 @@ AconfSave
 
 TestPhase_Check ###############################################################
 
-TestExpectConfig <<EOF
-CopyFile /badfile.txt
+TestExpectConfig <<"EOF"
+printf '%s' 'Not original file' > "$(CreateFile /badfile.txt)"
 EOF
 
 TestDone ######################################################################

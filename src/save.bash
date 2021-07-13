@@ -134,6 +134,7 @@ function AconfSave() {
 	then
 		LogEnter 'Found %s new and %s changed files.\n' "$(Color G ${#system_only_files[@]})" "$(Color G ${#changed_files[@]})"
 		printf '\n\n# %s - New / changed files\n\n\n' "$(date)" >> "$config_save_target"
+		local file
 		( Print0Array system_only_files ; Print0Array changed_files ) | \
 			while read -r -d $'\0' file
 			do
@@ -147,7 +148,7 @@ function AconfSave() {
 				# shellcheck disable=SC2174
 				mkdir --mode=700 --parents "$config_dir"/files/"$dir"
 
-				local func args props suffix=''
+				local func='' suffix='' heredoc_src='' prefix_to_expand='' args=() props=()
 
 				local output_file="$output_dir"/files/"$file"
 				local system_file="$system_dir"/files/"$file"
@@ -185,23 +186,87 @@ function AconfSave() {
 					args=("$file")
 					props=(mode owner group)
 				else
-					local size
-					size=$(LC_ALL=C stat --format=%s "$system_file")
+					local size package
+					size="$(LC_ALL=C stat --format=%s "$system_file")"
+					package="$(pacman -Qoq "$file" 2>/dev/null || true)"
 					if [[ $size -eq 0 ]]
 					then
 						func=CreateFile
+						args=("$file")
+						props=(mode owner group)
 						suffix=' > /dev/null'
 
 						if [[ -h "$output_file" || -e "$output_file" ]]
 						then
 							printf 'RemoveFile %q\n' "$file" >> "$config_save_target"
 						fi
+					elif
+						AconfNeedProgram file file n &&
+						file "$system_file" | grep -Fw text | grep -qvFw -- 'with escape sequences' &&
+						[[ $(wc -w <<<"$package") -le 1 ]]
+					then
+						AconfNeedProgram diff diffutils n
+						if [[ -n "$package" ]] && AconfNeedPackageFile "$package" >/dev/null
+						then
+							local cat_output_file_or_else_pkg_file
+							if [[ -f "$output_file" ]]
+							then
+								cat_output_file_or_else_pkg_file="$(printf 'cat %q' "$output_file")"
+							else
+								cat_output_file_or_else_pkg_file="$(printf 'AconfGetPackageOriginalFile %q %q' "$package" "$file")"
+							fi
+							{
+								# the output should contain a quoted command expansion
+								# shellcheck disable=SC2016
+								printf 'patch --no-backup-if-mismatch "$(GetPackageOriginalFile --no-clobber %s %q)" <<"EOF"\n' "$package" "$file"
+ 								DiffWithoutHeaders --unified=5 <(eval "$cat_output_file_or_else_pkg_file") "$system_file"
+ 								printf 'EOF\n'
+								# we didn't have to worry about heredoc delimiter collisions because
+								# unified diff lines always begin with space, plus or minus
+							} >> "$config_save_target"
+						elif [[ -f "$output_file" ]]
+						then
+							{
+								# the output should contain a quoted command expansion
+								# shellcheck disable=SC2016
+								printf 'patch --no-backup-if-mismatch "$(CreateFile --no-clobber %q)" <<"EOF"\n' "$file"
+								DiffWithoutHeaders --unified=5 "$output_file" "$system_file"
+								printf 'EOF\n'
+								# we didn't have to worry about heredoc delimiter collisions because
+								# unified diff lines always begin with space, plus or minus
+							} >> "$config_save_target"
+						else
+							func=CreateFile
+							args=("$file")
+							props=(mode owner group)
+							prefix_to_expand='cat >'
+ 							if [[ -f "$output_file" ]]
+							then
+								heredoc_src="$output_file"
+							else
+								heredoc_src="$system_file"
+							fi
+							local linecount
+							linecount="$(wc -l <"$heredoc_src")"
+							if [[ $linecount -lt 1 ]]
+							then
+								local contents
+								contents=$(<"$heredoc_src")
+								heredoc_src=''
+								if [[ $linecount -eq 0 ]]
+								then
+									prefix_to_expand="printf '%s' ${contents@Q} >"
+								else
+									prefix_to_expand="echo ${contents@Q} >"
+								fi
+							fi
+						fi
 					else
 						cp "$system_file" "$config_dir"/files/"$file"
 						func=CopyFile
+						args=("$file")
+						props=(mode owner group)
 					fi
-					args=("$file")
-					props=(mode owner group)
 				fi
 
 				# Calculate the optional function parameters
@@ -220,12 +285,34 @@ function AconfSave() {
 				done
 
 				# Trim redundant blank parameters
-				while [[ -z "${args[-1]}" ]]
+				while [[ "${#args[*]}" -gt 0 && -z "${args[-1]}" ]]
 				do
 					unset 'args[${#args[@]}-1]'
 				done
 
-				printf '%s%s%s\n' "$func" "$(printf ' %q' "${args[@]}")" "$suffix" >> "$config_save_target"
+				if [[ -n $func ]]
+				then
+					if [[ -n "$prefix_to_expand" ]]
+					then
+						if [[ -n "$heredoc_src" ]]
+						then
+							local heredoc_delim
+							heredoc_delim="$(ChooseHeredocTerminator "$heredoc_src")"
+							# the output should contain a quoted command expansion
+							# shellcheck disable=SC2016
+							printf '%s "$(%s%s%s)" <<"%s"\n' "$prefix_to_expand" "$func" "$(printf ' %q' "${args[@]}")" "$suffix" "$heredoc_delim"
+							# use sed to enforce trailing newline, via https://unix.stackexchange.com/a/31955
+							# shellcheck disable=SC1003
+							sed -e '$a\' "$heredoc_src"
+							printf '%s\n' "$heredoc_delim"
+						else
+							# shellcheck disable=SC2016
+							printf '%s "$(%s%s%s)"\n' "$prefix_to_expand" "$func" "$(printf ' %q' "${args[@]}")" "$suffix"
+						fi
+					else
+						printf '%s%s%s\n' "$func" "$(printf ' %q' "${args[@]}")" "$suffix"
+					fi >> "$config_save_target"
+				fi
 			done
 		modified=y
 		LogLeave
