@@ -263,7 +263,8 @@ function AconfCompileSystem() {
 	AconfCreateFindIgnoreArgs ignore_args "${ignore_paths[@]}"
 
 	LogEnter 'Enumerating owned files...\n'
-	mkdir --parents "$tmp_dir"
+	# shellcheck disable=SC2174
+	mkdir -m 700 --parents "$tmp_dir"
 	( "$PACMAN" --query --list --quiet || true ) | sed 's#\/$##' | sort --unique > "$tmp_dir"/owned-files
 	LogLeave
 
@@ -777,7 +778,8 @@ function AconfAnalyzeFiles() {
 	LogEnter 'Examining files...\n'
 
 	LogEnter 'Loading data...\n'
-	mkdir --parents "$tmp_dir"
+	# shellcheck disable=SC2174
+	mkdir -m 700 --parents "$tmp_dir"
 	( cd "$output_dir"/files && find . -mindepth 1 -print0 ) | cut --zero-terminated -c 2- | sort --zero-terminated > "$tmp_dir"/output-files
 	( cd "$system_dir"/files && find . -mindepth 1 -print0 ) | cut --zero-terminated -c 2- | sort --zero-terminated > "$tmp_dir"/system-files
 	LogLeave
