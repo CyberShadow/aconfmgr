@@ -126,7 +126,7 @@ $(SHELLCHECK_OK) : $(SRC) $(SHELLCHECK) $(MULTISHELLCHECK)
 # Test suite
 
 TESTSUITE_LIB=$(wildcard t/lib*.bash t/mocks/*)
-TESTSUITE_TESTS=$(addprefix t/, $(addsuffix .sh, $(shell print-test-list.sh)))
+TESTSUITE_TESTS=$(addprefix t/, $(addsuffix .sh, $(shell ./print-test-list.sh)))
 TESTSUITE_TESTS_OK=$(patsubst t/%.sh,tmp/test/%/.ok,$(TESTSUITE_TESTS))
 TESTSUITE=$(TESTSUITE_LIB) $(TESTSUITE_TESTS)
 
