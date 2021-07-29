@@ -22,3 +22,4 @@ test_dir=../tmp/test/$test_name
 config_dir=$test_dir/config
 tmp_dir=$test_dir/tmp
 test_data_dir=$test_dir/testdata
+test_aur_dir=$test_dir/aur

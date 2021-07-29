@@ -157,6 +157,7 @@ test_globals_whitelist=(
 	test_name
 	test_dir
 	test_data_dir
+	test_aur_dir
 	test_fs_root
 	test_globals_initial
 	test_globals_whitelist
