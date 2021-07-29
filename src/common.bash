@@ -11,6 +11,17 @@ PACMAN=${PACMAN:-pacman}
 output_dir="$tmp_dir"/output
 system_dir="$tmp_dir"/system # Current system configuration, to be compared against the output directory
 
+# The directory used for building AUR packages.
+# When running as root, our "$tmp_dir" will be inaccessible to
+# the user under which the building is performed ("nobody"),
+# so we need a separate directory under this circumstance.
+if [[ $EUID == 0 ]]
+then
+	aur_dir="$tmp_dir"-aur
+else
+	aur_dir="$tmp_dir"/aur
+fi
+
 default_file_mode=644
 
 ANSI_clear_line="[0K"
@@ -958,7 +969,14 @@ function AconfMakePkg() {
 
 	LogEnter 'Building foreign package %s from source.\n' "$(Color M %q "$package")"
 
-	local pkg_dir="$tmp_dir"/aur/"$package"
+	# shellcheck disable=SC2174
+	mkdir --parents --mode=700 "$aur_dir"
+	if [[ $EUID == 0 ]]
+	then
+		chown -R "$makepkg_user": "$aur_dir"
+	fi
+
+	local pkg_dir="$aur_dir"/"$package"
 	Log 'Using directory %s.\n' "$(Color C %q "$pkg_dir")"
 
 	rm -rf "$pkg_dir"
@@ -1366,7 +1384,7 @@ function AconfNeedPackageFile() {
 							dirs+=("${XDG_CACHE_HOME:-$HOME/.cache}/paru/clone/$package")
 							;;
 						makepkg)
-							dirs+=("$tmp_dir"/aur/"$package")
+							dirs+=("$aur_dir"/"$package")
 							;;
 						*)
 							Log 'Error: unknown AUR helper %q\n' "$aur_helper"

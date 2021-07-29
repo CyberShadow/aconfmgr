@@ -105,6 +105,7 @@ test_globals_whitelist=(
 	output_dir
 	system_dir
 	tmp_dir
+	aur_dir
 
 	# Internal state (AconfAnalyzeFiles)
 	system_only_files
