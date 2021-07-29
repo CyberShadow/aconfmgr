@@ -18,6 +18,7 @@ else
 fi
 export ACONFMGR_CURRENT_TEST=$test_name
 
-config_dir=../tmp/test/"$test_name"/config
-tmp_dir=../tmp/test/"$test_name"/tmp
-test_data_dir=../tmp/test/"$test_name"/testdata
+test_dir=../tmp/test/$test_name
+config_dir=$test_dir/config
+tmp_dir=$test_dir/tmp
+test_data_dir=$test_dir/testdata

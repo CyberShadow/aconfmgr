@@ -155,6 +155,7 @@ test_globals_whitelist=(
 
 	# Test suite
 	test_name
+	test_dir
 	test_data_dir
 	test_fs_root
 	test_globals_initial
