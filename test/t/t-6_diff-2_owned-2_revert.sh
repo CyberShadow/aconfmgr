@@ -12,10 +12,10 @@ TestAddFile /testfile.txt $'bar\n'
 
 TestPhase_Run #################################################################
 aconfmgr_action_args=(/testfile.txt)
-AconfDiff 2>&1 | tee "$tmp_dir"/diff-results.txt
+AconfDiff 2>&1 | tee "$test_dir"/diff-results.txt
 
 TestPhase_Check ###############################################################
-grep -Fx -- '-bar' "$tmp_dir"/diff-results.txt
-grep -Fx -- '+foo' "$tmp_dir"/diff-results.txt
+grep -Fx -- '-bar' "$test_dir"/diff-results.txt
+grep -Fx -- '+foo' "$test_dir"/diff-results.txt
 
 TestDone ######################################################################
