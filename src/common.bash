@@ -83,6 +83,8 @@ warn_size_threshold=$((10*1024*1024)) # Warn on copying files bigger than this
 warn_file_count_threshold=1000        # Warn on finding this many stray files
 warn_tmp_df_threshold=$((1024*1024))  # Warn on error if free space in $tmp_dir is below this
 
+makepkg_user=nobody # when running as root
+
 ####################################################################################################
 
 function LogLeaveDirStats() {
@@ -1019,7 +1021,6 @@ function AconfMakePkgDir() {
 
 	local gnupg_home
 	gnupg_home="$(realpath -m "$tmp_dir/gnupg")"
-	local makepkg_user=nobody # when running as root
 
 	local infofile infofilename
 	for infofilename in .SRCINFO .AURINFO
@@ -1137,7 +1138,7 @@ EOF
 					if [[ $EUID == 0 ]]
 					then
 						chmod 700 "$gnupg_home"
-						chown -R $makepkg_user: "$gnupg_home"
+						chown -R "$makepkg_user": "$gnupg_home"
 					fi
 
 					LogLeave
