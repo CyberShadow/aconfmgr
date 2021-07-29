@@ -419,6 +419,9 @@ function TestInitAUR() {
 	git config --global user.email 'aconfmgr@thecybershadow.net'
 	LogLeave
 
+	# Create "$tmp_dir" now with the correct mode.
+	mkdir --mode=700 "$tmp_dir"
+
 	touch ~/aur-initialized
 
 	LogLeave

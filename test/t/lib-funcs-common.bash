@@ -180,6 +180,17 @@ function TestDone() {
 			| diff /dev/null /dev/stdin
 	) || FatalError 'Unknown stray global variables found!\n'
 
+	# Check that the temporary directory is created with the correct permissions
+	local tmp_dir_mode
+	if [[ -d "$tmp_dir" ]]
+	then
+		tmp_dir_mode=$(stat --format=%a "$tmp_dir")
+		if [[ "$tmp_dir_mode" != 700 ]]
+		then
+			FatalError '%q has mode %s, not 700!\n' "$tmp_dir" "$tmp_dir_mode"
+		fi
+	fi
+
 	LogLeave 'Test %s: %s!\n' "$(Color C "$test_name")" "$(Color G success)"
 	if [[ -v GITHUB_ACTIONS ]] ; then printf '::endgroup::\n' 1>&2 ; fi
 	printf '\n' 1>&2 # Leave a blank line between tests
