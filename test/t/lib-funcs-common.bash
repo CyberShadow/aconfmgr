@@ -181,6 +181,7 @@ function TestDone() {
 	) || FatalError 'Unknown stray global variables found!\n'
 
 	LogLeave 'Test %s: %s!\n' "$(Color C "$test_name")" "$(Color G success)"
+	if [[ -v GITHUB_ACTIONS ]] ; then printf '::endgroup::\n' 1>&2 ; fi
 	printf '\n' 1>&2 # Leave a blank line between tests
 	Exit 0
 }

@@ -33,6 +33,7 @@ do
 		-v "$PWD/../..:/aconfmgr:ro"
 		-v "$PWD/../tmp/integ:/aconfmgr/test/tmp:rw"
 		--add-host aur.archlinux.org:127.0.0.1
+		-e GITHUB_ACTIONS
 		--env 'ACONFMGR_INTEGRATION=1'
 		--env 'ACONFMGR_IN_CONTAINER=1'
 		--user aconfmgr

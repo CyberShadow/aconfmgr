@@ -16,6 +16,7 @@ source ../../src/check.bash
 source ../../src/diff.bash
 source ../../src/helpers.bash
 
+if [[ -v GITHUB_ACTIONS ]] ; then printf '::group::%s\n' "$test_name" 1>&2 ; fi
 LogEnter 'Running test case %s ...\n' "$(Color C "$test_name")"
 LogEnter 'Setting up test suite...\n'
 
