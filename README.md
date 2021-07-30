@@ -110,8 +110,8 @@ The list of provided helper functions:
 - `AddPackageGroup GROUP` - Adds all packages currently in the given group to the list of packages to be installed.
 - `CopyFile PATH [MODE [OWNER [GROUP]]]` - Copies a file from the `files` subdirectory to the output.
 - `CopyFileTo SRC-PATH DST-PATH [MODE [OWNER [GROUP]]]` - As above, but allows source and output paths to vary.
-- `CreateFile PATH [MODE [OWNER [GROUP]]]` - Creates an empty file, to be included in the output. Prints its absolute path to standard output.
-- `GetPackageOriginalFile PACKAGE PATH` - Extracts the original file from a package's archive for inclusion in the output. Prints its absolute path to standard output.
+- `CreateFile [--no-clobber] PATH [MODE [OWNER [GROUP]]]` - Creates an empty file, to be included in the output. Prints its absolute path to standard output.
+- `GetPackageOriginalFile [--no-clobber] PACKAGE PATH` - Extracts the original file from a package's archive for inclusion in the output. Prints its absolute path to standard output.
 - `CreateLink PATH TARGET [OWNER [GROUP]]` - Creates a symbolic link with the specified target.
 - `RemoveFile PATH` - Removes an earlier-added file.
 - `SetFileProperty PATH TYPE VALUE` - Sets a file property.
