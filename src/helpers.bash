@@ -206,7 +206,7 @@ function CreateFile() {
 #
 
 function GetPackageOriginalFile() {
-	keep=false
+	local keep=false
 	if [[ "$1" == "--no-clobber" ]]
 	then
 		keep=true
