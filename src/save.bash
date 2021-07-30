@@ -191,7 +191,7 @@ function AconfSave() {
 						func=CreateFile
 						suffix=' > /dev/null'
 
-						if [[ -e "$output_file" ]] && [[ $(LC_ALL=C stat --format=%s "$output_file") -gt 0 ]]
+						if [[ -h "$output_file" || -e "$output_file" ]] && [[ $(LC_ALL=C stat --format=%s "$output_file") -gt 0 ]]
 						then
 							printf 'RemoveFile %q\n' "$file" >> "$config_save_target"
 						fi

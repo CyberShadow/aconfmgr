@@ -149,7 +149,7 @@ function CopyFileTo() {
 #
 
 function CreateFile() {
-	keep=false
+	local keep=false
 	if [[ "$1" == "--no-clobber" ]]
 	then
 		keep=true
@@ -165,15 +165,17 @@ function CreateFile() {
 
 	mkdir --parents "$(dirname "$output_file")"
 
-	if [[ -e "$output_file" ]]
+	if [[ -h "$output_file" || -e "$output_file" ]]
 	then
-		if keep
+		if $keep
 		then
 			printf '%s' "$output_file"
 			return
 		else
-			Log '%s: File path %s clobbered by CreateFile. Avoid via --no-clobber or silence warning via RemoveFile.\n' \
+			Log '%s: Overwriting %s, which was created earlier in the configuration. Use %s to keep old contents, or silence this warning by calling %s first.\n' \
 				"$(Color Y "Warning")" \
+				"$(Color Y "CreateFile --no-clobber")" \
+				"$(Color Y "RemoveFile")" \
 				"$(Color C "%q" "$file")"
 			config_warnings+=1
 		fi
@@ -212,15 +214,17 @@ function GetPackageOriginalFile() {
 
 	mkdir --parents "$(dirname "$output_file")"
 
-	if [[ -e "$output_file" ]]
+	if [[ -h "$output_file" || -e "$output_file" ]]
 	then
-		if keep
+		if $keep
 		then
 			printf '%s' "$output_file"
 			return
 		else
-			Log '%s: File path %s overwritten by GetPackageOriginalFile. Avoid via --no-clobber or silence warning via RemoveFile.\n' \
+			Log '%s: Overwriting %s, which was created earlier in the configuration. Use %s to keep old contents, or silence this warning by calling %s first.\n' \
 				"$(Color Y "Warning")" \
+				"$(Color Y "GetPackageOriginalFile --no-clobber")" \
+				"$(Color Y "RemoveFile")" \
 				"$(Color C "%q" "$file")"
 			config_warnings+=1
 		fi
