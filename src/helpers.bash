@@ -147,6 +147,9 @@ function CopyFileTo() {
 # Creates an empty file, to be included in the output.
 # Prints its absolute path to standard output.
 #
+# Avoids overwriting any pre-existing output file if
+# --no-clobber is provided.
+#
 
 function CreateFile() {
 	local keep=false
@@ -197,6 +200,9 @@ function CreateFile() {
 # Prints its absolute path to standard output.
 #
 # As in the case of CreateFile, the file can be further modified after extraction.
+#
+# Avoids overwriting any pre-existing output file if
+# --no-clobber is provided.
 #
 
 function GetPackageOriginalFile() {
