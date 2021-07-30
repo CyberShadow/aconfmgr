@@ -177,9 +177,9 @@ function CreateFile() {
 		else
 			Log '%s: Overwriting %s, which was created earlier in the configuration. Use %s to keep old contents, or silence this warning by calling %s first.\n' \
 				"$(Color Y "Warning")" \
+				"$(Color C "%q" "$file")" \
 				"$(Color Y "CreateFile --no-clobber")" \
-				"$(Color Y "RemoveFile")" \
-				"$(Color C "%q" "$file")"
+				"$(Color Y "RemoveFile")"
 			config_warnings+=1
 		fi
 	fi
@@ -229,9 +229,9 @@ function GetPackageOriginalFile() {
 		else
 			Log '%s: Overwriting %s, which was created earlier in the configuration. Use %s to keep old contents, or silence this warning by calling %s first.\n' \
 				"$(Color Y "Warning")" \
+				"$(Color C "%q" "$file")" \
 				"$(Color Y "GetPackageOriginalFile --no-clobber")" \
-				"$(Color Y "RemoveFile")" \
-				"$(Color C "%q" "$file")"
+				"$(Color Y "RemoveFile")"
 			config_warnings+=1
 		fi
 	fi
