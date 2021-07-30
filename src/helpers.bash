@@ -180,13 +180,9 @@ function GetPackageOriginalFile() {
 
 	local output_file="$output_dir"/files/"$file"
 
-	if ! [[ -e "$output_file" ]]; then
+	mkdir --parents "$(dirname "$output_file")"
 
-		mkdir --parents "$(dirname "$output_file")"
-
-		AconfGetPackageOriginalFile	"$package" "$file" > "$output_file"
-
-	fi
+	AconfGetPackageOriginalFile	"$package" "$file" > "$output_file"
 
 	printf '%s' "$output_file"
 }
