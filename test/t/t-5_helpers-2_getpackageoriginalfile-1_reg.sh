@@ -21,6 +21,6 @@ AconfApply
 
 TestPhase_Check ###############################################################
 diff -u "$test_fs_root"/testfile1.txt /dev/stdin <<<foobar
-diff -u "$test_fs_root"/testfile2.txt /dev/stdin <<<spameggs
+diff -u "$test_fs_root"/testfile2.txt /dev/stdin <<<$'spam\neggs'
 
 TestDone ######################################################################
