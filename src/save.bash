@@ -186,10 +186,15 @@ function AconfSave() {
 				else
 					local size
 					size=$(LC_ALL=C stat --format=%s "$system_file")
-					if [[ $size == 0 ]]
+					if [[ $size -eq 0 ]]
 					then
 						func=CreateFile
 						suffix=' > /dev/null'
+
+						if [[ -e "$output_file" ]] && [[ $(LC_ALL=C stat --format=%s "$output_file") -gt 0 ]]
+						then
+							printf 'RemoveFile %q\n' "$file" >> "$config_save_target"
+						fi
 					else
 						cp "$system_file" "$config_dir"/files/"$file"
 						func=CopyFile

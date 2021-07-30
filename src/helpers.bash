@@ -142,31 +142,54 @@ function CopyFileTo() {
 }
 
 #
-# CreateFile PATH [MODE [OWNER [GROUP]]]
+# CreateFile [--no-clobber] PATH [MODE [OWNER [GROUP]]]
 #
 # Creates an empty file, to be included in the output.
 # Prints its absolute path to standard output.
 #
 
 function CreateFile() {
+	keep=false
+	if [[ "$1" == "--no-clobber" ]]
+	then
+		keep=true
+		shift
+	fi
+
 	local file="$1"
 	local mode="${2:-}"
 	local owner="${3:-}"
 	local group="${4:-}"
 
-	mkdir --parents "$(dirname "$output_dir"/files/"$file")"
+	local output_file="$output_dir"/files/"$file"
 
-	truncate --size 0 "$output_dir"/files/"$file"
+	mkdir --parents "$(dirname "$output_file")"
+
+	if [[ -e "$output_file" ]]
+	then
+		if keep
+		then
+			printf '%s' "$output_file"
+			return
+		else
+			Log '%s: File path %s clobbered by CreateFile. Avoid via --no-clobber or silence warning via RemoveFile.\n' \
+				"$(Color Y "Warning")" \
+				"$(Color C "%q" "$file")"
+			config_warnings+=1
+		fi
+	fi
+
+	truncate --size 0 "$output_file"
 
 	SetFileProperty "$file" mode  "$mode"
 	SetFileProperty "$file" owner "$owner"
 	SetFileProperty "$file" group "$group"
 
-	printf '%s' "$output_dir"/files/"$file"
+	printf '%s' "$output_file"
 }
 
 #
-# GetPackageOriginalFile PACKAGE PATH
+# GetPackageOriginalFile [--no-clobber] PACKAGE PATH
 #
 # Extracts the original file from a package's archive for inclusion in the output.
 # Prints its absolute path to standard output.
@@ -175,12 +198,33 @@ function CreateFile() {
 #
 
 function GetPackageOriginalFile() {
+	keep=false
+	if [[ "$1" == "--no-clobber" ]]
+	then
+		keep=true
+		shift
+	fi
+
 	local package="$1" # Package to extract the file from
 	local file="$2" # Absolute path to file in package
 
 	local output_file="$output_dir"/files/"$file"
 
 	mkdir --parents "$(dirname "$output_file")"
+
+	if [[ -e "$output_file" ]]
+	then
+		if keep
+		then
+			printf '%s' "$output_file"
+			return
+		else
+			Log '%s: File path %s overwritten by GetPackageOriginalFile. Avoid via --no-clobber or silence warning via RemoveFile.\n' \
+				"$(Color Y "Warning")" \
+				"$(Color C "%q" "$file")"
+			config_warnings+=1
+		fi
+	fi
 
 	AconfGetPackageOriginalFile	"$package" "$file" > "$output_file"
 
