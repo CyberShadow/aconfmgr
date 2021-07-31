@@ -3,6 +3,8 @@
 source ./lib.bash
 source ./lib-matrix-packages.bash
 
+# Matrix roundtrip test for packages.
+
 TestPhase_Setup ###############################################################
 
 TestMatrixPackageSetup

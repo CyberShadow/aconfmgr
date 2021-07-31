@@ -1,6 +1,8 @@
 #!/bin/bash
 source ./lib.bash
 
+# Test AUR functionality using paru.
+
 TestNeedAUR
 TestNeedAURPackage paru 68659a24734580d64c9c5e0899d60431126c53c3
 AconfMakePkg paru

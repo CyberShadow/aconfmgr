@@ -1,6 +1,8 @@
 #!/bin/bash
 source ./lib.bash
 
+# Test AUR functionality using pacaur.
+
 TestNeedAUR
 TestNeedPacaur
 TestNeedAuracle
