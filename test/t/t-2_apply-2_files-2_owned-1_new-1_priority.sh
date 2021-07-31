@@ -1,7 +1,7 @@
 #!/bin/bash
 source ./lib.bash
 
-# Test applying modified priority files.
+# Test applying new priority files.
 
 TestPhase_Setup ###############################################################
 priority_files+=(/dir/file.txt)

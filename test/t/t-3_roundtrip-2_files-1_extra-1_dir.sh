@@ -1,7 +1,8 @@
 #!/bin/bash
 source ./lib.bash
 
-# Test RemoveFile helper.
+# Test that "save" generates a correct configuration when it needs to record
+# deleting a non-empty directory.
 
 TestPhase_Setup ###############################################################
 TestAddConfig 'echo foo > $(CreateFile /dir/file.txt)'

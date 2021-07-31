@@ -1,7 +1,7 @@
 #!/bin/bash
 source ./lib.bash
 
-# Test for ignored packages.
+# Test for applying ignored packages.
 
 TestPhase_Setup ###############################################################
 TestAddPackage foo native explicit

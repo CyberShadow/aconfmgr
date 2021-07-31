@@ -3,7 +3,7 @@
 source ./lib.bash
 source ./lib-matrix-files.bash
 
-# Regression tests for past matrix failures.
+# Regression tests for past matrix "apply" failures.
 # The full matrix test is too slow to run as a normal part of the test suite;
 # they can be run manually from the ./m-*.sh scripts.
 

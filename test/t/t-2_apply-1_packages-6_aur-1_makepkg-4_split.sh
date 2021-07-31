@@ -1,7 +1,7 @@
 #!/bin/bash
 source ./lib.bash
 
-# Test installing base-devel if needed.
+# Test installing split packages.
 TestNeedAUR
 TestNeedAuracle
 

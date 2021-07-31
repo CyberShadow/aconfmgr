@@ -1,7 +1,7 @@
 #!/bin/bash
 source ./lib.bash
 
-# Test RemoveFile helper.
+# Test AddPackageGroup helper.
 
 TestPhase_Setup ###############################################################
 TestCreatePackage test-package native groups+=testgroup
