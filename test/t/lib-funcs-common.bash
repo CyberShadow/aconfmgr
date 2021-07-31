@@ -164,7 +164,10 @@ test_globals_whitelist=(
 	test_globals_initial
 	test_globals_whitelist
 	test_adopted_packages
+	test_expected_warnings
 )
+
+declare -i test_expected_warnings=0
 
 function TestDone() {
 	LogLeave
@@ -181,6 +184,12 @@ function TestDone() {
 			| comm -23 /dev/stdin <(echo "${test_globals_whitelist[*]}" | sort) \
 			| diff /dev/null /dev/stdin
 	) || FatalError 'Unknown stray global variables found!\n'
+
+	# Check that the warning count is as expected
+	test "$config_warnings" -eq "$test_expected_warnings" || \
+		FatalError 'Unexpected warning count: expected %s, encountered %s\n' \
+				   "$(Color G "$test_expected_warnings")" \
+				   "$(Color G "$config_warnings")"
 
 	# Check that the temporary directory is created with the correct permissions
 	local tmp_dir_mode

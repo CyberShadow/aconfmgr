@@ -5,11 +5,11 @@ source ./lib.bash
 
 TestPhase_Setup ###############################################################
 TestWriteFile "$config_dir"/files/testfile.txt 'Test file contents'
+test_expected_warnings+=1
 
 TestPhase_Run #################################################################
 AconfCheck
 
 TestPhase_Check ###############################################################
-test $config_warnings -eq 1
 
 TestDone ######################################################################
