@@ -8,6 +8,7 @@ function TestMockOnly() {
 	then
 		LogLeave
 		LogLeave 'Skipping (mock-only test).\n'
+		printf '\n' 1>&2 # Leave a blank line between tests
 		Exit 0
 	fi
 }
@@ -17,6 +18,7 @@ function TestIntegrationOnly() {
 	then
 		LogLeave
 		LogLeave 'Skipping (integration-only test).\n'
+		printf '\n' 1>&2 # Leave a blank line between tests
 		Exit 0
 	fi
 }
