@@ -535,11 +535,13 @@ function TestAURHelper() {
 
 	LogEnter 'Test getting a file from an installed package:\n'
 	diff -u "$(GetPackageOriginalFile test-package /testfile.txt)" <(printf 'File contents')
+	RemoveFile /testfile.txt
 	LogLeave 'OK\n'
 
 	LogEnter 'Test getting a file from a non-installed package:\n'
 	command sudo pacman -R --noconfirm test-package
 	diff -u "$(GetPackageOriginalFile test-package /testfile.txt)" <(printf 'File contents')
+	RemoveFile /testfile.txt
 	LogLeave 'OK\n'
 
 	if "$can_build_only"
@@ -548,6 +550,7 @@ function TestAURHelper() {
 		test -z "$cache_dir" || rm -rf "$cache_dir"
 		diff -u "$(GetPackageOriginalFile test-package /testfile.txt)" <(printf 'File contents')
 		test -z "$cache_dir" -o -d "$cache_dir"
+		RemoveFile /testfile.txt
 		LogLeave 'OK\n'
 
 		LogEnter 'Test getting a file from another version of the package:\n'
@@ -555,6 +558,7 @@ function TestAURHelper() {
 		TestUpdateAurPackage test-package 'pkgver=2.0'
 		diff -u "$(GetPackageOriginalFile test-package /testfile.txt)" <(printf 'File contents')
 		test -z "$cache_dir" -o -d "$cache_dir"
+		RemoveFile /testfile.txt
 		LogLeave 'OK\n'
 	fi
 }
