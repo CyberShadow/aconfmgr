@@ -7,7 +7,7 @@
 # - clean - delete temporary/intermediate files
 #
 # Other targets:
-# - shellcheck - lint source code only
+# - lint - lint source code only
 # - testsuite - run test suite only
 #
 # Options:
@@ -22,8 +22,9 @@ TMP=tmp
 
 # Entry point targets
 
-check : shellcheck testsuite
+check : lint testsuite
 ci : check coverage
+lint : shellcheck style
 
 # Create temporary directory
 
@@ -182,6 +183,14 @@ $(TMP)/.docker-image-ok : $(TMP)/.docker-image-ok-arch docker/Dockerfile docker/
 
 docker-image : $(TMP)/.docker-image-ok
 
+# Style
+
+STYLE_OK=$(TMP)/.style-ok
+style : $(STYLE_OK)
+$(STYLE_OK) : $(SRC) $(TESTSUITE) lint.sh
+	./lint.sh $(SRC) $(TESTSUITE) lint.sh
+	touch "$@"
+
 # Clean-up
 
 clean :
@@ -189,4 +198,4 @@ clean :
 
 # GNU make directives
 
-.PHONY: check ci shellcheck testsuite coverage docker-image clean
+.PHONY: check ci lint shellcheck style testsuite coverage docker-image clean
