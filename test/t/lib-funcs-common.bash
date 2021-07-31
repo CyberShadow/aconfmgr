@@ -142,7 +142,6 @@ test_globals_whitelist=(
 	base_devel_installed
 	lint_config
 	log_indent
-	config_warnings
 	file_property_kind_exists
 
 	# Tool command-line options
@@ -186,6 +185,13 @@ function TestDone() {
 	) || FatalError 'Unknown stray global variables found!\n'
 
 	# Check that the warning count is as expected
+	local -i config_warnings
+	if [[ -e "$output_dir"/warnings ]]
+	then
+		config_warnings=$(stat --format=%s "$output_dir"/warnings)
+	else
+		config_warnings=0
+	fi
 	test "$config_warnings" -eq "$test_expected_warnings" || \
 		FatalError 'Unexpected warning count: expected %s, encountered %s\n' \
 				   "$(Color G "$test_expected_warnings")" \

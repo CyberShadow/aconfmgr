@@ -9,7 +9,7 @@ function AconfCheck() {
 
 	AconfCompileOutput
 
-	LogLeave 'Done (%s warnings).\n' "$(Color G "$config_warnings")"
+	LogLeave 'Done (%s warnings).\n' "$(Color G "$(stat --format=%s "$output_dir"/warnings)")"
 }
 
 : # include in coverage

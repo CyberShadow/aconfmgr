@@ -36,8 +36,6 @@ ANSI_reset="[0m"
 
 verbose=0
 lint_config=false
-declare -i config_warnings=0
-
 umask $((666 - default_file_mode))
 
 aconfmgr_action=
@@ -128,6 +126,7 @@ function AconfCompileOutput() {
 	touch "$output_dir"/packages.txt
 	touch "$output_dir"/foreign-packages.txt
 	touch "$output_dir"/file-props.txt
+	touch "$output_dir"/warnings
 	mkdir --parents "$config_dir"
 
 	# Configuration
@@ -1661,7 +1660,7 @@ function LogLeave() {
 
 function ConfigWarning() {
 	Log '%s: '"$1" "$(Color Y "Warning")" "${@:2}"
-	config_warnings+=1
+	printf W >> "$output_dir"/warnings
 }
 
 function FatalError() {
