@@ -114,18 +114,14 @@ function CopyFileTo() {
 
 	if [[ "$src_file" != /* ]]
 	then
-		Log '%s: Source file path %s is not absolute.\n' \
-			"$(Color Y "Warning")" \
-			"$(Color C "%q" "$src_file")"
-		config_warnings+=1
+		ConfigWarning 'Source file path %s is not absolute.\n' \
+					  "$(Color C "%q" "$src_file")"
 	fi
 
 	if [[ "$dst_file" != /* && "$dst_file" != "$src_file" ]]
 	then
-		Log '%s: Target file path %s is not absolute.\n' \
-			"$(Color Y "Warning")" \
-			"$(Color C "%q" "$dst_file")"
-		config_warnings+=1
+		ConfigWarning 'Target file path %s is not absolute.\n' \
+		              "$(Color C "%q" "$dst_file")"
 	fi
 
 	mkdir --parents "$(dirname "$output_dir"/files/"$dst_file")"
@@ -175,12 +171,10 @@ function CreateFile() {
 			printf '%s' "$output_file"
 			return
 		else
-			Log '%s: Overwriting %s, which was created earlier in the configuration. Use %s to keep old contents, or silence this warning by calling %s first.\n' \
-				"$(Color Y "Warning")" \
-				"$(Color C "%q" "$file")" \
-				"$(Color Y "CreateFile --no-clobber")" \
-				"$(Color Y "RemoveFile")"
-			config_warnings+=1
+			ConfigWarning 'Overwriting %s, which was created earlier in the configuration. Use %s to keep old contents, or silence this warning by calling %s first.\n' \
+						  "$(Color C "%q" "$file")" \
+						  "$(Color Y "CreateFile --no-clobber")" \
+						  "$(Color Y "RemoveFile")"
 		fi
 	fi
 
@@ -227,12 +221,10 @@ function GetPackageOriginalFile() {
 			printf '%s' "$output_file"
 			return
 		else
-			Log '%s: Overwriting %s, which was created earlier in the configuration. Use %s to keep old contents, or silence this warning by calling %s first.\n' \
-				"$(Color Y "Warning")" \
-				"$(Color C "%q" "$file")" \
-				"$(Color Y "GetPackageOriginalFile --no-clobber")" \
-				"$(Color Y "RemoveFile")"
-			config_warnings+=1
+			ConfigWarning 'Overwriting %s, which was created earlier in the configuration. Use %s to keep old contents, or silence this warning by calling %s first.\n' \
+						  "$(Color C "%q" "$file")" \
+						  "$(Color Y "GetPackageOriginalFile --no-clobber")" \
+						  "$(Color Y "RemoveFile")"
 		fi
 	fi
 

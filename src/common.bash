@@ -168,10 +168,8 @@ function AconfCompileOutput() {
 					local key=${line#$config_dir/files}
 					if [[ -z "${used_files[$key]+x}" ]]
 					then
-						Log '%s: Unused file: %s\n' \
-							"$(Color Y "Warning")" \
-							"$(Color C "%q" "$line")"
-						config_warnings+=1
+						ConfigWarning 'Unused file: %s\n' \
+									  "$(Color C "%q" "$line")"
 					fi
 				done
 		fi
@@ -1659,6 +1657,11 @@ function LogLeave() {
 	fi
 
 	log_indent=${log_indent::-1}
+}
+
+function ConfigWarning() {
+	Log '%s: '"$1" "$(Color Y "Warning")" "${@:2}"
+	config_warnings+=1
 }
 
 function FatalError() {
