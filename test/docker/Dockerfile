@@ -20,7 +20,7 @@ RUN repo-add /aconfmgr-repo/aconfmgr.db.tar /aconfmgr-repo/*.pkg.tar.*
 RUN printf '[aconfmgr]''\n''SigLevel = Optional TrustAll''\n''Server = file:///aconfmgr-repo/''\n' >> /etc/pacman.conf
 RUN pacman -Sy
 
-RUN pacman --noconfirm -S rubygems ruby-rdoc pacutils aur
+RUN pacman --noconfirm -S rubygems ruby-rdoc pacutils expect aur
 RUN sudo -u aconfmgr gem install bashcov
 
 RUN /opt/aur/setup.sh
