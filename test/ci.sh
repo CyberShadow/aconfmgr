@@ -24,3 +24,5 @@ else
 	# Generate / upload the report
 	bashcov --root=.. docker/empty.sh
 fi
+
+# 1
