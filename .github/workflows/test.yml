@@ -1,5 +1,7 @@
 name: test
 on: [ push, pull_request ]
+env:
+  COVERALLS_NOISY: true
 jobs:
   test:
     runs-on: ubuntu-20.04
