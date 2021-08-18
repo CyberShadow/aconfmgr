@@ -1,6 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
+echo '========================================== ENV START'
+env
+echo '========================================== ENV END'
+
 # CI test script.
 # Invoked from .github/workflows/test.yml.
 
