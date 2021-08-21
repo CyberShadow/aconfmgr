@@ -51,7 +51,6 @@ AddPackage rubygems
 
 AddPackage git
 AddPackage pacutils
-AddPackage expect
 
 AddPackage aur
 IgnorePackage --foreign parent-package

@@ -432,7 +432,6 @@ BEGIN {
 	LogEnter 'Searching for modified files...\n'
 
 	AconfNeedProgram paccheck pacutils n
-	AconfNeedProgram unbuffer expect n
 	local modified_file_count=0
 	local -A saw_file
 
@@ -442,13 +441,13 @@ BEGIN {
 
 	touch "$tmp_dir"/file-owners
 
-	local paccheck_opts=(unbuffer paccheck --files --file-properties --backup --noupgrade)
+	local paccheck_opts=(paccheck --files --file-properties --backup --noupgrade)
 	if [[ $skip_checksums == n ]]
 	then
 		paccheck_opts+=(--md5sum)
 	fi
 
-	sudo sh -c "LC_ALL=C stdbuf -o0 $(printf ' %q' "${paccheck_opts[@]}") 2>&1 || true" | \
+	sudo sh -c "LC_ALL=C stdbuf -o0 $(printf ' %q' "${paccheck_opts[@]}") <&- 2>&1 || true" | \
 		while read -r line
 		do
 			if [[ $line =~ ^(.*):\ \'(.*)\'\ (type|size|modification\ time|md5sum|UID|GID|permission|symlink\ target)\ mismatch\ \(expected\ (.*)\)$ ]]
@@ -1083,9 +1082,8 @@ function AconfMakePkgDir() {
 							# `pacman -Si` will not give us that information,
 							# however, `pacman -S` still works.
 							AconfNeedProgram pacsift pacutils n
-							AconfNeedProgram unbuffer expect n
 							local providers
-							providers=$(unbuffer pacsift --sync --exact --satisfies="$dependency")
+							providers=$(pacsift --sync --exact --satisfies="$dependency" <&-)
 							if [[ -n "$providers" ]]
 							then
 								Log 'Installing provider package from repositories...\n'
