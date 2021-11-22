@@ -26,23 +26,19 @@ function TestInit() {
 AddPackage arch-install-scripts
 AddPackage autoconf
 AddPackage automake
+AddPackage base
 AddPackage binutils
 AddPackage bison
 AddPackage fakeroot
 AddPackage flex
 AddPackage gcc
-AddPackage gettext
-AddPackage grep
 AddPackage groff
-AddPackage gzip
 AddPackage libtool
 AddPackage m4
 AddPackage make
 AddPackage patch
 AddPackage pkgconf
-AddPackage sed
 AddPackage sudo
-AddPackage systemd
 AddPackage texinfo
 AddPackage which
 
@@ -56,8 +52,11 @@ AddPackage expect
 AddPackage aur
 IgnorePackage --foreign parent-package
 
-IgnorePath /.dockerenv
 IgnorePath /README
+IgnorePath /version
+IgnorePath /pkglist.x86_64.txt
+
+IgnorePath /.dockerenv
 IgnorePath /aconfmgr/\*
 IgnorePath /aconfmgr-packages/\*
 IgnorePath /aconfmgr-repo/\*
