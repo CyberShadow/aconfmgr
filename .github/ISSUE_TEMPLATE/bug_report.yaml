@@ -1,0 +1,72 @@
+name: Report a bug
+description: If you think aconfmgr is doing something incorrectly, please let us know.
+title: "[Bug]: "
+labels: ["bug"]
+
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Thanks for taking the time to file this bug report!
+
+
+        If you're not sure if the behavior you're seeing is a bug in aconfmgr or not,
+        or would like to otherwise report a potential problem,
+        you can [open a discussion instead](https://github.com/CyberShadow/aconfmgr/discussions).
+
+
+        If the bug does not fit the form below (e.g. it is a packaging or documentation bug),
+        please [use the blank issue template instead](https://github.com/CyberShadow/aconfmgr/issues/new).
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 'General description of the problem:'
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: 'Steps to reproduce the problem:'
+      value: |
+        1. 
+        2. 
+        3. 
+
+  - type: textarea
+    id: config
+    attributes:
+      label: 'Configuration:'
+      placeholder: |
+        # Please add a relevant aconfmgr configuration fragment
+        # which demonstrates the problem (if applicable).
+      render: bash
+
+  - type: textarea
+    id: expected-result
+    attributes:
+      label: 'Expected result:'
+      placeholder: 'What did you expect to happen?'
+
+  - type: textarea
+    id: actual-result
+    attributes:
+      label: 'Actual result:'
+      placeholder: 'What actually happened instead?'
+
+  - type: textarea
+    id: log
+    attributes:
+      label: 'Log:'
+      placeholder: |
+        Please add any relevant aconfmgr output, if applicable.
+        (Copy it from your terminal emulator and paste it here.)
+      render: text
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 'Additional context:'
+      placeholder: |
+        You can add any additional information that you feel is relevant here.
