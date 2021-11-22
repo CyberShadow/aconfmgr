@@ -221,7 +221,7 @@ function AconfSave() {
 				# Trim redundant blank parameters
 				while [[ -z "${args[-1]}" ]]
 				do
-					unset args[${#args[@]}-1]
+					unset 'args[${#args[@]}-1]'
 				done
 
 				printf '%s%s%s\n' "$func" "$(printf ' %q' "${args[@]}")" "$suffix" >> "$config_save_target"

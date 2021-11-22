@@ -158,13 +158,13 @@ function AconfCompileOutput() {
 		# Only do this in the "check" action, as unused files do not
 		# necessarily indicate a bug in the configuration - they may
 		# simply be used under certain conditions.
-		if [[ -d "$config_dir/files" ]]
+		if [[ -d "$config_dir"/files ]]
 		then
 			local line
-			find "$config_dir/files" -type f -print0 | \
+			find "$config_dir"/files -type f -print0 | \
 				while read -r -d $'\0' line
 				do
-					local key=${line#$config_dir/files}
+					local key=${line#"$config_dir"/files}
 					if [[ -z "${used_files[$key]+x}" ]]
 					then
 						ConfigWarning 'Unused file: %s\n' \
