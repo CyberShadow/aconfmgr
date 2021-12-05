@@ -240,7 +240,7 @@ $ aconfmgr --skip-config --skip-inspection diff /etc/resolv.conf
 ...
 ```
 
-The diff direction is from system to configuration, i.e., in the direction of `aconfmgr apply`.
+The diff direction is from system to configuration, i.e., it displays changes that would be applied by `aconfmgr apply`.
 If the file belongs to a package and is unmodified on the system, `aconfmgr` will display the comparison between the original package version and the configuration version;
 likewise, if the file is absent from the configuration, the comparison will be between the filesystem version and the original package version.
 
