@@ -14,7 +14,7 @@ function TestInit() {
 	yay_opts+=(--noconfirm)
 	paru_opts+=(--noconfirm)
 
-	# pacaur insists that this is set, even if it will never inoke it
+	# pacaur insists that this is set, even if it will never invoke it
 	export EDITOR=/bin/cat
 
 	# Allows AUR helpers find perl tools etc.
