@@ -9,6 +9,7 @@
 # Other targets:
 # - lint - lint source code only
 # - testsuite - run test suite only
+# - testsuite-integration - run test suite in integration mode
 #
 # Options:
 # - BUILD_BASH=1 - build/use bash and coreutils from source
@@ -137,6 +138,16 @@ tmp/test/%/.ok : t/%.sh $(SRC) $(TESTSUITE_LIB) $(BASH_DEP)
 
 testsuite : $(TESTSUITE_TESTS_OK)
 
+# Test suite (integration mode)
+
+TESTSUITE_INTEG_TESTS_OK=$(patsubst t/%.sh,tmp/integ/test/%/.ok,$(TESTSUITE_TESTS))
+
+tmp/integ/test/%/.ok : t/%.sh $(SRC) $(TESTSUITE_LIB) docker-image
+	docker/run-tests.sh $(<:t/%=%)
+	touch "$@"
+
+testsuite-integration : $(TESTSUITE_INTEG_TESTS_OK)
+
 # Coverage
 
 COVERAGE_REPORT=$(TMP)/coverage/index.html
@@ -198,4 +209,4 @@ clean :
 
 # GNU make directives
 
-.PHONY: check ci lint shellcheck style testsuite coverage docker-image clean
+.PHONY: check ci lint shellcheck style testsuite testsuite-integration coverage docker-image clean
