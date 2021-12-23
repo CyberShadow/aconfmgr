@@ -12,8 +12,11 @@ aconfmgr is tested very thoroughly. The following checks are done as part of CI 
 
 - Coverage results are collated, then uploaded to [Coveralls](https://coveralls.io/github/CyberShadow/aconfmgr).
 
-To run the entire test suite locally, simply run `make` in the current directory.
-(The Docker service needs to be running and accessible by the current user to run the test suite in integration mode.)
+To run the test suite locally, simply run `make` in the current directory.
+This runs all checks except running the test suite in integration mode.
+
+To also run the test suite in integration mode (slower), run `make testsuite-integration`.
+The Docker service needs to be running and accessible by the current user.
 
 For details, see:
 
