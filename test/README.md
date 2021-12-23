@@ -54,13 +54,14 @@ For details, see
 [test/t/mocks/](https://github.com/CyberShadow/aconfmgr/tree/master/test/t/mocks),
 which contain the implementation for mocked commands.
 
+
 Integration mode
 ----------------
 
 In the "integration" mode, the test suite is executed inside a Docker container containing a minimal installation of Arch Linux.
 The test suite will create the container during execution.
 
-To run a single test in integration mode, run `../docker/run-test.sh ./t-test_file_name_here.sh`.
+To run a single test in integration mode, run `./t-test_file_name_here.sh -i`.
 The Docker service needs to be running and accessible by the current user.
 
 For details, see the [test/docker](https://github.com/CyberShadow/aconfmgr/tree/master/test/docker) directory.

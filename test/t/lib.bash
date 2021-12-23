@@ -9,6 +9,25 @@
 
 source ./lib-init.bash
 
+for arg in "$@"
+do
+	if [[ "$arg" == -i ]]
+	then
+		if ((${ACONFMGR_INTEGRATION:-0}))
+		then
+			printf 'Already in integration mode!\n' 1>&2
+			exit 1
+		else
+			printf 'Re-executing in integration mode.\n' 1>&2
+			exec ../docker/run-test.sh "$ACONFMGR_CURRENT_TEST".sh
+		fi
+	else
+		printf 'Unknown command line switch: %q\n' "$arg" 1>&2
+		exit 1
+	fi
+done
+unset arg
+
 source ../../src/common.bash
 source ../../src/save.bash
 source ../../src/apply.bash
