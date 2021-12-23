@@ -60,7 +60,7 @@ Integration mode
 In the "integration" mode, the test suite is executed inside a Docker container containing a minimal installation of Arch Linux.
 The test suite will create the container during execution.
 
-To run a single test in integration mode, run `../docker/run-tests.sh ./t-test_file_name_here.sh`.
+To run a single test in integration mode, run `../docker/run-test.sh ./t-test_file_name_here.sh`.
 The Docker service needs to be running and accessible by the current user.
 
 For details, see the [test/docker](https://github.com/CyberShadow/aconfmgr/tree/master/test/docker) directory.

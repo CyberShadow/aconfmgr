@@ -143,7 +143,7 @@ testsuite : $(TESTSUITE_TESTS_OK)
 TESTSUITE_INTEG_TESTS_OK=$(patsubst t/%.sh,tmp/integ/test/%/.ok,$(TESTSUITE_TESTS))
 
 tmp/integ/test/%/.ok : t/%.sh $(SRC) $(TESTSUITE_LIB) docker-image
-	docker/run-tests.sh $(<:t/%=%)
+	docker/run-test.sh $(<:t/%=%)
 	touch "$@"
 
 testsuite-integration : $(TESTSUITE_INTEG_TESTS_OK)

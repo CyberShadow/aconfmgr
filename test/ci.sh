@@ -12,7 +12,7 @@ then
 	make ci
 else
 	# Run integration tests
-	docker/run-tests.sh
+	make testsuite-integration
 
 	# Fix up the filenames from the container to match the host paths.
 	# Needed to get SimpleCov to include the files in the report.
