@@ -14,7 +14,7 @@ function TestInit() {
 	yay_opts+=(--noconfirm)
 	paru_opts+=(--noconfirm)
 
-	# pacaur insists that this is set, even if it will never inoke it
+	# pacaur insists that this is set, even if it will never invoke it
 	export EDITOR=/bin/cat
 
 	# Allows AUR helpers find perl tools etc.
@@ -225,7 +225,7 @@ function TestCreatePackage() {
 pkgname=$package
 pkgver=$pkgver
 pkgrel=$pkgrel
-pkgdesc="Dummy aconfmgr test suite package"
+pkgdesc="Dummy aconfmgr test suite package: subtitle"
 arch=($arch)
 groups=($(PrintQArray groups))
 depends=($(PrintQArray depends))
