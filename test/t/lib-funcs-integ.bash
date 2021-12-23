@@ -226,7 +226,7 @@ function TestCreatePackage() {
 pkgname=$package
 pkgver=$pkgver
 pkgrel=$pkgrel
-pkgdesc="Dummy aconfmgr test suite package"
+pkgdesc="Dummy aconfmgr test suite package: subtitle"
 arch=($arch)
 groups=($(PrintQArray groups))
 depends=($(PrintQArray depends))

@@ -138,7 +138,7 @@ function pacman() {
 					for package in "${args[@]}"
 					do
 						printf 'Name            : %s\n' "$package"
-						printf 'Description     : %s\n' 'Dummy aconfmgr test suite package'
+						printf 'Description     : %s\n' 'Dummy aconfmgr test suite package: subtitle'
 						printf 'Version         : %s\n' '1.0'
 						printf 'Architecture    : %s\n' 'x86_64'
 						printf '\n'
