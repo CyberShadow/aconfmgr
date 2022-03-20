@@ -144,7 +144,8 @@ function AconfSave() {
 
 				local dir
 				dir="$(dirname "$file")"
-				mkdir --parents "$config_dir"/files/"$dir"
+				# shellcheck disable=SC2174
+				mkdir --mode=700 --parents "$config_dir"/files/"$dir"
 
 				local func args props suffix=''
 

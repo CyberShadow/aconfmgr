@@ -127,7 +127,8 @@ function AconfCompileOutput() {
 	touch "$output_dir"/foreign-packages.txt
 	touch "$output_dir"/file-props.txt
 	touch "$output_dir"/warnings
-	mkdir --parents "$config_dir"
+	# shellcheck disable=SC2174
+	mkdir --mode=700 --parents "$config_dir"
 
 	# Configuration
 
