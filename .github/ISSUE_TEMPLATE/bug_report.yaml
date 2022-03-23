@@ -1,6 +1,5 @@
 name: Report a bug
 description: If you think aconfmgr is doing something incorrectly, please let us know.
-title: "[Bug]: "
 labels: ["bug"]
 
 body:
