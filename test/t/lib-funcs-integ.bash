@@ -482,7 +482,7 @@ function TestNeedPacaur() {
 
 function TestNeedAuracle() {
 	# shellcheck disable=SC2016,SC1004
-	TestNeedAURPackage auracle-git 26b9371960c723a2d62080e786ea6de062aac9ab "$(cat <<-'EOF'
+	TestNeedAURPackage auracle-git 76415be1eed235d0a7236749b1231f9e2bdf1691 "$(cat <<-'EOF'
 		source[0]="${source[0]/%/#commit=181e42cb1a780001c2c6fe6cda2f7f1080b249e5}"
 
 		prepare() {
