@@ -985,7 +985,7 @@ function AconfMakePkg() {
 	rm -rf "$pkg_dir"
 	mkdir --parents "$pkg_dir"
 
-	# Needed to clone the AUR repo. Should be replaced with curl/tar.
+	# Needed to clone the AUR repo.
 	AconfNeedProgram git git n
 
 	if [[ $base_devel_installed == n ]]
@@ -1005,7 +1005,10 @@ function AconfMakePkg() {
 	fi
 
 	LogEnter 'Cloning...\n'
-	git clone "https://aur.archlinux.org/$package.git" "$pkg_dir"
+	git clone --depth 1 "https://github.com/archlinux/aur" "$pkg_dir"
+	git -C "$pkg_dir" remote set-branches --add origin "$package"
+	git -C "$pkg_dir" fetch
+	git -C "$pkg_dir" checkout "$package" > /dev/null
 	LogLeave
 
 	if [[ ! -f "$pkg_dir"/PKGBUILD ]]
