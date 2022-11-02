@@ -441,7 +441,7 @@ BEGIN {
 	# The canonical version is read from orig-file-props.txt in AconfAnalyzeFiles
 	unset orig_file_props ; typeset -Ag orig_file_props
 
-	touch "$tmp_dir"/file-owners
+	: > "$tmp_dir"/file-owners
 
 	local paccheck_opts=(unbuffer paccheck --files --file-properties --backup --noupgrade)
 	if [[ $skip_checksums == n ]]
