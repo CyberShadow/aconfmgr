@@ -992,7 +992,8 @@ function AconfMakePkg() {
 	then
 		LogEnter 'Making sure the %s package is installed...\n' "$(Color M base-devel)"
 		ParanoidConfirm ''
-		if ! "$PACMAN" --query --quiet  base-devel > /dev/null 2>&1; then
+		if ! "$PACMAN" --query --quiet base-devel > /dev/null 2>&1
+		then
 			AconfInstallNative base-devel
 		fi
 
