@@ -31,6 +31,7 @@ Since the system configuration is described as shell scripts, it is trivially ex
     * [Inlining file content entirely](#inlining-file-content-entirely)
     * [Inlining file edits](#inlining-file-edits)
   * [Managing multiple systems](#managing-multiple-systems)
+  * [More tips and tricks](#more-tips-and-tricks)
 * [Comparisons](#comparisons)
   * [aconfmgr vs. Puppet/Ansible](#aconfmgr-vs-puppetansible)
   * [aconfmgr vs. NixOS](#aconfmgr-vs-nixos)
@@ -280,6 +281,10 @@ CopyFileTo "/etc/hosts-$HOSTNAME" "/etc/hosts"
 ```
 
 This will use `files/etc/hosts-home.example.net` for the `home.example.net` machine, and so on.
+
+### More tips and tricks
+
+You can find user-contributed additions on [the project wiki](https://github.com/CyberShadow/aconfmgr/wiki).
 
 ## Comparisons
 
