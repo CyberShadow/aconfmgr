@@ -990,14 +990,11 @@ function AconfMakePkg() {
 
 	if [[ $base_devel_installed == n ]]
 	then
-		LogEnter 'Making sure the %s group is installed...\n' "$(Color M base-devel)"
+		LogEnter 'Making sure the %s package is installed...\n' "$(Color M base-devel)"
 		ParanoidConfirm ''
-		local base_devel_all base_devel_missing
-		"$PACMAN" --sync --quiet --group base-devel | mapfile -t base_devel_all
-		( "$PACMAN" --deptest "${base_devel_all[@]}" || true ) | mapfile -t base_devel_missing
-		if [[ ${#base_devel_missing[@]} != 0 ]]
+		if ! "$PACMAN" --query --quiet base-devel > /dev/null 2>&1
 		then
-			AconfInstallNative "${base_devel_missing[@]}"
+			AconfInstallNative base-devel
 		fi
 
 		LogLeave
