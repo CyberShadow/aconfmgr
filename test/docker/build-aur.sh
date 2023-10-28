@@ -19,6 +19,7 @@ pacman_opts+=(--noconfirm)
 mkdir /aconfmgr-packages
 
 chown -R nobody: aur
+chmod +x /aconfmgr{,/test{,/docker{,/aur}}}
 env -i -C aur su -s /bin/bash nobody -c 'makepkg --printsrcinfo' > aur/.SRCINFO
 AconfMakePkgDir aur false false "$PWD"/aur
 

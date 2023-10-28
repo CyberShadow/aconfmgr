@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eEuo pipefail
 
-if [[ ! -f /.dockerenv ]]
+if [[ ! -v ACONFMGR_IN_CONTAINER ]]
 then
 	echo 'Refusing to run setup outside Docker.'
 	exit 1
