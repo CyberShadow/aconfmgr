@@ -8,8 +8,9 @@ FROM scratch
 
 COPY --from=rootfs /root.x86_64/ /
 
-RUN pacman-key --init
-RUN pacman-key --populate
+# Signatures are not timestamped, therefore always
+# become invalid after some time when the key expires
+RUN sed -i "s/^SigLevel.*/SigLevel = Never/" /etc/pacman.conf
 
 ARG arch_date
 RUN echo 'Server=https://archive.archlinux.org/repos/'"${arch_date}"'/$repo/os/$arch' > /etc/pacman.d/mirrorlist
