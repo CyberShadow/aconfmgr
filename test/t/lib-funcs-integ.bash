@@ -374,8 +374,13 @@ function TestInitAUR() {
 
 	LogEnter 'Initializing AUR support...\n'
 
+	if [[ ! -v ACONFMGR_IN_CONTAINER ]]
+	then
+		FatalError 'Refusing to start outside Docker.\n'
+	fi
+
 	LogEnter 'Starting AUR...\n'
-	command sudo /opt/aur/start.sh
+	command sudo env ACONFMGR_IN_CONTAINER=1 /opt/aur/start.sh
 	LogLeave
 
 	LogEnter 'Generating a SSH key...\n'

@@ -23,6 +23,7 @@ RUN pacman -Sy
 RUN pacman --noconfirm -S rubygems ruby-rdoc pacutils expect aur
 RUN sudo -u aconfmgr gem install bashcov
 
+ENV ACONFMGR_IN_CONTAINER=1
 RUN /opt/aur/setup.sh
 
 RUN useradd billy
