@@ -2,7 +2,7 @@ pkgname=aur
 pkgver=1
 pkgrel=1
 arch=('i686' 'x86_64')
-_py_deps=(bleach markdown mysql-connector pygit2 srcinfo)
+_py_deps=(bleach markdown mysql-connector pygit2 setuptools srcinfo)
 depends=(nginx php php-fpm mysql fcgiwrap openssh git cgit "${_py_deps[@]/#/python-}")
 _aurweb_ver=4.7.0
 source=(git+https://github.com/lfos/aurweb#tag=v$_aurweb_ver
