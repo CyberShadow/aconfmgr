@@ -6,9 +6,13 @@ TestNeedAUR
 
 TestPhase_Setup ###############################################################
 
-command sudo pacman -R --noconfirm automake
-TestAddConfig RemovePackage automake
-TestAddConfig IgnorePackage automake
+command sudo pacman -R --noconfirm base-devel
+TestAddConfig RemovePackage base-devel
+TestAddConfig IgnorePackage base-devel
+
+command sudo pacman -S --noconfirm sudo
+TestAddConfig AddPackage sudo
+TestAddConfig IgnorePackage sudo
 
 TestAddPackageFile test-package /testfile.txt 'File contents'
 TestCreatePackage test-package foreign

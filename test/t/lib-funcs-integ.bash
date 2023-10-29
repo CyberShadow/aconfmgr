@@ -24,23 +24,8 @@ function TestInit() {
 	# Configuration matching the Docker image
 	cat > "$config_dir"/10-system.sh <<'EOF'
 AddPackage arch-install-scripts
-AddPackage autoconf
-AddPackage automake
 AddPackage base
-AddPackage binutils
-AddPackage bison
-AddPackage fakeroot
-AddPackage flex
-AddPackage gcc
-AddPackage groff
-AddPackage libtool
-AddPackage m4
-AddPackage make
-AddPackage patch
-AddPackage pkgconf
-AddPackage sudo
-AddPackage texinfo
-AddPackage which
+AddPackage base-devel
 
 AddPackage ruby-rdoc
 AddPackage rubygems
