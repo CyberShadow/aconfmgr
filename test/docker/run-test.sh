@@ -22,6 +22,7 @@ args=(
 	--env 'ACONFMGR_INTEGRATION=1'
 	--env 'ACONFMGR_IN_CONTAINER=1'
 	--user aconfmgr
+	--ulimit "nofile=1024:16384"  # https://github.com/moby/moby/issues/45436
 	aconfmgr
 	/aconfmgr/test/docker/run-test-inner.sh "$test"
 ) ; "${args[@]}"
