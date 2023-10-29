@@ -13,7 +13,7 @@ test=$1
 mkdir -p -m755 ../tmp/integ  # Integration tmp directory
 
 args=(
-	docker run
+	"${DOCKER-docker}" run
 	--rm
 	-v "$PWD/../..:/aconfmgr:ro"
 	-v "$PWD/../tmp/integ:/aconfmgr/test/tmp:rw"
