@@ -575,22 +575,27 @@ BEGIN {
 	local -i tmp_block_size tmp_blocks_free
 	tmp_block_size=$(stat -f -c %S "$system_dir")
 	tmp_blocks_free=$(stat -f -c %f "$system_dir")
-	for ((i=0; i<${#found_files[*]}; i++))
-	do
-		local -i size="${found_file_sizes[$i]}"
-		local -i blocks=$(((size+tmp_block_size-1)/tmp_block_size)) # Count blocks
-		total_blocks+=$blocks
-		if (( total_blocks >= tmp_blocks_free ))
-		then
-			local file="${found_files[$i]}"
-			Log 'Copying file %s (%s bytes / %s blocks) to temporary storage would exhaust free space on %s (%s bytes / %s blocks).\n' \
-				"$(Color C "%q" "$file")" "$(Color G "$size")" "$(Color G "$blocks")" \
-				"$(Color C "%q" "$system_dir")" "$(Color G "$((tmp_blocks_free * tmp_block_size))")" "$(Color G "$tmp_blocks_free")"
-			Log 'Perhaps add %s (or a parent directory) to configuration to ignore it, or run with %s pointing at another location.\n' \
-				"$(Color Y "IgnorePath %q" "$(dirname "$file")"/'*')" "$(Color Y "TMPDIR")"
-			FatalError 'Refusing to proceed.\n'
-		fi
-	done
+	local tmp_fs_type
+	tmp_fs_type=$(stat -f -c %T "$system_dir")
+	if [[ "$tmp_fs_type" != "ramfs" ]]
+	then
+		for ((i=0; i<${#found_files[*]}; i++))
+		do
+			local -i size="${found_file_sizes[$i]}"
+			local -i blocks=$(((size+tmp_block_size-1)/tmp_block_size)) # Count blocks
+			total_blocks+=$blocks
+			if (( total_blocks >= tmp_blocks_free ))
+			then
+				local file="${found_files[$i]}"
+				Log 'Copying file %s (%s bytes / %s blocks) to temporary storage would exhaust free space on %s (%s bytes / %s blocks).\n' \
+					"$(Color C "%q" "$file")" "$(Color G "$size")" "$(Color G "$blocks")" \
+					"$(Color C "%q" "$system_dir")" "$(Color G "$((tmp_blocks_free * tmp_block_size))")" "$(Color G "$tmp_blocks_free")"
+				Log 'Perhaps add %s (or a parent directory) to configuration to ignore it, or run with %s pointing at another location.\n' \
+					"$(Color Y "IgnorePath %q" "$(dirname "$file")"/'*')" "$(Color Y "TMPDIR")"
+				FatalError 'Refusing to proceed.\n'
+			fi
+		done
+	fi
 	LogLeave
 
 	LogEnter 'Processing found files...\n'
