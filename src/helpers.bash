@@ -247,7 +247,7 @@ function CreateLink() {
 
 	mkdir --parents "$(dirname "$output_dir"/files/"$file")"
 
-	ln --symbolic "$target" "$output_dir"/files/"$file"
+	ln --symbolic -- "$target" "$output_dir"/files/"$file"
 
 	SetFileProperty "$file" owner "$owner"
 	SetFileProperty "$file" group "$group"
