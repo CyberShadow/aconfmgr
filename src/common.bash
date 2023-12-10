@@ -621,7 +621,7 @@ BEGIN {
 			mkdir --parents "$(dirname "$system_dir"/files/"$file")"
 			if [[ "$type" == "symbolic link" ]]
 			then
-				ln -s "$(sudo readlink "$file")" "$system_dir"/files/"$file"
+				ln -s -- "$(sudo readlink "$file")" "$system_dir"/files/"$file"
 			elif [[ "$type" == "regular file" || "$type" == "regular empty file" ]]
 			then
 				if [[ $size -gt $warn_size_threshold ]]
