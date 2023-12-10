@@ -14,6 +14,9 @@ function TestInit() {
 	yay_opts+=(--noconfirm)
 	paru_opts+=(--noconfirm)
 
+	# Improve CI reliability when downloading from archive.archlinux.org
+	pacman_opts+=(--disable-download-timeout)
+
 	# pacaur insists that this is set, even if it will never invoke it
 	export EDITOR=/bin/cat
 
@@ -348,7 +351,7 @@ function TestInstallPackage() {
 
 function TestExpectPacManLog() {
 	command sudo touch /var/log/pacman.log
-	diff -u /dev/stdin <( sed -n 's/^.*\[PACMAN\] Running '\''pacman \(--noconfirm \)\?\(.*\)'\''$/\2/p' /var/log/pacman.log )
+	diff -u /dev/stdin <( sed -n 's/^.*\[PACMAN\] Running '\''pacman \(--noconfirm \)\?\(--disable-download-timeout \)\?\(.*\)'\''$/\3/p' /var/log/pacman.log )
 }
 
 ###############################################################################
