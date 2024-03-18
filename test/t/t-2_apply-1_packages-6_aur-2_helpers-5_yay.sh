@@ -4,7 +4,7 @@ source ./lib.bash
 # Test AUR functionality using yay.
 
 TestNeedAUR
-TestNeedAURPackage yay c5c34605419dc7cac2a53520d9726f4e0eb452b4
+TestNeedAURPackage yay 365c8bb3fad6e766316a93e3039f619c55cb1edf
 AconfMakePkg yay
 TestAddConfig AddPackage --foreign yay
 TestAURHelper yay "${XDG_CACHE_HOME:-$HOME/.cache}/yay" false
