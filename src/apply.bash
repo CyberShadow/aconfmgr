@@ -287,7 +287,10 @@ function AconfApply() {
 
 	local -a files_in_deleted_packages=()
 
-	if "$PACMAN" --query --unrequired --unrequired --deps --quiet > /dev/null
+	if ( "$PACMAN" --query --unrequired --unrequired --deps --quiet --native || true ) |
+		   grep -qvFxf <(PrintArray ignore_packages        ) > /dev/null ||
+	   ( "$PACMAN" --query --unrequired --unrequired --deps --quiet --foreign || true ) |
+		   grep -qvFxf <(PrintArray ignore_foreign_packages) > /dev/null
 	then
 		LogEnter 'Pruning orphan packages...\n'
 
@@ -299,7 +302,12 @@ function AconfApply() {
 
 			LogEnter 'Querying orphan packages...\n'
 			local -a orphan_packages
-			( "$PACMAN" --query --unrequired --unrequired --deps --quiet || true ) | mapfile -t orphan_packages
+			{
+				( "$PACMAN" --query --unrequired --unrequired --deps --quiet --native || true ) |
+					( grep -vFxf <(PrintArray ignore_packages        ) || true )
+				( "$PACMAN" --query --unrequired --unrequired --deps --quiet --foreign || true ) |
+					( grep -vFxf <(PrintArray ignore_foreign_packages) || true )
+			} | mapfile -t orphan_packages
 			LogLeave
 
 			if [[ ${#orphan_packages[@]} != 0 ]]

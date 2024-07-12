@@ -144,13 +144,13 @@ function TestMatrixPackageCheck() {
 				else
 					x_kind=$c_kind
 				fi
-			elif ((s_dependence==1)) # Orphan
-			then
-				x_present=0
 			elif ((s_present && ignored && c_kind == ignored)) # On system, but ignored (and ignoring the right kind)
 			then
 				x_present=1
 				x_kind=$s_kind
+			elif ((s_dependence==1)) # Orphan
+			then
+				x_present=0
 			elif ((s_present && s_dependence == 2)) # Dependency of pinned
 			then
 				x_present=1
@@ -161,6 +161,10 @@ function TestMatrixPackageCheck() {
 		elif [[ "$test_kind" == roundtrip ]]
 		then
 			if ((s_present && s_dependence > 1))
+			then
+				x_present=1
+				x_kind=$s_kind
+			elif ((s_present && ignored && c_kind == ignored)) # On system, but ignored (and ignoring the right kind)
 			then
 				x_present=1
 				x_kind=$s_kind
