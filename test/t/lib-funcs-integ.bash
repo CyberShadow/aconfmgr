@@ -470,7 +470,7 @@ function TestNeedAURPackage() {
 }
 
 function TestNeedPacaur() {
-	TestNeedAURPackage pacaur da18900a6fe888654867748fa976f8ae0ab96334
+	TestNeedAURPackage pacaur 932ddeec89e43c9a4688e1c70d507939c094bacc
 }
 
 function TestNeedAuracle() {
