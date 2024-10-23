@@ -23,6 +23,10 @@ function pacman() {
 	local opt_groups=0
 	local opt_asdeps=false
 	local opt_asexplicit=false
+	local opt_refresh=false
+	local opt_upgrades=false
+	local opt_db_check=false
+	local opt_db_sync_check=false
 
 	local arg
 	for arg in "$@"
@@ -63,6 +67,20 @@ function pacman() {
 				;;
 			--asexplicit)
 				opt_asexplicit=true
+				;;
+			--refresh)
+				opt_refresh=true
+				;;
+			--upgrades)
+				opt_upgrades=true
+				;;
+			--check)
+				if $opt_db_check
+				then
+					opt_db_sync_check=true
+				else
+					opt_db_check=true
+				fi
 				;;
 			-*)
 				FatalError 'Unknown mocked pacman switch %s\n' "$(Color Y "$arg")"
