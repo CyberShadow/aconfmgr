@@ -212,13 +212,13 @@ function AconfApply() {
 
 	LogLeave # Installing priority files
 
-	if LC_ALL=C "$PACMAN" 2>&1 | grep --extended-regexp --only-matching 'database file for [a-z]+ does not exist'
+	if (LC_ALL=C "$PACMAN" 2>&1 || true) | grep --extended-regexp --only-matching 'database file for .+ does not exist'
 	then
 		Log 'The pacman local package database is internally inconsistent. Perform a full refresh and system upgrade now?\n'
 		Confirm ''
 
 		LogEnter 'Performing a full refresh and system upgrade...\n'
-		sudo "$PACMAN" --sync --refresh --sysupgrade
+		sudo "$PACMAN" --sync --refresh --sysupgrade --noconfirm
 		LogLeave
 	fi
 
