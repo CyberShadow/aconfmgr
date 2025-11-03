@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 source ./lib.bash
 
 # Ensure that there is never a window in which installed files which

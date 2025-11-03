@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 source ./lib.bash
 
 # Test that "save" generates a correct configuration when it needs to record

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -eEuo pipefail
 
 # This script performs code style checks (in addition to ShellCheck).

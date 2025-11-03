@@ -21,8 +21,8 @@ md5sums=('SKIP'
          '9cd425efe85356ca36f08e2dc773f31f'
          'f0e1159864a04bad3b1f903bc7301d80'
          '718c816fdaedb644f5b4d0cd742dbc97'
-         '465c05c00d4127eca4ba49e9122ca492'
-         '5b0d438efd0d35ca3a1ee2331db0985c')
+         'c58f8ec2f9c6f119fa3f161e67dc01b6'
+         'b1194030c11a37d818da7065646ae9ea')
 
 _aur_uid=500
 _aur_gid=500

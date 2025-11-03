@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 source ./lib.bash
 
 # Test that a file whose filtered contents hasn't changed isn't overwritten.

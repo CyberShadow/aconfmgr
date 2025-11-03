@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 source ./lib.bash
 
 # Ensure that system files are updated atomically,

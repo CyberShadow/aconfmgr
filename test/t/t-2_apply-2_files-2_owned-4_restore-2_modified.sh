@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 source ./lib.bash
 
 # Test restoring a modified package file.

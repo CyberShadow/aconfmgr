@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # shellcheck disable=SC2031
 source ./lib.bash
 source ./lib-matrix-packages.bash

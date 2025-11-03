@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Build the AUR package for use in Docker.
 # Invoked from the Dockerfile.

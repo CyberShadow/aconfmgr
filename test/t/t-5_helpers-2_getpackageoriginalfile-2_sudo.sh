@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 source ./lib.bash
 
 # Ensure AconfNeedPackageFile etc. work when the pacman package

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -eEuo pipefail
 
 # Read a GitHub Actions log file (or files) from stdin,

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 source ./lib.bash
 
 # Test 'aconfmgr diff' with owned files (editing an unmodified file).

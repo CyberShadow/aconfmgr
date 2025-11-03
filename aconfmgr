@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # shellcheck disable=2030,2031
 # SC2030/2031: https://github.com/koalaman/shellcheck/issues/732
 

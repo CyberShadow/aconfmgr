@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 source ./lib.bash
 
 # Test the --no-clobber option for the GetPackageOriginalFile helper.
