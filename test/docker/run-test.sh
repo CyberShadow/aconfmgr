@@ -15,6 +15,15 @@ mkdir -p -m755 ../tmp/integ  # Integration tmp directory
 args=(
 	"${DOCKER-docker}" run
 	--rm
+)
+
+# Add --userns=keep-id for Podman to avoid user namespace permission issues
+if [[ "${DOCKER-docker}" == *podman* ]]
+then
+	args+=(--userns=keep-id)
+fi
+
+args+=(
 	-v "$PWD/../..:/aconfmgr:ro"
 	-v "$PWD/../tmp/integ:/aconfmgr/test/tmp:rw"
 	--add-host aur.archlinux.org:127.0.0.1
