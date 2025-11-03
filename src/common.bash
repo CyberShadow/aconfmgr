@@ -1796,12 +1796,14 @@ function DisableColor() {
 
 ####################################################################################################
 
+# shellcheck disable=SC2329  # This function is invoked indirectly via trap
 function OnError() {
 	trap '' EXIT ERR
 
 	LogEnter '%s! Stack trace:\n' "$(Color R "Fatal error")"
 
 	local frame=0 str
+	# shellcheck disable=SC2086  # frame is a controlled integer, no risk of word splitting
 	while str=$(caller $frame)
 	do
 		if [[ $str =~ ^([^\ ]*)\ ([^\ ]*)\ (.*)$ ]]
@@ -1876,6 +1878,7 @@ EOF
 }
 
 # Ditto, but shell-escape array elements.
+# shellcheck disable=SC2329  # This is a utility function called indirectly
 function PrintQArray() {
 	local name="$1" # Name of the global variable containing the array
 	local size
@@ -1905,6 +1908,7 @@ function RunExternal() {
 }
 
 # cat a file; if it's not readable, cat via sudo.
+# shellcheck disable=SC2329  # This is a utility function called indirectly
 function SuperCat() {
 	local file="$1"
 

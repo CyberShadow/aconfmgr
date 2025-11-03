@@ -8,6 +8,7 @@
 # Adds a package to the list of packages to be installed.
 #
 
+# shellcheck disable=SC2329  # User-facing API function called from config files
 function AddPackage() {
 	local fn='packages.txt'
 	if [[ "$1" == "--foreign" ]]
@@ -25,6 +26,7 @@ function AddPackage() {
 # Adds all packages belonging to a group to the list of packages to be installed.
 #
 
+# shellcheck disable=SC2329  # User-facing API function called from config files
 function AddPackageGroup() {
 	local group=$1
 
@@ -42,6 +44,7 @@ function AddPackageGroup() {
 # You should refactor out any occurrences of this function from your configuration.
 #
 
+# shellcheck disable=SC2329  # User-facing API function called from config files
 function RemovePackage() {
 	local fn='packages.txt'
 	if [[ "$1" == "--foreign" ]]
@@ -63,6 +66,7 @@ function RemovePackage() {
 # Adds a package to the list of packages to be ignored.
 #
 
+# shellcheck disable=SC2329  # User-facing API function called from config files
 function IgnorePackage() {
 	if [[ "$1" == "--foreign" ]]
 	then
@@ -86,6 +90,7 @@ function IgnorePackage() {
 # as an empty string ('').
 #
 
+# shellcheck disable=SC2329  # User-facing API function called from config files
 function CopyFile() {
 	local file="$1"
 	local mode="${2:-}"
@@ -105,6 +110,7 @@ function CopyFile() {
 # The destination path is relative to the root of the output directory.
 #
 
+# shellcheck disable=SC2329  # User-facing API function called from config files
 function CopyFileTo() {
 	local src_file="$1"
 	local dst_file="$2"
@@ -147,6 +153,7 @@ function CopyFileTo() {
 # --no-clobber is provided.
 #
 
+# shellcheck disable=SC2329  # User-facing API function called from config files
 function CreateFile() {
 	local keep=false
 	if [[ "$1" == "--no-clobber" ]]
@@ -199,6 +206,7 @@ function CreateFile() {
 # --no-clobber is provided.
 #
 
+# shellcheck disable=SC2329  # User-facing API function called from config files
 function GetPackageOriginalFile() {
 	local keep=false
 	if [[ "$1" == "--no-clobber" ]]
@@ -239,6 +247,7 @@ function GetPackageOriginalFile() {
 # Creates a symbolic link with the specified target.
 #
 
+# shellcheck disable=SC2329  # User-facing API function called from config files
 function CreateLink() {
 	local file="$1"
 	local target="$2"
@@ -264,6 +273,7 @@ function CreateLink() {
 # it.
 #
 
+# shellcheck disable=SC2329  # User-facing API function called from config files
 function CreateDir() {
 	local file="$1"
 	local mode="${2:-}"
@@ -291,6 +301,7 @@ function CreateDir() {
 # SetFileProperty /path/to/file deleted y
 #
 
+# shellcheck disable=SC2329  # User-facing API function called from config files
 function RemoveFile() {
 	local file="$1"
 
@@ -309,6 +320,7 @@ function RemoveFile() {
 # specify an empty string ('') for the VALUE parameter.
 #
 
+# shellcheck disable=SC2329  # User-facing API function called from config files
 function SetFileProperty() {
 	local file="$1"
 	local type="$2"
@@ -325,6 +337,7 @@ function SetFileProperty() {
 # The argument should be a shell pattern, e.g. '/etc/foo/*'.
 #
 
+# shellcheck disable=SC2329  # User-facing API function called from config files
 function IgnorePath() {
 	ignore_paths+=("$@")
 }
@@ -343,6 +356,7 @@ function IgnorePath() {
 # preceding it.
 #
 
+# shellcheck disable=SC2329  # User-facing API function called from config files
 function AddFileContentFilter() {
 	local pattern=$1
 	local function=$2

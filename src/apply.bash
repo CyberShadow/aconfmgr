@@ -175,6 +175,7 @@ function AconfApply() {
 
 	LogEnter 'Installing priority files...\n'
 
+	# shellcheck disable=SC2329  # Callback function invoked indirectly
 	function Details_DiffFile() {
 		if sudo test -d "$file"
 		then
@@ -259,6 +260,7 @@ function AconfApply() {
 	then
 		LogEnter 'Unpinning %s unknown packages.\n' "$(Color G ${#unknown_packages[@]})"
 
+		# shellcheck disable=SC2329  # Callback function invoked indirectly
 		function Details() { Log 'Unpinning (setting install reason to '\''as dependency'\'') the following packages:%s\n' "$(Color M " %q" "${unknown_packages[@]}")" ; }
 		Confirm Details
 
@@ -284,6 +286,7 @@ function AconfApply() {
 	then
 		LogEnter 'Pinning %s unknown packages.\n' "$(Color G ${#missing_unpinned_packages[@]})"
 
+		# shellcheck disable=SC2329  # Callback function invoked indirectly
 		function Details() { Log 'Pinning (setting install reason to '\''explicitly installed'\'') the following packages:%s\n' "$(Color M " %q" "${missing_unpinned_packages[@]}")" ; }
 		Confirm Details
 
@@ -324,6 +327,7 @@ function AconfApply() {
 			then
 				LogEnter 'Pruning %s orphan packages.\n' "$(Color G ${#orphan_packages[@]})"
 
+				# shellcheck disable=SC2329  # Callback function invoked indirectly
 				function Details() { Log 'Removing the following orphan packages:%s\n' "$(Color M " %q" "${orphan_packages[@]}")" ; }
 				ParanoidConfirm Details
 
@@ -359,6 +363,7 @@ function AconfApply() {
 	then
 		LogEnter 'Installing %s missing native packages.\n' "$(Color G ${#missing_native_packages[@]})"
 
+		# shellcheck disable=SC2329  # Callback function invoked indirectly
 		function Details() { Log 'Installing the following native packages:%s\n' "$(Color M " %q" "${missing_native_packages[@]}")" ; }
 		ParanoidConfirm Details
 
@@ -376,6 +381,7 @@ function AconfApply() {
 	then
 		LogEnter 'Installing %s missing foreign packages.\n' "$(Color G ${#missing_foreign_packages[@]})"
 
+		# shellcheck disable=SC2329  # Callback function invoked indirectly
 		function Details() { Log 'Installing the following foreign packages:%s\n' "$(Color M " %q" "${missing_foreign_packages[@]}")" ; }
 		Confirm Details
 
@@ -480,6 +486,7 @@ function AconfApply() {
 		LogEnter 'Overwriting %s changed files.\n' "$(Color G ${#changed_files[@]})"
 
 		# shellcheck disable=2059
+		# shellcheck disable=SC2329  # Callback function invoked indirectly
 		function Details() {
 			Log 'Overwriting the following changed files:\n'
 			printf "$(Color W "*") $(Color C "%s" "%s")\\n" "${changed_files[@]}"
@@ -503,6 +510,7 @@ function AconfApply() {
 		LogEnter 'Installing %s new files.\n' "$(Color G ${#config_only_files[@]})"
 
 		# shellcheck disable=2059
+		# shellcheck disable=SC2329  # Callback function invoked indirectly
 		function Details() {
 			Log 'Installing the following new files:\n'
 			printf "$(Color W "*") $(Color C "%s" "%s")\\n" "${config_only_files[@]}"
@@ -609,6 +617,7 @@ function AconfApply() {
 		printf '%s\0' "${files_to_delete[@]}" | sort --zero-terminated | mapfile -d $'\0' files_to_delete
 
 		# shellcheck disable=2059
+		# shellcheck disable=SC2329  # Callback function invoked indirectly
 		function Details() {
 			Log 'Deleting the following files:\n'
 			printf "$(Color W "*") $(Color C "%s" "%s")\\n" "${files_to_delete[@]}"
@@ -660,6 +669,7 @@ function AconfApply() {
 		printf '%s\0' "${files_to_restore[@]}" | sort --zero-terminated | mapfile -d $'\0' files_to_restore
 
 		# shellcheck disable=2059
+		# shellcheck disable=SC2329  # Callback function invoked indirectly
 		function Details() {
 			Log 'Restoring the following files:\n'
 			printf "$(Color W "*") $(Color C "%s" "%s")\\n" "${files_to_restore[@]}"
@@ -694,6 +704,7 @@ function AconfApply() {
 			fi
 
 			LogEnter 'Restoring %s file %s...\n' "$(Color M "%q" "$package")" "$(Color C "%q" "$file")"
+			# shellcheck disable=SC2329  # Callback function invoked indirectly
 			function Details() {
 				AconfNeedProgram diff diffutils n
 				AconfGetPackageOriginalFile "$package" "$file" | ( "${diff_opts[@]}" --unified <(SuperCat "$file") - || true )
@@ -736,6 +747,7 @@ function AconfApply() {
 				 "$(Color G ${#changed_file_props[@]})" 						\
 				 "$(Color G ${#system_only_file_props[@]})"
 
+		# shellcheck disable=SC2329  # Callback function invoked indirectly
 		function LogFileProps() {
 			local verb="$1"
 			local first=y
@@ -762,6 +774,7 @@ function AconfApply() {
 		}
 
 		# shellcheck disable=2059
+		# shellcheck disable=SC2329  # Callback function invoked indirectly
 		function Details() {
 			Print0Array config_only_file_props | LogFileProps "Setting"
 			Print0Array changed_file_props     | LogFileProps "Updating"
