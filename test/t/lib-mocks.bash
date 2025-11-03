@@ -425,16 +425,16 @@ function paccheck() {
 
 				if [[ -e "$fs_path" || -h "$fs_path" ]]
 				then
-					TestPacCheckCompare "$package" "$path" type                type  /usr/bin/stat --format=%F || modified=true
-					TestPacCheckCompare "$package" "$path" size                size  /usr/bin/stat --format=%s || modified=true
-					TestPacCheckCompare "$package" "$path" 'modification time' ''    /usr/bin/stat --format=%y || modified=true
+					TestPacCheckCompare "$package" "$path" type                type  stat --format=%F || modified=true
+					TestPacCheckCompare "$package" "$path" size                size  stat --format=%s || modified=true
+					TestPacCheckCompare "$package" "$path" 'modification time' ''    stat --format=%y || modified=true
 					[[ ! -f "$fs_path" || ! -f "$package_path" || $skip_checksums != n ]] || \
-					TestPacCheckCompare "$package" "$path" md5sum              ''    TestFileMd5sum            || modified=true
-					TestPacCheckCompare "$package" "$path" UID                 owner /usr/bin/stat --format=%U || modified=true
-					TestPacCheckCompare "$package" "$path" GID                 group /usr/bin/stat --format=%G || modified=true
-					TestPacCheckCompare "$package" "$path" permission          mode  /usr/bin/stat --format=%a || modified=true
+					TestPacCheckCompare "$package" "$path" md5sum              ''    TestFileMd5sum   || modified=true
+					TestPacCheckCompare "$package" "$path" UID                 owner stat --format=%U || modified=true
+					TestPacCheckCompare "$package" "$path" GID                 group stat --format=%G || modified=true
+					TestPacCheckCompare "$package" "$path" permission          mode  stat --format=%a || modified=true
 					[[ ! -h "$fs_path" || ! -h "$package_path" ]] || \
-					TestPacCheckCompare "$package" "$path" 'symlink target'    ''    /bin/readlink             || modified=true
+					TestPacCheckCompare "$package" "$path" 'symlink target'    ''    readlink             || modified=true
 					[[ ! -e "$fs_path" ]] || \
 					printf 'warning: %s: '\''%s'\'' read error (No such file or directory)\n' "$package" /"$path"
 				else

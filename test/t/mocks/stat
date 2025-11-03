@@ -5,6 +5,9 @@ source ./lib-init-mock.bash
 
 # External mock to allow execution via xargs
 
+# Find the real stat binary using -p to bypass PATH and search system default paths
+real_stat=$(command -v -p stat)
+
 function stat() {
 	local kind=
 	local arg1=$1
@@ -29,7 +32,7 @@ function stat() {
 			kind=mtime
 			;;
 		-f) # filesystem
-			/usr/bin/stat "$@"
+			"$real_stat" "$@"
 			return
 			;;
 		-*)
@@ -41,7 +44,7 @@ function stat() {
 			;;
 	esac
 
-	local args=(/usr/bin/stat)
+	local args=("$real_stat")
 	if [[ -n "$kind" ]]
 	then
 		args+=("$arg1")
