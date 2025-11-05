@@ -987,6 +987,45 @@ function DetectAurHelper() {
 
 base_devel_installed=n
 
+# Query AUR RPC API to find the package base for a given package name.
+# This is used to resolve virtual provides and split packages without
+# requiring auracle-git to be installed (which would create circular dependencies).
+function AconfQueryAURPackageBase() {
+	local package=$1
+	local aur_rpc_url="https://aur.archlinux.org/rpc/?v=5"
+	local pkg_base=""
+
+	# Try exact package name match first
+	local response resultcount
+	response=$(curl -fsSL "${aur_rpc_url}&type=info&arg=${package}" 2>/dev/null || true)
+
+	if [[ -n "$response" ]]
+	then
+		resultcount=$(printf '%s' "$response" | sed -n 's/.*"resultcount":\([0-9]*\).*/\1/p')
+		if [[ "$resultcount" -gt 0 ]]
+		then
+			pkg_base=$(printf '%s' "$response" | grep -o '"PackageBase":"[^"]*"' | head -1 | sed 's/"PackageBase":"\([^"]*\)"/\1/')
+		fi
+	fi
+
+	# If not found, search by provides (for virtual packages like 'glaze' provided by 'glaze-git')
+	if [[ -z "$pkg_base" ]]
+	then
+		response=$(curl -fsSL "${aur_rpc_url}&type=search&by=provides&arg=${package}" 2>/dev/null || true)
+
+		if [[ -n "$response" ]]
+		then
+			resultcount=$(printf '%s' "$response" | sed -n 's/.*"resultcount":\([0-9]*\).*/\1/p')
+			if [[ "$resultcount" -gt 0 ]]
+			then
+				pkg_base=$(printf '%s' "$response" | grep -o '"PackageBase":"[^"]*"' | head -1 | sed 's/"PackageBase":"\([^"]*\)"/\1/')
+			fi
+		fi
+	fi
+
+	printf '%s' "$pkg_base"
+}
+
 function AconfMakePkg() {
 	local install=true
 	if [[ "$1" == --noinstall ]]
@@ -1044,10 +1083,17 @@ function AconfMakePkg() {
 
 		LogEnter 'Assuming this package is part of a package base:\n'
 
-		LogEnter 'Retrieving package info...\n'
-		AconfNeedProgram auracle auracle-git y
+		LogEnter 'Retrieving package info from AUR...\n'
 		local pkg_base
-		pkg_base=$(auracle info --format '{pkgbase}' "$package")
+		pkg_base=$(AconfQueryAURPackageBase "$package")
+
+		if [[ -z "$pkg_base" ]]
+		then
+			# Fallback to auracle if AUR RPC fails
+			Log 'AUR RPC query failed, falling back to auracle...\n'
+			AconfNeedProgram auracle auracle-git y
+			pkg_base=$(auracle info --format '{pkgbase}' "$package")
+		fi
 		LogLeave 'Done, package base is %s.\n' "$(Color M %q "$pkg_base")"
 
 		AconfMakePkg "$pkg_base" "$asdeps" # recurse
