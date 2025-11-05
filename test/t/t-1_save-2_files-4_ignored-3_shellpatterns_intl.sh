@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source ./lib.bash
+source "$(dirname "${BASH_SOURCE[0]}")/lib.bash"
 
 # Test ignored files (using shell patterns over international characters).
 

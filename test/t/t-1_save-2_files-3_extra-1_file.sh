@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source ./lib.bash
+source "$(dirname "${BASH_SOURCE[0]}")/lib.bash"
 
 # Test saving extra files (stray files in the configuration, but not the system).
 

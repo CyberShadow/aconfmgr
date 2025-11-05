@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source ./lib.bash
+source "$(dirname "${BASH_SOURCE[0]}")/lib.bash"
 
 # Test saving stray files inside a directory.
 # This test verifies that aconfmgr is not emitting unnecessary CreateDir lines.

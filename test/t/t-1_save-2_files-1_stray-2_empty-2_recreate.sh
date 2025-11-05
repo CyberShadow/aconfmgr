@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source ./lib.bash
+source "$(dirname "${BASH_SOURCE[0]}")/lib.bash"
 
 # Test that saving correctly emits a RemoveFile before CreateFile, to
 # avoid creating a configuration which will emit a warning when

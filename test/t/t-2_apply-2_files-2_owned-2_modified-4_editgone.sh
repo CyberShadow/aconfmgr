@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source ./lib.bash
+source "$(dirname "${BASH_SOURCE[0]}")/lib.bash"
 
 # Test modifying a file that's not on the filesystem.
 

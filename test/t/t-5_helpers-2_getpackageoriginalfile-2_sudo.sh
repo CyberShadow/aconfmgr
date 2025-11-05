@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source ./lib.bash
+source "$(dirname "${BASH_SOURCE[0]}")/lib.bash"
 
 # Ensure AconfNeedPackageFile etc. work when the pacman package
 # directory is only readable via sudo.

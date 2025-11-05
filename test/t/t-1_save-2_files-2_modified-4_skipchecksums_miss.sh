@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source ./lib.bash
+source "$(dirname "${BASH_SOURCE[0]}")/lib.bash"
 
 # Test that a file with all properties equal is _not_ detected as modified when
 # using the skip_checksums property, even though the contents are different

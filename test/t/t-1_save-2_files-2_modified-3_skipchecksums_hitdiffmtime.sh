@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source ./lib.bash
+source "$(dirname "${BASH_SOURCE[0]}")/lib.bash"
 
 # Test that a file with all properties equal other than a different file mtime
 # is detected as modified when using the skip_checksums property

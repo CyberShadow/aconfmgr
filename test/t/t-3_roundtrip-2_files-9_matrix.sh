@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2031
-source ./lib.bash
+source "$(dirname "${BASH_SOURCE[0]}")/lib.bash"
 source ./lib-matrix-files.bash
 
 # Regression tests for past matrix roundtrip failures.

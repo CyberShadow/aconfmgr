@@ -7,6 +7,9 @@
 # - helper functions that set up or inspect aconfmgr's configuration /
 #   environment / results (see ./lib-funcs.bash)
 
+# Allow running test scripts from any current directory
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
 source ./lib-init.bash
 
 for arg in "$@"
