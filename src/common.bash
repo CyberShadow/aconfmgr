@@ -1218,11 +1218,37 @@ EOF
 				local pkglist
 				su -s /bin/bash "$makepkg_user" -c "GNUPGHOME=$(realpath ../../gnupg) $(printf ' %q' "${args[@]}" --packagelist)" | mapfile -t pkglist
 
-				if $asdeps
+				# Filter out packages that don't exist (e.g., debug packages not built by default)
+				local existing_pkgs=()
+				local skipped_pkgs=()
+				local pkg
+				for pkg in "${pkglist[@]}"
+				do
+					if [[ -f "$pkg" ]]
+					then
+						existing_pkgs+=("$pkg")
+					else
+						skipped_pkgs+=("$pkg")
+					fi
+				done
+
+				if [[ ${#skipped_pkgs[@]} -gt 0 ]]
 				then
-					"${pacman_opts[@]}" --upgrade --asdeps "${pkglist[@]}"
+					Log 'Skipping %s non-existent package(s) from packagelist:\n' "$(Color G "${#skipped_pkgs[@]}")"
+					for pkg in "${skipped_pkgs[@]}"
+					do
+						Log '  %s\n' "$(Color M "%q" "$(basename "$pkg")")"
+					done
+				fi
+
+				if [[ ${#existing_pkgs[@]} -eq 0 ]]
+				then
+					Log 'Warning: No packages to install (all were filtered out)\n'
+				elif $asdeps
+				then
+					"${pacman_opts[@]}" --upgrade --asdeps "${existing_pkgs[@]}"
 				else
-					"${pacman_opts[@]}" --upgrade "${pkglist[@]}"
+					"${pacman_opts[@]}" --upgrade "${existing_pkgs[@]}"
 				fi
 			fi
 		else
