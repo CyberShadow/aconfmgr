@@ -7,6 +7,8 @@ user = aur
 password = 
 
 [options]
+aurwebdir = /opt/aur/aurweb
+localedir = /opt/aur/aurweb/po/
 username_min_len = 3
 username_max_len = 16
 passwd_min_len = 8
@@ -38,21 +40,34 @@ render-comment-cmd = /usr/bin/aurweb-rendercomment
 # memcache or apc
 cache = none
 memcache_servers = 127.0.0.1:11211
+traceback = 0
 
 [ratelimit]
 request_limit = 4000
 window_length = 86400
+cache = 0
 
 [notifications]
 notify-cmd = /usr/bin/aurweb-notify
 sendmail = /usr/bin/sendmail
 sender = notify@aur.archlinux.org
 reply-to = noreply@aur.archlinux.org
+gitlab-instance = https://gitlab.archlinux.org
+error-project = aur/test
+error-token = test-token-not-used
 
 [fingerprints]
 Ed25519 = SHA256:HQ03dn6EasJHNDlt51KpQpFkT3yBX83x7BoIkA1iv2k
 ECDSA = SHA256:L71Q91yHwmHPYYkJMDgj0xmUuw16qFOhJbBr1mzsiOI
 RSA = SHA256:Ju+yWiMb/2O+gKQ9RJCDqvRg7l+Q95KFAeqM5sr6l2s
+
+[sso]
+openid_configuration =
+client_id =
+client_secret =
+
+[fastapi]
+session_secret = test-secret-for-aconfmgr-integration-testing
 
 [auth]
 valid-keytypes = ssh-rsa ssh-dss ecdsa-sha2-nistp256 ecdsa-sha2-nistp384 ecdsa-sha2-nistp521 ssh-ed25519
@@ -79,3 +94,6 @@ server = ftp://mirrors.kernel.org/archlinux/%s/os/x86_64
 packagesfile = /opt/aur/aurweb/web/html/packages.gz
 pkgbasefile = /opt/aur/aurweb/web/html/pkgbase.gz
 userfile = /opt/aur/aurweb/web/html/users.gz
+
+[tracing]
+otlp_endpoint = http://localhost:4318/v1/traces

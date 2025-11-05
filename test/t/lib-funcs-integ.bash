@@ -392,10 +392,9 @@ function TestInitAUR() {
 		curl
 		--fail
 		--output /dev/null
-		'http://127.0.0.1/register/'
+		'http://127.0.0.1/register'
 		-H 'Host: aur.archlinux.org'
 		-H 'Content-Type: application/x-www-form-urlencoded'
-		--data-urlencode 'Action=NewAccount'
 		--data-urlencode 'U=aconfmgr'
 		--data-urlencode 'E=aconfmgr@thecybershadow.net'
 		--data-urlencode 'R='
@@ -405,8 +404,30 @@ function TestInitAUR() {
 		--data-urlencode 'L=en'
 		--data-urlencode 'TZ=UTC'
 		--data-urlencode 'PK='"$(cat ~/.ssh/id_ed25519.pub)"
+		--data-urlencode 'captcha_salt=aurweb-0'
+		--data-urlencode 'captcha=6d3426'
 		--compressed
 	) ; "${args[@]}"
+	LogLeave
+
+	LogEnter 'Activating account (clearing ResetKey and setting password)...\n'
+	# Generate a bcrypt password hash for "testpass" using aurweb's virtualenv Python
+	password_hash=$(command sudo -u aur bash -c 'cd /opt/aur/aurweb && poetry run python -c "import bcrypt; print(bcrypt.hashpw(b\"testpass\", bcrypt.gensalt()).decode(\"utf-8\"))"')
+	echo "Generated password hash: $password_hash"
+	command sudo -u aur mysql --socket=/opt/aur/run/mysqld.sock AUR -e "UPDATE Users SET ResetKey = '', Passwd = '$password_hash' WHERE Username = 'aconfmgr'"
+	unset password_hash
+	LogLeave
+
+	LogEnter 'Verifying account activation...\n'
+	command sudo -u aur mysql --socket=/opt/aur/run/mysqld.sock AUR -e "SELECT ID, Username, ResetKey FROM Users WHERE Username = 'aconfmgr'"
+	command sudo -u aur mysql --socket=/opt/aur/run/mysqld.sock AUR -e "SELECT UserID, Fingerprint, PubKey FROM SSHPubKeys WHERE UserID = (SELECT ID FROM Users WHERE Username = 'aconfmgr')"
+	echo "Checking if password is set..."
+	command sudo -u aur mysql --socket=/opt/aur/run/mysqld.sock AUR -e "SELECT ID, Username, LENGTH(Passwd) as PasswdLength, Suspended FROM Users WHERE Username = 'aconfmgr'"
+	LogLeave
+
+	LogEnter 'Verifying aurweb-git-auth is installed...\n'
+	ls -la /usr/bin/aurweb-git-auth || echo "aurweb-git-auth not found"
+	echo "aurweb-git-auth wrapper installed, will be tested via SSH connection"
 	LogLeave
 
 	LogEnter 'Adding SSH host keys...\n'
@@ -414,7 +435,11 @@ function TestInitAUR() {
 	LogLeave
 
 	LogEnter 'Checking SSH...\n'
-	ssh aur@aur.archlinux.org help
+	ssh aur@aur.archlinux.org help || {
+		echo "SSH failed, checking debug log..."
+		cat /tmp/aurweb-git-auth-debug.log 2>/dev/null || echo "No debug log found"
+		return 1
+	}
 	LogLeave
 
 	LogEnter 'Configuring git...\n'

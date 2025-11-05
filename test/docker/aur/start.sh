@@ -27,11 +27,19 @@ fi
 } 2>&1 | { sed -u 's/^/[mysql] /' & }
 
 {
-	echo 'Starting php-fpm ...'
-	/usr/sbin/php-fpm --fpm-config /opt/aur/php-fpm.conf --php-ini /opt/aur/php.ini
+	echo 'Starting aurweb ASGI server (gunicorn) ...'
+	su aur -s /bin/bash -c 'cd /opt/aur/aurweb && poetry run gunicorn --bind 127.0.0.1:8000 --forwarded-allow-ips "*" --workers 2 -k uvicorn.workers.UvicornWorker aurweb.asgi:app' &
+
+	# Wait for server to be ready
+	for i in {1..30}; do
+		if curl -s http://127.0.0.1:8000/ > /dev/null 2>&1; then
+			break
+		fi
+		sleep 1
+	done
 
 	echo 'Ready'
-} 2>&1 | { sed -u 's/^/[php-fpm] /' & }
+} 2>&1 | { sed -u 's/^/[aurweb] /' & }
 
 {
 	echo 'Starting fcgiwrap ...'

@@ -2,27 +2,32 @@ pkgname=aur
 pkgver=1
 pkgrel=1
 arch=('i686' 'x86_64')
-_py_deps=(bleach markdown mysql-connector pygit2 setuptools srcinfo)
-depends=(nginx php php-fpm mysql fcgiwrap openssh git cgit "${_py_deps[@]/#/python-}")
-_aurweb_ver=4.7.0
-source=(git+https://github.com/lfos/aurweb#tag=v$_aurweb_ver
+_py_deps=(bleach markdown mysqlclient pygit2 setuptools srcinfo poetry)
+depends=(nginx mysql fcgiwrap openssh git cgit curl "${_py_deps[@]/#/python-}")
+makedepends=(python-poetry-dynamic-versioning python-installer)
+_aurweb_ver=6.2.18
+source=(git+https://gitlab.archlinux.org/archlinux/aurweb.git#tag=v$_aurweb_ver
 		nginx.conf
 		aurweb-config
 		php.ini
 		php-fpm.conf
 		sshd_config
 		cgitrc
+		aurweb-git-auth.sh
+		aurweb-git-serve.sh
 		start.sh
 		setup.sh)
 md5sums=('SKIP'
-         '5eb22ab4188ee2d28f68a9f506044582'
-         '8f3a5f4d3ff9e8c5a78979c53d734a50'
+         '4ba4938f1c1bf4e16172e307501b526d'
+         'a644c30477b7afe4f9f45f4815ecc76a'
          'fe93c80924b4a5064c51064ab7d37eed'
          '9cd425efe85356ca36f08e2dc773f31f'
          'f0e1159864a04bad3b1f903bc7301d80'
          '718c816fdaedb644f5b4d0cd742dbc97'
-         'c58f8ec2f9c6f119fa3f161e67dc01b6'
-         'b1194030c11a37d818da7065646ae9ea')
+         'SKIP'
+         'SKIP'
+         '4f0d7ada5ccc65f9153ac9b195c8ad0d'
+         'd44bab30a438ddb8ff20274408d61302')
 
 _aur_uid=500
 _aur_gid=500
@@ -40,9 +45,17 @@ package() {
   printf 'd /opt/aur/run - aur aur -\n'  \
 	| install -Dm644 /dev/stdin "$pkgdir"/usr/lib/tmpfiles.d/aur.conf
 
-  # Use full path to Python due to https://stackoverflow.com/q/55485061/21501
-  env -i -C "$srcdir"/aurweb /usr/bin/python setup.py install --root="$pkgdir"
+  # Use Poetry to build and install aurweb
+  cd "$srcdir"/aurweb
+  poetry build -f wheel
+  /usr/bin/python -m installer --destdir="$pkgdir" dist/*.whl
   install -m644 -D "$srcdir"/aurweb-config "$pkgdir"/etc/aurweb/config
+
+  # Install Poetry wrapper scripts for aurweb-git-auth and aurweb-git-serve
+  # This is needed because aurweb v6.x uses Poetry virtualenv
+  # The wheel installs Python entry points, but we override them with these wrappers
+  install -m755 -D "$srcdir"/aurweb-git-auth.sh "$pkgdir"/usr/bin/aurweb-git-auth
+  install -m755 -D "$srcdir"/aurweb-git-serve.sh "$pkgdir"/usr/bin/aurweb-git-serve
 
   install -m644 -D "$srcdir"/nginx.conf "$pkgdir"/opt/aur/nginx.conf
 

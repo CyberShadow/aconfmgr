@@ -47,20 +47,34 @@ do
 	sleep 1
 done
 
-echo 'Creating database ...'
+echo 'Creating database and setting up permissions ...'
 /usr/bin/mysql \
 	--socket=/opt/aur/run/mysqld.sock \
 	<<-'EOF'
 	DROP DATABASE IF EXISTS AUR;
 	CREATE DATABASE AUR;
+	-- Fix MariaDB 11.x authentication for aur user
+	-- Testing: Removed unix_socket authentication to see if it's necessary
+	-- ALTER USER 'aur'@'localhost' IDENTIFIED VIA unix_socket;
+	GRANT ALL PRIVILEGES ON AUR.* TO 'aur'@'localhost';
+	FLUSH PRIVILEGES;
 	EOF
 
-echo 'Initializing database ...'
+echo 'Initializing database with aurweb.initdb ...'
 
-/usr/bin/mysql \
-	--socket=/opt/aur/run/mysqld.sock \
-	AUR \
-	< /opt/aur/aurweb/schema/aur-schema.sql
+# aurweb v6.x uses aurweb.initdb instead of SQL file
+# Use poetry to run in the aurweb source directory where dependencies are available
+# Run as aur user since unix_socket authentication requires matching OS and MySQL usernames
+# Install aurweb itself (not just dependencies) to make entry points like aurweb-git-auth available
+# Testing: Changed from 'su -s /bin/bash aur' to 'sudo -u aur bash' to see if su is necessary
+sudo -u aur bash <<-'AUREOF'
+	cd /opt/aur/aurweb
+	poetry env use python3.12
+	# poetry.lock is already in sync with pyproject.toml (generated during package build)
+	# Testing: Changed from 'poetry install --only main' to see if dev dependencies are needed
+	poetry install
+	poetry run python -m aurweb.initdb
+	AUREOF
 
 echo 'Stopping MySQL ...'
 
