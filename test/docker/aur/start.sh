@@ -15,7 +15,8 @@ fi
 		--socket=/opt/aur/run/mysqld.sock \
 		--skip-networking \
 		--general-log \
-		--skip-log-bin &
+		--skip-log-bin \
+		--innodb-use-native-aio=OFF &
 
 	while [[ ! -e /opt/aur/run/mysqld.sock ]]
 	do
