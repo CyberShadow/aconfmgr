@@ -56,6 +56,16 @@ IgnorePath /srv/\*
 IgnorePath /var/\*
 EOF
 
+	# Container root directory permissions vary by runtime (Docker vs Podman)
+	# Docker: / has mode 755 (default), Podman: / has mode 555 (non-default)
+	# Only set if mode differs from aconfmgr's default (755 for directories)
+	local root_mode
+	root_mode=$(stat -c %a /)
+	if [[ "$root_mode" != "755" ]]
+	then
+		printf '# Root directory has non-default mode\nSetFileProperty / mode %s\n' "$root_mode" >> "$config_dir"/10-system.sh
+	fi
+
 	test_fs_root=/
 }
 
