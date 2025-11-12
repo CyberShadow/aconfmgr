@@ -1,0 +1,5 @@
+{
+  "name": "aconfmgr",
+  "private": true,
+  "bin": "./aconfmgr"
+}
