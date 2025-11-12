@@ -13,6 +13,7 @@ function TestInit() {
 	yaourt_opts+=(--noconfirm)
 	yay_opts+=(--noconfirm)
 	paru_opts+=(--noconfirm)
+	aura_opts+=(--noconfirm)
 
 	# Improve CI reliability when downloading from archive.archlinux.org
 	pacman_opts+=(--disable-download-timeout)

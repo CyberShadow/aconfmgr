@@ -153,6 +153,7 @@ test_globals_whitelist=(
 	yaourt_opts
 	yay_opts
 	paru_opts
+	aura_opts
 
 	# Test suite
 	test_name
