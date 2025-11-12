@@ -446,13 +446,20 @@ BEGIN {
 	local paccheck_opts=(unbuffer paccheck --files --file-properties --backup --noupgrade)
 	if [[ $skip_checksums == n ]]
 	then
-		paccheck_opts+=(--md5sum)
+		# Use SHA256 for pacman 7.0+ (libalpm v15+) which uses SHA256 in mtree
+		# Fall back to MD5 for older versions
+		if paccheck --help 2>&1 | grep -q -- '--sha256sum'
+		then
+			paccheck_opts+=(--sha256sum)
+		else
+			paccheck_opts+=(--md5sum)
+		fi
 	fi
 
 	sudo sh -c "LC_ALL=C stdbuf -o0 $(printf ' %q' "${paccheck_opts[@]}") 2>&1 || true" | \
 		while read -r line
 		do
-			if [[ $line =~ ^(.*):\ \'(.*)\'\ (type|size|modification\ time|md5sum|UID|GID|permission|symlink\ target)\ mismatch\ \(expected\ (.*)\)$ ]]
+			if [[ $line =~ ^(.*):\ \'(.*)\'\ (type|size|modification\ time|md5sum|sha256sum|UID|GID|permission|symlink\ target)\ mismatch\ \(expected\ (.*)\)$ ]]
 			then
 				local package="${BASH_REMATCH[1]}"
 				local file="${BASH_REMATCH[2]}"
@@ -494,7 +501,7 @@ BEGIN {
 						permission)
 							prop=mode
 							;;
-						type|size|modification\ time|md5sum|symlink\ target)
+						type|size|modification\ time|md5sum|sha256sum|symlink\ target)
 							prop=
 							found_file_edited[$file]=y
 							;;
@@ -542,7 +549,7 @@ BEGIN {
 				local package="${BASH_REMATCH[1]}"
 				local file="${BASH_REMATCH[2]}"
 				# Ignore
-			elif [[ $line =~ ^(.*):\ all\ files\ match\ (database|mtree|mtree\ md5sums)$ ]]
+			elif [[ $line =~ ^(.*):\ all\ files\ match\ (database|mtree|mtree\ md5sums|mtree\ sha256sums)$ ]]
 			then
 				local package="${BASH_REMATCH[1]}"
 				Log '%s...\r' "$(Color M "%q" "$package")"
