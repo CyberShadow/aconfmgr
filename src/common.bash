@@ -956,11 +956,12 @@ pacaur_opts=(pacaur)
 yaourt_opts=(yaourt)
 yay_opts=(yay)
 paru_opts=(paru)
+aura_opts=(aura)
 makepkg_opts=(makepkg)
 diff_opts=(diff '--color=auto')
 
 aur_helper=
-aur_helpers=(aurman pacaur yaourt yay paru makepkg)
+aur_helpers=(aurman pacaur yaourt yay paru aura makepkg)
 
 # Only aconfmgr can use makepkg under root
 if [[ $EUID == 0 ]]
@@ -1374,6 +1375,9 @@ function AconfInstallForeign() {
 		paru)
 			RunExternal "${paru_opts[@]}" --sync --aur "${asdeps_arr[@]}" "${target_packages[@]}"
 			;;
+		aura)
+			RunExternal "${aura_opts[@]}" -A "${asdeps_arr[@]}" "${target_packages[@]}"
+			;;
 		makepkg)
 			local package
 			for package in "${target_packages[@]}"
@@ -1494,6 +1498,9 @@ function AconfNeedPackageFile() {
 						paru)
 							dirs+=("${XDG_CACHE_HOME:-$HOME/.cache}/paru/clone/$package")
 							;;
+						aura)
+							dirs+=("${XDG_CACHE_HOME:-$HOME/.cache}/aura/cache")
+							;;
 						makepkg)
 							dirs+=("$aur_dir"/"$package")
 							;;
@@ -1592,6 +1599,10 @@ function AconfNeedPackageFile() {
 							;;
 						paru)
 							# paru does not have a --makepkg option
+							continue
+							;;
+						aura)
+							# aura does not have a --makepkg option
 							continue
 							;;
 						makepkg)

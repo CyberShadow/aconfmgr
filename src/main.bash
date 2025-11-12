@@ -130,6 +130,7 @@ function Main() {
 				yaourt_opts+=(--noconfirm)
 				yay_opts+=(--noconfirm)
 				paru_opts+=(--noconfirm)
+				aura_opts+=(--noconfirm)
 				makepkg_opts+=(--noconfirm)
 				shift
 				;;
@@ -151,6 +152,7 @@ function Main() {
 			yaourt_opts+=(--color)
 			yay_opts+=(--color always)
 			paru_opts+=(--color always)
+			aura_opts+=(--color always)
 			diff_opts+=('--color=always')
 		;;
 		never)
@@ -161,6 +163,7 @@ function Main() {
 			yaourt_opts+=(--nocolor)
 			yay_opts+=(--color never)
 			paru_opts+=(--color never)
+			aura_opts+=(--color never)
 			makepkg_opts+=(--nocolor)
 			diff_opts+=('--color=never')
 			;;
@@ -170,6 +173,7 @@ function Main() {
 			aurman_opts+=(--color auto)
 			pacaur_opts+=(--color auto)
 			yay_opts+=(--color auto)
+			aura_opts+=(--color auto)
 			paru_opts+=(--color auto)
 			;;
 		'')
