@@ -30,6 +30,7 @@ args+=(
 	-e GITHUB_ACTIONS
 	--env 'ACONFMGR_INTEGRATION=1'
 	--env 'ACONFMGR_IN_CONTAINER=1'
+	--env 'GIT_CEILING_DIRECTORIES=/aconfmgr'
 	--user aconfmgr
 	--ulimit "nofile=1024:16384"  # https://github.com/moby/moby/issues/45436
 	aconfmgr
