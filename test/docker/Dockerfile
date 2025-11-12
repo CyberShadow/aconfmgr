@@ -17,6 +17,7 @@ RUN mkdir /aconfmgr-repo/
 RUN cp /aconfmgr-packages/aur/* /aconfmgr-repo/
 RUN repo-add /aconfmgr-repo/aconfmgr.db.tar /aconfmgr-repo/*.pkg.tar.*
 
+RUN sed -i 's/^#DisableSandbox/DisableSandbox/' /etc/pacman.conf
 RUN printf '[aconfmgr]''\n''SigLevel = Optional TrustAll''\n''Server = file:///aconfmgr-repo/''\n' >> /etc/pacman.conf
 RUN pacman -Sy
 

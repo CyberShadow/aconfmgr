@@ -12,6 +12,9 @@ COPY --from=rootfs /root.x86_64/ /
 # become invalid after some time when the key expires
 RUN sed -i "s/^SigLevel.*/SigLevel = Never/" /etc/pacman.conf
 
+# Disable landlock sandbox for Docker compatibility
+RUN sed -i 's/^#DisableSandbox/DisableSandbox/' /etc/pacman.conf
+
 ARG arch_date
 RUN echo 'Server=https://archive.archlinux.org/repos/'"${arch_date}"'/$repo/os/$arch' > /etc/pacman.d/mirrorlist
 
