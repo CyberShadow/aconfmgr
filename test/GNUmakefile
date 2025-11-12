@@ -21,6 +21,12 @@
 SRC=../aconfmgr $(wildcard ../src/*.bash)
 TMP=tmp
 
+# Use bash instead of /bin/sh for all recipes
+SHELL = /bin/bash
+
+# Enable pipefail for all recipes so that piped commands propagate failures
+.SHELLFLAGS = -e -o pipefail -c
+
 # Entry point targets
 
 check : lint testsuite
@@ -133,7 +139,8 @@ TESTSUITE_TESTS_OK=$(patsubst t/%.sh,tmp/test/%/.ok,$(TESTSUITE_TESTS))
 TESTSUITE=$(TESTSUITE_LIB) $(TESTSUITE_TESTS)
 
 tmp/test/%/.ok : t/%.sh $(SRC) $(TESTSUITE_LIB) $(BASH_DEP)
-	cd t && PATH=$(PATH_PREFIX)$(PATH) $(BASH) $(<:t/%=%)
+	mkdir -p $(dir $@)
+	cd t && PATH=$(PATH_PREFIX)$(PATH) $(BASH) $(<:t/%=%) 2>&1 | tee ../$(dir $@)test.log
 	touch "$@"
 
 testsuite : $(TESTSUITE_TESTS_OK)
@@ -143,7 +150,8 @@ testsuite : $(TESTSUITE_TESTS_OK)
 TESTSUITE_INTEG_TESTS_OK=$(patsubst t/%.sh,tmp/integ/test/%/.ok,$(TESTSUITE_TESTS))
 
 tmp/integ/test/%/.ok : t/%.sh $(SRC) $(TESTSUITE_LIB) docker-image
-	docker/run-test.sh $(<:t/%=%)
+	mkdir -p $(dir $@)
+	docker/run-test.sh $(<:t/%=%) 2>&1 | tee $(dir $@)test.log
 	touch "$@"
 
 testsuite-integration : $(TESTSUITE_INTEG_TESTS_OK)
