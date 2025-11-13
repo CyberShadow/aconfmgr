@@ -18,16 +18,16 @@ source=(git+https://gitlab.archlinux.org/archlinux/aurweb.git#tag=v$_aurweb_ver
 		start.sh
 		setup.sh)
 md5sums=('SKIP'
-         '4ba4938f1c1bf4e16172e307501b526d'
-         'a644c30477b7afe4f9f45f4815ecc76a'
-         'fe93c80924b4a5064c51064ab7d37eed'
-         '9cd425efe85356ca36f08e2dc773f31f'
-         'f0e1159864a04bad3b1f903bc7301d80'
-         '718c816fdaedb644f5b4d0cd742dbc97'
          'SKIP'
          'SKIP'
-         'dde9ba16bfe27a11a0b5dc058cda6745'
-         'd44bab30a438ddb8ff20274408d61302')
+         'SKIP'
+         'SKIP'
+         'SKIP'
+         'SKIP'
+         'SKIP'
+         'SKIP'
+         'SKIP'
+         'SKIP')
 
 _aur_uid=500
 _aur_gid=500

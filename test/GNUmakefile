@@ -192,7 +192,8 @@ $(TMP)/.docker-image-ok-arch : $(ARCH_TAR) docker/Dockerfile.arch
 		< docker/Dockerfile.arch
 	touch "$@"
 
-$(TMP)/.docker-image-ok : $(TMP)/.docker-image-ok-arch docker/Dockerfile docker/aur/PKGBUILD ../.dockerignore
+DOCKER_IMAGE_OK=$(TMP)/.docker-image-ok
+$(DOCKER_IMAGE_OK) : $(DOCKER_IMAGE_ARCH_OK) docker/Dockerfile $(wildcard docker/aur/*) ../.dockerignore
 	$(DOCKER) build \
 		-t aconfmgr \
 		-f docker/Dockerfile \
@@ -200,7 +201,7 @@ $(TMP)/.docker-image-ok : $(TMP)/.docker-image-ok-arch docker/Dockerfile docker/
 		..
 	touch "$@"
 
-docker-image : $(TMP)/.docker-image-ok
+docker-image : $(DOCKER_IMAGE_OK)
 
 # Style
 
