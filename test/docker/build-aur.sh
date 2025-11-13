@@ -20,7 +20,7 @@ mkdir /aconfmgr-packages
 
 chown -R nobody: aur
 chmod +x /aconfmgr{,/test{,/docker{,/aur}}}
-env -i -C aur su -s /bin/bash nobody -c 'makepkg --printsrcinfo' > aur/.SRCINFO
+env -i -C aur setpriv --reuid=nobody --regid=nobody --clear-groups makepkg --printsrcinfo > aur/.SRCINFO
 AconfMakePkgDir aur false false "$PWD"/aur
 
 mkdir /aconfmgr-packages/aur/

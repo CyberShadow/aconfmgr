@@ -1264,12 +1264,12 @@ EOF
 		if [[ $EUID == 0 ]]
 		then
 			chown -R "$makepkg_user": .
-			su -s /bin/bash "$makepkg_user" -c "GNUPGHOME=$(realpath ../../gnupg) $(printf ' %q' "${args[@]}")" 1>&2
+			setpriv --reuid="$makepkg_user" --regid="$makepkg_user" --clear-groups bash -c "GNUPGHOME=$(realpath ../../gnupg) $(printf ' %q' "${args[@]}")" 1>&2
 
 			if $install
 			then
 				local pkglist
-				su -s /bin/bash "$makepkg_user" -c "GNUPGHOME=$(realpath ../../gnupg) $(printf ' %q' "${args[@]}" --packagelist)" | mapfile -t pkglist
+				setpriv --reuid="$makepkg_user" --regid="$makepkg_user" --clear-groups bash -c "GNUPGHOME=$(realpath ../../gnupg) $(printf ' %q' "${args[@]}" --packagelist)" | mapfile -t pkglist
 
 				# Filter out packages that don't exist (e.g., debug packages not built by default)
 				local existing_pkgs=()

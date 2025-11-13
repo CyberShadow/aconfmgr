@@ -175,7 +175,7 @@ function TestMakePkg() {
 	if [[ "$EUID" -eq 0 ]]
 	then
 		chown -R nobody: /tmp/aconfmgr-build
-		env -i -C /tmp/aconfmgr-build su nobody -s /bin/sh -c "env SOURCE_DATE_EPOCH=$timestamp $(printf ' %q' "${args[@]}")"
+		env -i -C /tmp/aconfmgr-build SOURCE_DATE_EPOCH="$timestamp" setpriv --reuid=nobody --regid=nobody --clear-groups "${args[@]}"
 	else
 		env -i -C /tmp/aconfmgr-build SOURCE_DATE_EPOCH="$timestamp" "${args[@]}"
 	fi
