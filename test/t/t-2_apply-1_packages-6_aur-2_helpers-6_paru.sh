@@ -4,7 +4,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib.bash"
 # Test AUR functionality using paru.
 
 TestNeedAUR
-TestNeedAURPackage paru 2bfa586c9fbf08144257c1e5c013481d43760e1a  # v2.0.3, alpm.rs 3.x, libalpm v14
+TestNeedAURPackage paru 1671c778dfeab04b64686baf782c5baa2d96b2ec  # v2.1.0, alpm.rs 4.x, libalpm v15
 AconfMakePkg paru
 TestAddConfig AddPackage --foreign paru
 TestAURHelper paru "${XDG_CACHE_HOME:-$HOME/.cache}/paru" false

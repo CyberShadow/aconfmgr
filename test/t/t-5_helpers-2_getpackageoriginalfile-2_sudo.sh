@@ -12,6 +12,13 @@ TestCreatePackage test-package native
 
 TestAddConfig 'echo bar >> "$(GetPackageOriginalFile test-package /testfile.txt)"'
 
+# Restrict cache directory to test sudo functionality.
+# Pacman 7.0+ drops privileges to 'alpm' user for downloads, so we need to
+# chown to alpm if it exists (otherwise pacman can't create temp download dirs).
+if id alpm &>/dev/null
+then
+	command sudo chown alpm:alpm /var/cache/pacman/pkg
+fi
 command sudo chmod 700 /var/cache/pacman/pkg
 
 TestPhase_Run #################################################################
