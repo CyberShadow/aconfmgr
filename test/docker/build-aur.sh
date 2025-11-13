@@ -25,6 +25,10 @@ AconfMakePkgDir aur false false "$PWD"/aur
 
 mkdir /aconfmgr-packages/aur/
 cp -v aur/*.pkg.tar.* /aconfmgr-packages/aur/
+# Also copy python312 package (built as dependency) to aur repo if it exists
+cp -v /var/cache/pacman/pkg/python312-*.pkg.tar.* /aconfmgr-packages/aur/ 2>/dev/null || \
+    cp -v /tmp/aconfmgr-setup-aur/python312/python312-*.pkg.tar.* /aconfmgr-packages/aur/ 2>/dev/null || \
+    echo "Warning: python312 package not found in cache, will need to build in final image"
 
 mkdir /aconfmgr-packages/cache/
 ln -v /var/cache/pacman/pkg/*.pkg.tar.* /aconfmgr-packages/cache/

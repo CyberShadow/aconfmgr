@@ -387,27 +387,30 @@ function TestInitAUR() {
 	ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519
 	LogLeave
 
-	LogEnter 'Registering on AUR...\n'
-	local args=(
-		curl
-		--fail
-		--output /dev/null
-		'http://127.0.0.1/register'
-		-H 'Host: aur.archlinux.org'
-		-H 'Content-Type: application/x-www-form-urlencoded'
-		--data-urlencode 'U=aconfmgr'
-		--data-urlencode 'E=aconfmgr@thecybershadow.net'
-		--data-urlencode 'R='
-		--data-urlencode 'HP='
-		--data-urlencode 'I='
-		--data-urlencode 'K='
-		--data-urlencode 'L=en'
-		--data-urlencode 'TZ=UTC'
-		--data-urlencode 'PK='"$(cat ~/.ssh/id_ed25519.pub)"
-		--data-urlencode 'captcha_salt=aurweb-0'
-		--data-urlencode 'captcha=6d3426'
-		--compressed
-	) ; "${args[@]}"
+	LogEnter 'Creating AUR user directly in database...\n'
+	# Python 3.13/FastAPI form handling breaks the registration endpoint
+	# Bypass it by creating the user directly in the database
+	local ssh_pubkey
+	# Extract just keytype and keytext (no comment) to match what SSH passes to aurweb-git-auth
+	ssh_pubkey=$(awk '{print $1 " " $2}' ~/.ssh/id_ed25519.pub)
+	local ssh_fingerprint
+	# Strip "SHA256:" prefix - Fingerprint column is varchar(44)
+	ssh_fingerprint=$(ssh-keygen -lf ~/.ssh/id_ed25519.pub | awk '{print $2}' | sed 's/^SHA256://')
+
+	command sudo -u aur mysql --socket=/opt/aur/run/mysqld.sock AUR <<-EOF
+		INSERT INTO Users (
+			AccountTypeID, Username, Email, Passwd, Salt, ResetKey,
+			RealName, LangPreference, Timezone, Suspended
+		) VALUES (
+			1, 'aconfmgr', 'aconfmgr@thecybershadow.net', '', '', 'ResetKeyPlaceholder',
+			'', 'en', 'UTC', 0
+		);
+
+		SET @user_id = LAST_INSERT_ID();
+
+		INSERT INTO SSHPubKeys (UserID, Fingerprint, PubKey)
+		VALUES (@user_id, '$ssh_fingerprint', '$ssh_pubkey');
+	EOF
 	LogLeave
 
 	LogEnter 'Activating account (clearing ResetKey and setting password)...\n'
@@ -510,8 +513,8 @@ function TestNeedPacaur() {
 
 function TestNeedAuracle() {
 	# shellcheck disable=SC2016,SC1004
-	TestNeedAURPackage auracle-git 76415be1eed235d0a7236749b1231f9e2bdf1691 "$(cat <<-'EOF'
-		source[0]="${source[0]/%/#commit=87399290d15900a2fcbc4d1d382f57bdac2ee4be}"
+	TestNeedAURPackage auracle-git 6649f56149557522787270ea55cb4f20827cae70 "$(cat <<-'EOF'
+		source[0]="${source[0]/%/#commit=825327277c070f601ef613ffc76130a45a3a28a6}"
 		check() { :; }
 		EOF
 )"

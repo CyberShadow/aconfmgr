@@ -96,10 +96,14 @@ mkdir /opt/aur/ssl
 	org=aconfmgr
 	domain=aur.archlinux.org
 
+	# Generate CA certificate with keyUsage extension (required by Python 3.13)
 	openssl genpkey -algorithm RSA -out ca.key
 	openssl req -x509 -key ca.key -out ca.crt \
-			-subj "/CN=$org/O=$org"
+			-subj "/CN=$org/O=$org" \
+			-addext "keyUsage = critical, keyCertSign, cRLSign" \
+			-addext "basicConstraints = critical, CA:TRUE"
 
+	# Generate site certificate with keyUsage extension (required by Python 3.13)
 	openssl genpkey -algorithm RSA -out site.key
 	openssl req -new -key site.key -out site.csr \
 			-subj "/CN=$domain/O=$org"
@@ -111,6 +115,8 @@ mkdir /opt/aur/ssl
 				basicConstraints = CA:FALSE
 				subjectKeyIdentifier = hash
 				authorityKeyIdentifier = keyid,issuer
+				keyUsage = critical, digitalSignature, keyEncipherment
+				extendedKeyUsage = serverAuth
 				subjectAltName = DNS:$domain
 				END
 

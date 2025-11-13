@@ -3,7 +3,7 @@ pkgver=1
 pkgrel=1
 arch=('i686' 'x86_64')
 _py_deps=(bleach markdown mysqlclient pygit2 setuptools srcinfo poetry)
-depends=(nginx mysql fcgiwrap openssh git cgit curl "${_py_deps[@]/#/python-}")
+depends=(nginx mysql fcgiwrap openssh git cgit curl python312 "${_py_deps[@]/#/python-}")
 makedepends=(python-poetry-dynamic-versioning python-installer)
 _aurweb_ver=6.2.18
 source=(git+https://gitlab.archlinux.org/archlinux/aurweb.git#tag=v$_aurweb_ver
@@ -15,9 +15,13 @@ source=(git+https://gitlab.archlinux.org/archlinux/aurweb.git#tag=v$_aurweb_ver
 		cgitrc
 		aurweb-git-auth.sh
 		aurweb-git-serve.sh
+		aurweb-git-update.sh
+		aurweb-notify.sh
 		start.sh
 		setup.sh)
 md5sums=('SKIP'
+         'SKIP'
+         'SKIP'
          'SKIP'
          'SKIP'
          'SKIP'
@@ -37,6 +41,22 @@ package() {
 
   mkdir "$pkgdir"/opt/aur/aurweb
   git -C "$srcdir"/aurweb archive HEAD | tar -x -C "$pkgdir"/opt/aur/aurweb
+  # Patch aurweb bug: asgi.py:186 assumes form_data exists without checking
+  sed -i 's/form_data = str(dict(request.state.form_data))/form_data = str(dict(getattr(request.state, "form_data", {})))/' "$pkgdir"/opt/aur/aurweb/aurweb/asgi.py
+  # Patch aurweb bug: rpc.py POST /rpc/v{version}/info expects JSON but auracle sends form data
+  # Change function signature to accept form data like the legacy /rpc endpoint does
+  sed -i '/^async def rpc_openapi_multiinfo_post(/,/^):$/ {
+    s/^):$/    args: list[str] = Form(default=[], alias="arg[]"),\n):/
+  }' "$pkgdir"/opt/aur/aurweb/aurweb/routers/rpc.py
+  # Remove the JSON parsing and validation code (lines 224-232)
+  sed -i '/^    data = await request.json()/,/^        )$/ {
+    /^    data = await request.json()/d
+    /^$/d
+    /^    args = data.get("arg", \[\])/d
+    /^    if not isinstance(args, list):/,/^        )$/d
+  }' "$pkgdir"/opt/aur/aurweb/aurweb/routers/rpc.py
+  # Copy the poetry.lock that was generated during build
+  cp "$srcdir"/aurweb/poetry.lock "$pkgdir"/opt/aur/aurweb/poetry.lock
 
   (
 	printf 'g aur %d\n' "$_aur_gid"
@@ -47,15 +67,22 @@ package() {
 
   # Use Poetry to build and install aurweb
   cd "$srcdir"/aurweb
+  # Use Python 3.12 for aurweb (Python 3.13 compatibility pending upstream)
+  poetry env use /usr/bin/python3.12
+  # Generate poetry.lock
+  poetry lock
   poetry build -f wheel
-  /usr/bin/python -m installer --destdir="$pkgdir" dist/*.whl
+  # Use system Python for installer (it's just a packaging tool, doesn't affect runtime)
+  /usr/bin/python3 -m installer --destdir="$pkgdir" dist/*.whl
   install -m644 -D "$srcdir"/aurweb-config "$pkgdir"/etc/aurweb/config
 
-  # Install Poetry wrapper scripts for aurweb-git-auth and aurweb-git-serve
+  # Install Poetry wrapper scripts for aurweb git commands
   # This is needed because aurweb v6.x uses Poetry virtualenv
   # The wheel installs Python entry points, but we override them with these wrappers
   install -m755 -D "$srcdir"/aurweb-git-auth.sh "$pkgdir"/usr/bin/aurweb-git-auth
   install -m755 -D "$srcdir"/aurweb-git-serve.sh "$pkgdir"/usr/bin/aurweb-git-serve
+  install -m755 -D "$srcdir"/aurweb-git-update.sh "$pkgdir"/usr/bin/aurweb-git-update
+  install -m755 -D "$srcdir"/aurweb-notify.sh "$pkgdir"/usr/bin/aurweb-notify
 
   install -m644 -D "$srcdir"/nginx.conf "$pkgdir"/opt/aur/nginx.conf
 
