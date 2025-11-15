@@ -149,7 +149,7 @@ testsuite : $(TESTSUITE_TESTS_OK)
 
 TESTSUITE_INTEG_TESTS_OK=$(patsubst t/%.sh,tmp/integ/test/%/.ok,$(TESTSUITE_TESTS))
 
-tmp/integ/test/%/.ok : t/%.sh $(SRC) $(TESTSUITE_LIB) docker-image
+tmp/integ/test/%/.ok : t/%.sh $(SRC) $(TESTSUITE_LIB) $(DOCKER_IMAGE_OK)
 	mkdir -p $(dir $@)
 	docker/run-test.sh $(<:t/%=%) 2>&1 | tee $(dir $@)test.log
 	touch "$@"
@@ -182,7 +182,8 @@ $(ARCH_TAR) : | $(ARCH_TAR_DIR)
 
 DOCKER=docker
 
-$(TMP)/.docker-image-ok-arch : $(ARCH_TAR) docker/Dockerfile.arch
+DOCKER_IMAGE_ARCH_OK=$(TMP)/.docker-image-ok-arch
+$(DOCKER_IMAGE_ARCH_OK) : $(ARCH_TAR) docker/Dockerfile.arch
 	$(DOCKER) build \
 		-t aconfmgr-arch \
 		-f - \
