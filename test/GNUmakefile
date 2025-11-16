@@ -16,7 +16,9 @@
 #                  (useful for testing on old / non-Arch systems)
 #
 
-# Common macros
+################################################################################
+# Configuration
+################################################################################
 
 SRC=../aconfmgr $(wildcard ../src/*.bash)
 TMP=tmp
@@ -27,11 +29,17 @@ SHELL = /bin/bash
 # Enable pipefail for all recipes so that piped commands propagate failures
 .SHELLFLAGS = -e -o pipefail -c
 
+################################################################################
 # Entry point targets
+################################################################################
 
 check : lint testsuite
 ci : check coverage
 lint : shellcheck style
+
+################################################################################
+# Basic infrastructure
+################################################################################
 
 # Create temporary directory
 
@@ -123,47 +131,9 @@ else
  PATH_PREFIX=$(realpath $(COREUTILS_BIN_DIR)):$(realpath $(BASH_BIN_DIR)):
 endif
 
-# ShellCheck rule
-
-SHELLCHECK_OK=$(TMP)/.shellcheck-ok
-shellcheck : $(SHELLCHECK_OK)
-$(SHELLCHECK_OK) : $(SRC) $(SHELLCHECK) $(MULTISHELLCHECK)
-	SHELLCHECK=$(SHELLCHECK) bash $(MULTISHELLCHECK) ../aconfmgr $(SHELLCHECK_ARGS)
-	touch "$@"
-
-# Test suite
-
-TESTSUITE_LIB=$(wildcard t/lib*.bash t/mocks/*)
-TESTSUITE_TESTS:=$(addprefix t/, $(addsuffix .sh, $(shell ./print-test-list.sh)))
-TESTSUITE_TESTS_OK=$(patsubst t/%.sh,tmp/test/%/.ok,$(TESTSUITE_TESTS))
-TESTSUITE=$(TESTSUITE_LIB) $(TESTSUITE_TESTS)
-
-tmp/test/%/.ok : t/%.sh $(SRC) $(TESTSUITE_LIB) $(BASH_DEP)
-	mkdir -p $(dir $@)
-	cd t && PATH=$(PATH_PREFIX)$(PATH) $(BASH) $(<:t/%=%) 2>&1 | tee ../$(dir $@)test.log
-	touch "$@"
-
-testsuite : $(TESTSUITE_TESTS_OK)
-
-# Test suite (integration mode)
-
-TESTSUITE_INTEG_TESTS_OK=$(patsubst t/%.sh,tmp/integ/test/%/.ok,$(TESTSUITE_TESTS))
-
-tmp/integ/test/%/.ok : t/%.sh $(SRC) $(TESTSUITE_LIB) $(DOCKER_IMAGE_OK)
-	mkdir -p $(dir $@)
-	docker/run-test.sh $(<:t/%=%) 2>&1 | tee $(dir $@)test.log
-	touch "$@"
-
-testsuite-integration : $(TESTSUITE_INTEG_TESTS_OK)
-
-# Coverage
-
-COVERAGE_REPORT=$(TMP)/coverage/index.html
-coverage : $(COVERAGE_REPORT)
-$(COVERAGE_REPORT) : $(SRC) $(TESTSUITE) $(BASH_DEP) .simplecov
-	PATH=$(PATH_PREFIX)$(PATH) bashcov --bash-path $(BASH) --root=.. t/all.sh
-
+################################################################################
 # Docker image (integration testing)
+################################################################################
 
 ARCH_DATE=2025.11.01
 ARCH_TAR_FN=archlinux-bootstrap-$(ARCH_DATE)-x86_64.tar.zst
@@ -204,6 +174,47 @@ $(DOCKER_IMAGE_OK) : $(DOCKER_IMAGE_ARCH_OK) docker/Dockerfile $(wildcard docker
 
 docker-image : $(DOCKER_IMAGE_OK)
 
+################################################################################
+# Test suite (mock mode)
+################################################################################
+
+TESTSUITE_LIB=$(wildcard t/lib*.bash t/mocks/*)
+TESTSUITE_TESTS:=$(addprefix t/, $(addsuffix .sh, $(shell ./print-test-list.sh)))
+TESTSUITE_TESTS_OK=$(patsubst t/%.sh,tmp/test/%/.ok,$(TESTSUITE_TESTS))
+TESTSUITE=$(TESTSUITE_LIB) $(TESTSUITE_TESTS)
+
+tmp/test/%/.ok : t/%.sh $(SRC) $(TESTSUITE_LIB) $(BASH_DEP)
+	mkdir -p $(dir $@)
+	cd t && PATH=$(PATH_PREFIX)$(PATH) $(BASH) $(<:t/%=%) 2>&1 | tee ../$(dir $@)test.log
+	touch "$@"
+
+testsuite : $(TESTSUITE_TESTS_OK)
+
+################################################################################
+# Test suite (integration mode)
+################################################################################
+
+TESTSUITE_INTEG_TESTS_OK=$(patsubst t/%.sh,tmp/integ/test/%/.ok,$(TESTSUITE_TESTS))
+
+tmp/integ/test/%/.ok : t/%.sh $(SRC) $(TESTSUITE_LIB) $(DOCKER_IMAGE_OK)
+	mkdir -p $(dir $@)
+	docker/run-test.sh $(<:t/%=%) 2>&1 | tee $(dir $@)test.log
+	touch "$@"
+
+testsuite-integration : $(TESTSUITE_INTEG_TESTS_OK)
+
+################################################################################
+# Linting & coverage
+################################################################################
+
+# ShellCheck
+
+SHELLCHECK_OK=$(TMP)/.shellcheck-ok
+shellcheck : $(SHELLCHECK_OK)
+$(SHELLCHECK_OK) : $(SRC) $(SHELLCHECK) $(MULTISHELLCHECK)
+	SHELLCHECK=$(SHELLCHECK) bash $(MULTISHELLCHECK) ../aconfmgr $(SHELLCHECK_ARGS)
+	touch "$@"
+
 # Style
 
 STYLE_OK=$(TMP)/.style-ok
@@ -212,11 +223,22 @@ $(STYLE_OK) : $(SRC) $(TESTSUITE) lint.sh
 	./lint.sh $(SRC) $(TESTSUITE) lint.sh
 	touch "$@"
 
+# Coverage
+
+COVERAGE_REPORT=$(TMP)/coverage/index.html
+coverage : $(COVERAGE_REPORT)
+$(COVERAGE_REPORT) : $(SRC) $(TESTSUITE) $(BASH_DEP) .simplecov
+	PATH=$(PATH_PREFIX)$(PATH) bashcov --bash-path $(BASH) --root=.. t/all.sh
+
+################################################################################
 # Clean-up
+################################################################################
 
 clean :
 	rm -rf $(TMP)
 
+################################################################################
 # GNU make directives
+################################################################################
 
 .PHONY: check ci lint shellcheck style testsuite testsuite-integration coverage docker-image clean
