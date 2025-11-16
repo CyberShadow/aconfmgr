@@ -2,7 +2,7 @@ name: test
 on: [ push, pull_request ]
 jobs:
   test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         # The integration tests take a long time to run,
@@ -39,7 +39,7 @@ jobs:
       run: |
         test/ci.sh
   finalize:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     if: always()
     needs: test
     steps:
