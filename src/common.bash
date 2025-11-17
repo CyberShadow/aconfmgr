@@ -1259,7 +1259,10 @@ EOF
 	(
 		cd "$pkg_dir"
 		mkdir --parents home
-		local args=(env -i "PATH=$path" "HOME=$PWD/home" "GNUPGHOME=$gnupg_home" "${makepkg_opts[@]}")
+		# Set CARGO_TARGET_DIR to avoid issues with Rust builds on mounted volumes
+		# This prevents "could not write output" errors when building Rust packages
+		local cargo_target_dir="/tmp/cargo-target-$$"
+		local args=(env -i "PATH=$path" "HOME=$PWD/home" "GNUPGHOME=$gnupg_home" "CARGO_TARGET_DIR=$cargo_target_dir" "${makepkg_opts[@]}")
 
 		if [[ $EUID == 0 ]]
 		then
