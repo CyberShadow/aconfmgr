@@ -29,6 +29,7 @@ function Usage() {
 	printf '  apply   Update the system to reflect the current contents of the configuration\n'
 	printf '  check   Syntax-check and lint the configuration\n'
 	printf '  diff    Compare configuration and system\n'
+	printf '  cd      Change current directory to the configuration directory\n'
 	echo
 	printf 'Supported options:\n'
 	printf '  -h, --help               Print this message\n'
@@ -65,7 +66,7 @@ function Main() {
 	while [[ $# != 0 ]]
 	do
 		case "$1" in
-			save|apply|check|diff)
+			save|apply|check|diff|cd)
 				if [[ -n "$aconfmgr_action" ]]
 				then
 					UsageError "An action has already been specified"
@@ -78,6 +79,20 @@ function Main() {
 				then
 					aconfmgr_action_args=("$@")
 					break
+				elif [[ "$aconfmgr_action" == cd ]]
+				then
+					echo "To add the 'aconfmgr cd' function to your shell, add the following lines to your shell's startup file (e.g., ~/.bashrc, ~/.zshrc):"
+					echo ""
+					echo "function aconfmgr() {"
+					echo "  if [ \"\$1\" = \"cd\" ]; then"
+					echo "    shift"
+					echo "    cd ~/.config/aconfmgr"
+					echo "  else"
+					echo "    command aconfmgr \"\$@\""
+					echo "  fi"
+					echo "}"
+					echo ""
+					Exit 0
 				fi
 				;;
 			-h|--help|help)
