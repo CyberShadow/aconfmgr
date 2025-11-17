@@ -17,9 +17,11 @@ source=(git+https://gitlab.archlinux.org/archlinux/aurweb.git#tag=v$_aurweb_ver
 		aurweb-git-serve.sh
 		aurweb-git-update.sh
 		aurweb-notify.sh
+		faur-translator.py
 		start.sh
 		setup.sh)
 md5sums=('SKIP'
+         'SKIP'
          'SKIP'
          'SKIP'
          'SKIP'
@@ -96,6 +98,10 @@ package() {
 
   install -m755 -D "$srcdir"/start.sh "$pkgdir"/opt/aur/start.sh
   install -m755 -D "$srcdir"/setup.sh "$pkgdir"/opt/aur/setup.sh
+
+  # Faur API translator for aura support
+  mkdir -p "$pkgdir"/opt/aur/cgi-bin
+  install -m755 -D "$srcdir"/faur-translator.py "$pkgdir"/opt/aur/cgi-bin/faur-translator.py
 
   chown -R "$_aur_uid":"$_aur_gid" "$pkgdir"/opt/aur
 }

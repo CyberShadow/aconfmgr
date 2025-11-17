@@ -117,7 +117,7 @@ mkdir /opt/aur/ssl
 				authorityKeyIdentifier = keyid,issuer
 				keyUsage = critical, digitalSignature, keyEncipherment
 				extendedKeyUsage = serverAuth
-				subjectAltName = DNS:$domain
+				subjectAltName = DNS:$domain, DNS:faur.fosskers.ca
 				END
 
 	cat site.crt ca.crt > chain.crt
