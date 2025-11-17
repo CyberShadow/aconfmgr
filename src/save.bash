@@ -148,7 +148,7 @@ function AconfSave() {
 				# shellcheck disable=SC2174
 				mkdir --mode=700 --parents "$config_dir"/files/"$dir"
 
-				local func='' suffix='' heredoc_src='' prefix_to_expand='' args=() props=()
+				local func suffix heredoc_src prefix_to_expand args=() props=()
 
 				local output_file="$output_dir"/files/"$file"
 				local system_file="$system_dir"/files/"$file"
@@ -201,25 +201,30 @@ function AconfSave() {
 							printf 'RemoveFile %q\n' "$file" >> "$config_save_target"
 						fi
 					elif
-						AconfNeedProgram file file n &&
-						file "$system_file" | grep -Fw text | grep -qvFw -- 'with escape sequences' &&
-						[[ $(wc -w <<<"$package") -le 1 ]]
+						{
+							AconfNeedProgram file file n;
+							[[ $(wc -w <<<"$package") -le 1 ]] &&
+							file "$system_file" | LC_ALL=C grep -Fw text | LC_ALL=C grep -qvFw 'with escape sequences';
+						}
 					then
 						AconfNeedProgram diff diffutils n
-						if [[ -n "$package" ]] && AconfNeedPackageFile "$package" >/dev/null
+						if [[ -n "$package" ]]
 						then
-							local cat_output_file_or_else_pkg_file
-							if [[ -f "$output_file" ]]
-							then
-								cat_output_file_or_else_pkg_file="$(printf 'cat %q' "$output_file")"
-							else
-								cat_output_file_or_else_pkg_file="$(printf 'AconfGetPackageOriginalFile %q %q' "$package" "$file")"
-							fi
+							AconfNeedPackageFile "$package" >/dev/null
+							function GetOutputFileElsePackageFile() {
+								if [[ -f "$output_file" ]]
+								then
+									cat "$output_file"
+								else
+									AconfGetPackageOriginalFile "$package" "$file"
+								fi
+							}
 							{
 								# the output should contain a quoted command expansion
 								# shellcheck disable=SC2016
 								printf 'patch --no-backup-if-mismatch "$(GetPackageOriginalFile --no-clobber %s %q)" <<"EOF"\n' "$package" "$file"
- 								DiffWithoutHeaders --unified=5 <(eval "$cat_output_file_or_else_pkg_file") "$system_file"
+ 								diff --unified=5 --label "output/$file" --label "system/$file" \
+									<(GetOutputFileElsePackageFile) "$system_file" || true;
  								printf 'EOF\n'
 								# we didn't have to worry about heredoc delimiter collisions because
 								# unified diff lines always begin with space, plus or minus
@@ -230,7 +235,8 @@ function AconfSave() {
 								# the output should contain a quoted command expansion
 								# shellcheck disable=SC2016
 								printf 'patch --no-backup-if-mismatch "$(CreateFile --no-clobber %q)" <<"EOF"\n' "$file"
-								DiffWithoutHeaders --unified=5 "$output_file" "$system_file"
+								diff --unified=5 --label "output/$file" --label "system/$file" \
+									"$output_file" "$system_file" || true;
 								printf 'EOF\n'
 								# we didn't have to worry about heredoc delimiter collisions because
 								# unified diff lines always begin with space, plus or minus
@@ -246,20 +252,17 @@ function AconfSave() {
 							else
 								heredoc_src="$system_file"
 							fi
-							local linecount
-							linecount="$(wc -l <"$heredoc_src")"
-							if [[ $linecount -lt 1 ]]
-							then
-								local contents
-								contents=$(<"$heredoc_src")
-								heredoc_src=''
-								if [[ $linecount -eq 0 ]]
-								then
-									prefix_to_expand="printf '%s' ${contents@Q} >"
-								else
-									prefix_to_expand="echo ${contents@Q} >"
-								fi
-							fi
+							local contents
+							case "$(head -n2 "$heredoc_src" | wc -l)" in
+								0|1)
+									contents=$(<"$heredoc_src")
+									unset heredoc_src
+									prefix_to_expand="printf '%s\n' -- ${contents@Q} >"
+								;;&
+								0)
+									prefix_to_expand="printf '%s' -- ${contents@Q} >"
+								;;
+							esac
 						fi
 					else
 						cp "$system_file" "$config_dir"/files/"$file"
@@ -290,11 +293,11 @@ function AconfSave() {
 					unset 'args[${#args[@]}-1]'
 				done
 
-				if [[ -n $func ]]
+				if [[ -v $func ]]
 				then
-					if [[ -n "$prefix_to_expand" ]]
+					if [[ -v "$prefix_to_expand" ]]
 					then
-						if [[ -n "$heredoc_src" ]]
+						if [[ -v "$heredoc_src" ]]
 						then
 							local heredoc_delim
 							heredoc_delim="$(ChooseHeredocTerminator "$heredoc_src")"
