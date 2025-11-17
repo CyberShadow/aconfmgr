@@ -1845,12 +1845,6 @@ function SuperCat() {
 	fi
 }
 
-# run diff, then get rid of the filename headers which are going to be wrong
-# (e.g. /dev/fd/63 from the process substitution)
-function DiffWithoutHeaders() {
-	{ diff "$@" || true; } | sed -Ee '1,4{ /^---/d; /^\+\+\+/d; }'
-}
-
 function ChooseHeredocTerminator() {
 	local src="$1" delim=EOF
 
