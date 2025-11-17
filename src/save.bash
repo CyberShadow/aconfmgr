@@ -293,11 +293,11 @@ function AconfSave() {
 					unset 'args[${#args[@]}-1]'
 				done
 
-				if [[ -v $func ]]
+				if [[ -v func ]]
 				then
-					if [[ -v "$prefix_to_expand" ]]
+					if [[ -v prefix_to_expand ]]
 					then
-						if [[ -v "$heredoc_src" ]]
+						if [[ -v heredoc_src ]]
 						then
 							local heredoc_delim
 							heredoc_delim="$(ChooseHeredocTerminator "$heredoc_src")"
