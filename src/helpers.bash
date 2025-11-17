@@ -78,6 +78,17 @@ function IgnorePackage() {
 }
 
 #
+# IgnorePackagesAll - does not accept arguments
+#
+# Ignores all installed packages. Usefule if you want to use another manger for managing packages.
+#
+
+function IgnorePackagesAll() {
+    mapfile -t ignore_foreign_packages < <(pacman -Qqm)
+    mapfile -t ignore_packages < <(pacman -Qqn)
+}
+
+#
 # CopyFile PATH [MODE [OWNER [GROUP]]]
 #
 # Copies a file from the "files" subdirectory to the output.
