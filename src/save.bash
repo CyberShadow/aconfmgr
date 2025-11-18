@@ -298,17 +298,17 @@ function AconfSave() {
 							heredoc_delim="$(ChooseHeredocTerminator "$heredoc_src")"
 							# the output should contain a quoted command expansion
 							# shellcheck disable=SC2016
-							printf '%s "$(%s%s%s)" <<"%s"\n' "$prefix_to_expand" "$func" "$(printf ' %q' "${args[@]}")" "$suffix" "$heredoc_delim"
+							printf '%s "$(%s%s%s)" <<"%s"\n' "$prefix_to_expand" "$func" "$(printf ' %q' "${args[@]}")" "${suffix:-}" "$heredoc_delim"
 							# use sed to enforce trailing newline, via https://unix.stackexchange.com/a/31955
 							# shellcheck disable=SC1003
 							sed -e '$a\' "$heredoc_src"
 							printf '%s\n' "$heredoc_delim"
 						else
 							# shellcheck disable=SC2016
-							printf '%s "$(%s%s%s)"\n' "$prefix_to_expand" "$func" "$(printf ' %q' "${args[@]}")" "$suffix"
+							printf '%s "$(%s%s%s)"\n' "$prefix_to_expand" "$func" "$(printf ' %q' "${args[@]}")" "${suffix:-}"
 						fi
 					else
-						printf '%s%s%s\n' "$func" "$(printf ' %q' "${args[@]}")" "$suffix"
+						printf '%s%s%s\n' "$func" "$(printf ' %q' "${args[@]}")" "${suffix:-}"
 					fi >> "$config_save_target"
 				fi
 			done
