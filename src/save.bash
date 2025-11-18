@@ -253,10 +253,10 @@ function AconfSave() {
 								0|1)
 									contents=$(<"$heredoc_src")
 									unset heredoc_src
-									prefix_to_expand="printf '%s\n' -- ${contents@Q} >"
+									prefix_to_expand="printf '%s\n' ${contents@Q} >"
 								;;&
 								0)
-									prefix_to_expand="printf '%s' -- ${contents@Q} >"
+									prefix_to_expand="printf '%s' ${contents@Q} >"
 								;;
 							esac
 						fi
