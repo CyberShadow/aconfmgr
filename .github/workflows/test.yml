@@ -4,6 +4,7 @@ jobs:
   test:
     runs-on: ubuntu-24.04
     strategy:
+      fail-fast: false
       matrix:
         # The integration tests take a long time to run,
         # so split them up into shards.
