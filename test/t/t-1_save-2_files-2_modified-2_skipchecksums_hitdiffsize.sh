@@ -21,7 +21,7 @@ AconfSave
 TestPhase_Check ###############################################################
 
 TestExpectConfig <<"EOF"
-printf '%s' 'Not original file' > "$(CreateFile /badfile.txt)"
+printf -- '%s' 'Not original file' > "$(CreateFile /badfile.txt)"
 EOF
 
 TestDone ######################################################################

@@ -11,7 +11,7 @@ AconfSave
 
 TestPhase_Check ###############################################################
 TestExpectConfig <<"EOF"
-printf '%s' 'Stray file contents' > "$(CreateFile /strayfile.txt)"
+printf -- '%s' 'Stray file contents' > "$(CreateFile /strayfile.txt)"
 EOF
 
 TestDone ######################################################################
