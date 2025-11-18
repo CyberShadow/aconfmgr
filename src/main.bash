@@ -85,7 +85,7 @@ function Main() {
 				Exit 0
 				;;
 			-c|--config)
-				config_dir="${2:-$ACONFMGR_CONFIG}"
+				config_dir="$2"
 				shift 2
 				;;
 			--skip-config)
