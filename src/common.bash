@@ -1853,6 +1853,13 @@ function ChooseHeredocTerminator() {
 	echo $delim
 }
 
+# determine if a file can be inlined into the config when saving
+function AconfIsFileInlinable() {
+	# implicitly inhibit errexit:
+	LC_ALL=C awk '/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/{exit 1;}' "$1" && true
+	return $?
+}
+
 if ! ( empty_array=() ; : "${empty_array[@]}" )
 then
 	# Old bash versions treat substitution of an empty array

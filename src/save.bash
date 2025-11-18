@@ -200,12 +200,7 @@ function AconfSave() {
 						then
 							printf 'RemoveFile %q\n' "$file" >> "$config_save_target"
 						fi
-					elif
-						{
-							AconfNeedProgram file file n;
-							[[ $(wc -w <<<"$package") -le 1 ]] &&
-							file "$system_file" | LC_ALL=C grep -Fw text | LC_ALL=C grep -qvFw 'with escape sequences';
-						}
+					elif [[ $(wc -w <<<"$package") -le 1 ]] && AconfIsFileInlinable "$system_file"
 					then
 						AconfNeedProgram diff diffutils n
 						if [[ -n "$package" ]]
