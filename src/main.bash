@@ -101,7 +101,7 @@ function Main() {
 				shift
 				;;
 			--aur-helper)
-				aur_helper="${2:-$ACONFMGR_AUR_HELPER}"
+				aur_helper="$2"
 				shift 2
 				;;
 			--color)
