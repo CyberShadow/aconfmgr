@@ -148,6 +148,7 @@ function AconfSave() {
 				# shellcheck disable=SC2174
 				mkdir --mode=700 --parents "$config_dir"/files/"$dir"
 
+				unset func suffix heredoc_src prefix_to_expand # remove the previous values
 				local func suffix heredoc_src prefix_to_expand args=() props=()
 
 				local output_file="$output_dir"/files/"$file"
