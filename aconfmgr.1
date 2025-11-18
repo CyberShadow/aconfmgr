@@ -114,6 +114,7 @@ Default location of configuration directory
 (can be overridden with \fB\-c\fR).
 
 The default location is affected by the \fB$XDG_CONFIG_HOME\fR and \fB$HOME\fR environment variables.
+It may be set directly by the \fB$ACONFMGR_CONFIG\fR environment variable.
 
 .TP
 .IB /tmp/aconfmgr- USER
@@ -140,6 +141,10 @@ Affects the default location of the temporary directory.
 .TP
 .B $XDG_CONFIG_HOME
 Affects the default location of the configuration directory.
+
+.TP
+.B $ACONFMGR_CONFIG
+Sets the location of the configuration directory.
 
 .SH BUGS
 Please report defects and enhancement requests to the GitHub issue tracker:
