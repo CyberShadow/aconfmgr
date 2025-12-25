@@ -1530,6 +1530,7 @@ function AconfNeedPackageFile() {
 			do
 				if sudo test -d "$dir"
 				then
+					local file
 					sudo find "$dir" -type f -name "$filemask" -not -name '*.sig' -print0 | \
 						while read -r -d $'\0' file
 						do
@@ -1939,6 +1940,21 @@ function SuperCat() {
 	else
 		sudo cat "$1"
 	fi
+}
+
+function ChooseHeredocTerminator() {
+	local src="$1" delim=EOF
+
+	while grep -q "^$delim" "$src"; do delim="$delim$delim"; done
+
+	echo $delim
+}
+
+# determine if a file can be inlined into the config when saving
+function AconfIsFileInlinable() {
+	# implicitly inhibit errexit:
+	LC_ALL=C awk '/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/{exit 1;}' "$1" && true
+	return $?
 }
 
 if ! ( empty_array=() ; : "${empty_array[@]}" )
