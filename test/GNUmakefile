@@ -135,10 +135,10 @@ endif
 # Docker image (integration testing)
 ################################################################################
 
-ARCH_DATE=2025.11.01
+ARCH_DATE=2026.03.01
 ARCH_TAR_FN=archlinux-bootstrap-$(ARCH_DATE)-x86_64.tar.zst
 ARCH_TAR_URL=https://archive.archlinux.org/iso/$(ARCH_DATE)/$(ARCH_TAR_FN)
-ARCH_TAR_SHA256=18bbaf8dad9b32a78cfe41d019bc0e8878d9382d622449208f88b4e37b669042
+ARCH_TAR_SHA256=undefined
 ARCH_TAR_DIR=$(TMP)/arch
 ARCH_TAR=$(ARCH_TAR_DIR)/$(ARCH_TAR_FN)
 
