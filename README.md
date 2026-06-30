@@ -108,6 +108,7 @@ The list of provided helper functions:
 - `AddPackage [--foreign] PACKAGE...` - Adds a package to the list of packages to be installed.
 - `RemovePackage [--foreign] PACKAGE...` - Removes an earlier-added package to the list of packages to be installed.
 - `IgnorePackage [--foreign] PACKAGE...` - Adds a package to the list of [packages to be ignored](#ignoring-packages).
+- `IgnorePackagesAll` - Adds all installed packages to the list of [packages to be ignored](#ignoring-packages).
 - `AddPackageGroup GROUP` - Adds all packages currently in the given group to the list of packages to be installed.
 - `CopyFile PATH [MODE [OWNER [GROUP]]]` - Copies a file from the `files` subdirectory to the output.
 - `CopyFileTo SRC-PATH DST-PATH [MODE [OWNER [GROUP]]]` - As above, but allows source and output paths to vary.
@@ -174,6 +175,12 @@ IgnorePackage linux-git
 ```
 
 `aconfmgr save` will not update the configuration based on ignored packages' presence or absence, and `aconfmgr apply` will not install or uninstall them. The packages should also not be present in the configuration's package list, of course. To ignore a foreign package (e.g. a non-AUR foreign package), use the `--foreign` switch (e.g. `IgnorePackage --foreign my-flobulator`).
+
+To ignore all installed packages use the `IgnorePackagesAll` function:
+
+```bash
+IgnorePackagesAll
+```
 
 ### Inlining files
 
