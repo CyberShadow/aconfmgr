@@ -362,6 +362,7 @@ function AddFileContentFilter() {
 	local function=$2
 
 	file_content_filters[$pattern]=$function
+	file_content_filter_patterns+=("$pattern")
 }
 
 : # include in coverage
