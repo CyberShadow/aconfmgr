@@ -43,6 +43,7 @@ test_durations=(
 	[t-1_save-2_files-2_modified-3_skipchecksums_hitdiffmtime]=5435748400
 	[t-1_save-2_files-2_modified-4_skipchecksums_miss]=5328010300
 	[t-1_save-2_files-2_modified-5_filter]=5378989300
+	[t-1_save-2_files-2_modified-6_filter_order]=5378989300
 	[t-1_save-2_files-3_extra-1_file]=5364143100
 	[t-1_save-2_files-3_extra-2_props]=5435528500
 	[t-1_save-2_files-4_ignored-1_simple]=5336832100
