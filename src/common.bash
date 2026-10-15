@@ -85,6 +85,8 @@ priority_files=(
 # parameter, the file contents on its stdin, and is expected to
 # provide the filtered contents on its stdout.
 declare -A file_content_filters
+# Preserve registration order, including re-registration of an existing pattern.
+declare -a file_content_filter_patterns=()
 
 # Some limits for common-sense warnings.
 # Feel free to override these in your configuration.
@@ -664,7 +666,7 @@ BEGIN {
 
 				local filter_pattern filter_func
 				unset filter_func
-				for filter_pattern in "${!file_content_filters[@]}"
+				for filter_pattern in "${file_content_filter_patterns[@]}"
 				do
 					# shellcheck disable=SC2053
 					if [[ "$file" == $filter_pattern ]]
