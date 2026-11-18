@@ -10,7 +10,9 @@ FROM aconfmgr-arch AS python312-builder
 RUN pacman --noconfirm -S sudo bluez-libs mpdecimal gdb tk
 
 WORKDIR /build
-RUN git clone --depth=1 https://aur.archlinux.org/python312.git
+# The commit is pinned so that the package matches the pinned Arch snapshot
+# (ARCH_DATE in test/GNUmakefile). Renovate updates it by matching this line.
+RUN git clone https://aur.archlinux.org/python312.git && git -C python312 checkout 464f4a48e8ad1446f92972ba1fdfb06eaacd7d21
 WORKDIR /build/python312
 
 # Build as nobody user
