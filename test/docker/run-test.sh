@@ -26,8 +26,11 @@ fi
 args+=(
 	-v "$PWD/../..:/aconfmgr:ro"
 	-v "$PWD/../tmp/integ:/aconfmgr/test/tmp:rw"
+	# Override both address families, as resolvers may query them independently
 	--add-host aur.archlinux.org:127.0.0.1
+	--add-host aur.archlinux.org:::1
 	--add-host faur.fosskers.ca:127.0.0.1
+	--add-host faur.fosskers.ca:::1
 	-e GITHUB_ACTIONS
 	--env 'ACONFMGR_INTEGRATION=1'
 	--env 'ACONFMGR_IN_CONTAINER=1'
