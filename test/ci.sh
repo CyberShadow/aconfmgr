@@ -19,7 +19,7 @@ else
 	mkdir -p tmp/integ-coverage
 	root=$(cd .. && pwd)
 	# test/tmp/integ is mounted within the container as test/tmp
-	sed 's|"/aconfmgr/|"'"$root"'/|' tmp/integ/coverage/.resultset.json > tmp/integ-coverage/.resultset.json
+	sed 's|"/aconfmgr/|"'"$root"'/|g' tmp/integ/coverage/.resultset.json > tmp/integ-coverage/.resultset.json
 
 	# Generate / upload the report
 	bashcov --root=.. docker/empty.sh
