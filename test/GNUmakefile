@@ -24,7 +24,7 @@ SRC=../aconfmgr $(wildcard ../src/*.bash)
 TMP=tmp
 
 # Use bash instead of /bin/sh for all recipes
-SHELL = /bin/bash
+SHELL := $(shell command -v bash)
 
 # Enable pipefail for all recipes so that piped commands propagate failures
 .SHELLFLAGS = -e -o pipefail -c
