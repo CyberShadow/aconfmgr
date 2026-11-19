@@ -72,7 +72,11 @@ RUN pacman -Sy
 
 # Install packages for integration testing
 RUN pacman --noconfirm -S rubygems ruby-rdoc pacutils expect aur
-RUN sudo -u aconfmgr gem install bashcov
+# The versions match those on the CI host (.github/workflows/test.yml),
+# which merges the coverage results produced here.
+# Renovate updates them by matching these lines.
+RUN sudo -u aconfmgr gem install simplecov -v 1.3.2
+RUN sudo -u aconfmgr gem install bashcov -v 4.0.3
 
 # Initialize aurweb
 ENV ACONFMGR_IN_CONTAINER=1

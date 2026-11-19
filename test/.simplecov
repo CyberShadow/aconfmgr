@@ -27,5 +27,5 @@ SimpleCov.merge_timeout 3600
 
 SimpleCov.root('..')
 
-SimpleCov.add_group 'Source code', '/src/'
-SimpleCov.add_group 'Test suite', '/test/t/'
+SimpleCov.group 'Source code', '/src/'
+SimpleCov.group 'Test suite', '/test/t/'
