@@ -20,6 +20,9 @@ else
 	root=$(cd .. && pwd)
 	# test/tmp/integ is mounted within the container as test/tmp
 	sed 's|"/aconfmgr/|"'"$root"'/|g' tmp/integ/coverage/.resultset.json > tmp/integ-coverage/.resultset.json
+	# Fail if the above no longer matches SimpleCov's output format,
+	# instead of silently reporting no coverage.
+	grep -qF '"'"$root"'/src/' tmp/integ-coverage/.resultset.json
 
 	# Generate / upload the report
 	bashcov --root=.. docker/empty.sh
