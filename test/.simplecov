@@ -27,5 +27,11 @@ SimpleCov.merge_timeout 3600
 
 SimpleCov.root('..')
 
+# SimpleCov's default filters exclude the "test" directory,
+# however, we also want to measure the coverage of the test suite.
+SimpleCov.no_default_skips
+SimpleCov.load_profile 'root_filter'
+SimpleCov.load_profile 'hidden_filter'
+
 SimpleCov.group 'Source code', '/src/'
 SimpleCov.group 'Test suite', '/test/t/'
