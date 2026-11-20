@@ -96,6 +96,7 @@ test_globals_whitelist=(
 	ignore_paths
 	priority_files
 	file_content_filters
+	file_content_filter_patterns
 	makepkg_user
 
 	warn_file_count_threshold
