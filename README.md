@@ -16,6 +16,7 @@ Since the system configuration is described as shell scripts, it is trivially ex
 
 * [Usage](#usage)
   * [Installation](#installation)
+    * [Add cd command](#add-cd-command)
   * [First run](#first-run)
   * [Maintenance](#maintenance)
   * [Restoring](#restoring)
@@ -45,6 +46,21 @@ Since the system configuration is described as shell scripts, it is trivially ex
 ### Installation
 
 Simply clone (or [download](https://github.com/CyberShadow/aconfmgr/archive/master.zip)+unzip) the GitHub repository. `aconfmgr` will install dependencies as needed during execution. [An AUR package is also available](https://aur.archlinux.org/packages/aconfmgr-git/).
+
+#### Add cd command
+
+To be able to change to the aconfmgr configuration directory quickly with the command `aconfmgr cd`. Add the following function to your shell startup file. (e.g., `/etc/profile.d/aconfmgr.sh`, `~/.bashrc`, `~/.zshrc`).
+
+```sh
+function aconfmgr() {
+  if [ "$1" = "cd" ]; then
+    shift
+    cd ~/.config/aconfmgr
+  else
+    command aconfmgr "$@"
+  fi
+}
+```
 
 ### First run
 
