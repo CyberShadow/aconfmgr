@@ -11,10 +11,9 @@ TestPhase_Run #################################################################
 AconfSave
 
 TestPhase_Check ###############################################################
-TestExpectConfig <<EOF
-CopyFile /dir/strayfile.txt
+TestExpectConfig <<"EOF"
+printf -- '%s' 'Stray file contents' > "$(CreateFile /dir/strayfile.txt)"
 EOF
 
-diff -u "$config_dir"/files/dir/strayfile.txt <(printf "Stray file contents")
 
 TestDone ######################################################################
