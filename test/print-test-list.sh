@@ -91,6 +91,7 @@ test_durations=(
 	[t-2_apply-2_files-2_owned-2_modified-4_editgone]=8406021600
 	[t-2_apply-2_files-2_owned-2_modified-5_atomic]=8713903300
 	[t-2_apply-2_files-2_owned-2_modified-6_access]=9016978300
+	[t-2_apply-2_files-2_owned-2_modified-7_keepprops]=8896206900
 	[t-2_apply-2_files-2_owned-3_delete-1_file]=8726305800
 	[t-2_apply-2_files-2_owned-3_delete-2_dir]=8695303900
 	[t-2_apply-2_files-2_owned-4_restore-1_deleted-1_file]=8917928700
