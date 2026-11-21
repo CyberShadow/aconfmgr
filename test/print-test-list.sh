@@ -32,6 +32,7 @@ test_durations=(
 	[t-1_save-1_packages-1_new]=18448578200
 	[t-1_save-1_packages-2_missing]=5315925800
 	[t-1_save-1_packages-3_ignore]=8408050300
+	[t-1_save-1_packages-4_orphan]=8408050300
 	[t-1_save-2_files-1_stray-1_file]=5441335300
 	[t-1_save-2_files-1_stray-2_empty-1_simple]=5384498500
 	[t-1_save-2_files-1_stray-3_dir]=5360614600

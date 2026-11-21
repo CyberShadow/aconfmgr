@@ -94,6 +94,23 @@ function AconfSave() {
 		LogLeave
 	fi
 
+	# Orphan packages (installed as dependencies, but not required by anything).
+	# These are not part of the configuration, so `aconfmgr apply` will remove them.
+
+	local -a orphan_packages
+	AconfPrintOrphanPackages | mapfile -t orphan_packages
+
+	if [[ ${#orphan_packages[@]} != 0 ]]
+	then
+		Log '%s: Found %s orphan packages (installed as dependencies, but not required by any installed package):%s\n' \
+			"$(Color Y "Warning")" \
+			"$(Color G ${#orphan_packages[@]})" \
+			"$(Color M " %q" "${orphan_packages[@]}")"
+		Log 'These are not saved to the configuration, and %s will remove them. To keep a package, add it to the configuration (%s).\n' \
+			"$(Color Y "aconfmgr apply")" \
+			"$(Color Y "AddPackage")"
+	fi
+
 	LogLeave # Examining packages
 
 	#
