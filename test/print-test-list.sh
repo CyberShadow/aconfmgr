@@ -64,6 +64,7 @@ test_durations=(
 	[t-2_apply-1_packages-6_aur-1_makepkg-5_dependencies]=27368418700
 	[t-2_apply-1_packages-6_aur-1_makepkg-6_provider]=17866797700
 	[t-2_apply-1_packages-6_aur-1_makepkg-7_helperfirst]=61258993700
+	[t-2_apply-1_packages-6_aur-1_makepkg-8_pkgdest]=13823490200
 	[t-2_apply-1_packages-6_aur-2_helpers-1_makepkg]=21681121500
 	[t-2_apply-1_packages-6_aur-2_helpers-2_pacaur]=73970403100
 	[t-2_apply-1_packages-6_aur-2_helpers-3_yaourt]=38606179400
