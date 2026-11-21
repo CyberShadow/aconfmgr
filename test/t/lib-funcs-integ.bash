@@ -149,6 +149,15 @@ function TestDeleteFile() {
 # Packages
 
 # Helper
+# Refresh pacman's copy of the database of the test suite's package repository.
+# Only this repository is refreshed: the other ones are a snapshot which never
+# changes, and querying them over the network for every test package is slow
+# and can get us throttled.
+function TestSyncRepo() {
+	command sudo pacman --sync --refresh --config /etc/pacman.d/aconfmgr.conf
+}
+
+# Helper
 function TestMakePkg() {
 	local dir=$1
 	shift
@@ -256,7 +265,7 @@ EOF
 	then
 		command sudo repo-add /aconfmgr-repo/aconfmgr.db.tar "$pkg_path"
 		command sudo cp "$pkg_path" /aconfmgr-repo/
-		command sudo pacman -Sy
+		TestSyncRepo
 	fi
 
 	if [[ "$kind" == foreign && -f ~/aur-initialized ]]
@@ -293,7 +302,7 @@ function TestDeletePackage() {
 	then
 		command sudo find /aconfmgr-repo/ -name "$package"'-*.pkg.tar.*' -delete
 		command sudo repo-remove /aconfmgr-repo/aconfmgr.db.tar "$package"
-		command sudo pacman -Sy
+		TestSyncRepo
 	fi
 
 	if [[ "$kind" == foreign && -f ~/aur-initialized ]]
