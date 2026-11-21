@@ -1428,6 +1428,15 @@ function AconfInstallForeign() {
 	esac
 }
 
+# Print the names of the installed orphan packages: those installed
+# as dependencies, which no installed package requires (not even optionally).
+function AconfPrintOrphanPackages() {
+	( "$PACMAN" --query --unrequired --unrequired --deps --quiet --native || true ) |
+		( grep -vFxf <(PrintArray ignore_packages        ) || true )
+	( "$PACMAN" --query --unrequired --unrequired --deps --quiet --foreign || true ) |
+		( grep -vFxf <(PrintArray ignore_foreign_packages) || true )
+}
+
 function AconfNeedProgram() {
 	local program="$1" # program that needs to be in PATH
 	local package="$2" # package the program is available in
