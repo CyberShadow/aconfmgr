@@ -80,13 +80,14 @@ priority_files=(
 # These are useful for files which contain some unpredictable element,
 # such as a timestamp, which can't be considered as part of the system
 # configuration, and can be safely omitted from the file.
-# This is an associative array of patterns mapping to function
-# names. The function is called with the file name as the only
+# These are two parallel arrays, of patterns and the corresponding
+# function names, in the order in which the filters were added.
+# The function is called with the file name as the only
 # parameter, the file contents on its stdin, and is expected to
 # provide the filtered contents on its stdout.
-declare -A file_content_filters
-# Preserve registration order, including re-registration of an existing pattern.
-declare -a file_content_filter_patterns=()
+# Use the AddFileContentFilter helper to add a filter.
+file_content_filter_patterns=()
+file_content_filter_functions=()
 
 # Some limits for common-sense warnings.
 # Feel free to override these in your configuration.
@@ -664,14 +665,15 @@ BEGIN {
 					Log '%s: copying large file %s (%s bytes). Add %s to configuration to ignore.\n' "$(Color Y "Warning")" "$(Color C "%q" "$file")" "$(Color G "$size")" "$(Color Y "IgnorePath %q" "$file")"
 				fi
 
-				local filter_pattern filter_func
+				# The most recently added matching filter takes precedence.
+				local filter_index filter_func
 				unset filter_func
-				for filter_pattern in "${file_content_filter_patterns[@]}"
+				for filter_index in "${!file_content_filter_patterns[@]}"
 				do
 					# shellcheck disable=SC2053
-					if [[ "$file" == $filter_pattern ]]
+					if [[ "$file" == ${file_content_filter_patterns[$filter_index]} ]]
 					then
-						filter_func=${file_content_filters[$filter_pattern]}
+						filter_func=${file_content_filter_functions[$filter_index]}
 					fi
 				done
 

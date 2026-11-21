@@ -351,9 +351,9 @@ function IgnorePath() {
 # file contents on its stdin, and is expected to provide the filtered
 # contents on its stdout.
 #
-# Only one function can be configured per unique PATTERN.  The most
-# recently added PATTERN takes precedence over any matching patterns
-# preceding it.
+# Only one function is applied to any one file.  If the patterns of
+# several filters match a file, the most recently added one takes
+# precedence.
 #
 
 # shellcheck disable=SC2329  # User-facing API function called from config files
@@ -361,8 +361,8 @@ function AddFileContentFilter() {
 	local pattern=$1
 	local function=$2
 
-	file_content_filters[$pattern]=$function
 	file_content_filter_patterns+=("$pattern")
+	file_content_filter_functions+=("$function")
 }
 
 : # include in coverage
