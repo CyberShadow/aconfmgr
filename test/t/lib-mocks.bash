@@ -213,6 +213,33 @@ function cp() {
 
 function mv() {
 	TestSimpleWrap mv "$@"
+
+	# The file properties move along with the file.
+	local paths=()
+	local arg
+	for arg in "$@"
+	do
+		if [[ "$arg" != -* ]]
+		then
+			paths+=("$arg")
+		fi
+	done
+	test ${#paths[@]} -eq 2 || FatalError 'Expected two non-option arguments to mv\n'
+	local src="${paths[0]}"
+	local dst="${paths[1]}"
+	# Only objects in the virtual filesystem have (mocked) properties.
+	[[ "$src" == /* && "$dst" == /* ]] || return 0
+
+	local kind
+	for kind in mode owner group
+	do
+		command rm -f "$test_data_dir"/file-props"$dst"."$kind"
+		if [[ -f "$test_data_dir"/file-props"$src"."$kind" ]]
+		then
+			command mkdir -p "$(dirname "$test_data_dir"/file-props"$dst")"
+			command mv "$test_data_dir"/file-props"$src"."$kind" "$test_data_dir"/file-props"$dst"."$kind"
+		fi
+	done
 }
 
 function rm() {

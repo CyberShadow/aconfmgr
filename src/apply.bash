@@ -77,9 +77,53 @@ function AconfApply() {
 		done
 	}
 
+	# Print the value which the given property of a file or directory
+	# which is about to be installed should have.
+	function GetInstalledFileProp() {
+		local file="$1"
+		local prop="$2" # mode, owner, or group
+		local type="$3" # Type of the object being installed, as identified by `stat --format=%F`
+
+		local key="$file:$prop"
+		if [[ -n "${output_file_props[$key]:-}" ]]
+		then
+			printf '%s' "${output_file_props[$key]}"
+			return
+		fi
+
+		# The configuration does not specify this property, so it
+		# should have its default value. If the system's value is
+		# already the default one (as is the case for e.g. a package's
+		# file which only has its contents modified), preserve it.
+		local current=
+		if [[ -z "${system_file_props[$key]+x}" ]] && sudo test ! -h "$file" && [[ "$(sudo env LC_ALL=C stat --format=%F "$file" 2>/dev/null)" == "$type" ]]
+		then
+			local -A formats=([mode]=%a [owner]=%U [group]=%G)
+			current=$(sudo env LC_ALL=C stat --format="${formats[$prop]}" "$file")
+		fi
+
+		AconfDefaultFileProp "$file" "$prop" "$type" "$current"
+	}
+
 	function InstallFile() {
 		local file="$1"
 		local source="$output_dir"/files/"$file"
+
+		# Query the properties before changing anything on the system.
+		local mode owner group
+		if [[ ! -h "$source" ]]
+		then
+			local type
+			if [[ -d "$source" ]]
+			then
+				type='directory'
+			else
+				type='regular file'
+			fi
+			mode=$( GetInstalledFileProp "$file" mode  "$type")
+			owner=$(GetInstalledFileProp "$file" owner "$type")
+			group=$(GetInstalledFileProp "$file" group "$type")
+		fi
 
 		# system
 
@@ -117,15 +161,15 @@ function AconfApply() {
 		elif [[ -d "$source" ]]
 		then
 			sudo install -d \
-				 --mode="${output_file_props[$file:mode]:-755}" \
-				 --owner="${output_file_props[$file:owner]:-0}" \
-				 --group="${output_file_props[$file:group]:-0}" \
+				 --mode="$mode" \
+				 --owner="$owner" \
+				 --group="$group" \
 				 "$target"
 		else
 			sudo install \
-				 --mode="${output_file_props[$file:mode]:-$default_file_mode}" \
-				 --owner="${output_file_props[$file:owner]:-0}" \
-				 --group="${output_file_props[$file:group]:-0}" \
+				 --mode="$mode" \
+				 --owner="$owner" \
+				 --group="$group" \
 				 "$source" "$target"
 		fi
 
