@@ -67,7 +67,10 @@ RUN repo-add /aconfmgr-repo/aconfmgr.db.tar /aconfmgr-repo/*.pkg.tar.*
 
 # Configure pacman to use local repo
 RUN sed -i 's/^#DisableSandbox/DisableSandbox/' /etc/pacman.conf
-RUN printf '[aconfmgr]''\n''SigLevel = Optional TrustAll''\n''Server = file:///aconfmgr-repo/''\n' >> /etc/pacman.conf
+# The repository is defined in its own file, so that the test suite can
+# refresh it alone (without querying the other repositories over the network).
+RUN printf '[aconfmgr]''\n''SigLevel = Optional TrustAll''\n''Server = file:///aconfmgr-repo/''\n' > /etc/pacman.d/aconfmgr.conf
+RUN printf 'Include = /etc/pacman.d/aconfmgr.conf''\n' >> /etc/pacman.conf
 RUN pacman -Sy
 
 # Install packages for integration testing
