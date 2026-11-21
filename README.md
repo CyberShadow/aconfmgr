@@ -163,7 +163,7 @@ Then, register the rule by calling the `AddFileContentFilter` helper function:
 AddFileContentFilter '/etc/NetworkManager/system-connections/*.nmconnection' NetworkManagerConnectionFilter
 ```
 
-Only one function may be configured per unique pattern. The most recently added rule takes precedence over any rules with matching patterns preceding it.
+Only one function is applied to any one file. If the patterns of several rules match a file, the most recently added rule takes precedence.
 
 #### Ignoring packages
 
