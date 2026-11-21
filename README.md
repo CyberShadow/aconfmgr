@@ -112,7 +112,7 @@ The list of provided helper functions:
 - `CopyFile PATH [MODE [OWNER [GROUP]]]` - Copies a file from the `files` subdirectory to the output.
 - `CopyFileTo SRC-PATH DST-PATH [MODE [OWNER [GROUP]]]` - As above, but allows source and output paths to vary.
 - `CreateFile [--no-clobber] PATH [MODE [OWNER [GROUP]]]` - Creates an empty file, to be included in the output. Prints its absolute path to standard output.
-- `GetPackageOriginalFile [--no-clobber] PACKAGE PATH` - Extracts the original file from a package's archive for inclusion in the output. Prints its absolute path to standard output.
+- `GetPackageOriginalFile [--no-clobber] PACKAGE PATH [DST-PATH]` - Extracts the original file from a package's archive for inclusion in the output (at `DST-PATH`, if specified). Prints its absolute path to standard output.
 - `CreateLink PATH TARGET [OWNER [GROUP]]` - Creates a symbolic link with the specified target.
 - `RemoveFile PATH` - Removes an earlier-added file.
 - `SetFileProperty PATH TYPE VALUE` - Sets a file property.
@@ -211,6 +211,13 @@ EOF
 f="$(GetPackageOriginalFile glibc /etc/locale.gen)"
 sed -i 's/^#\(en_US.UTF-8\)/\1/g' "$f"
 sed -i 's/^#\(en_DK.UTF-8\)/\1/g' "$f" # for ISO timestamps
+```
+
+Some packages install their default configuration under `/usr`, to be copied to `/etc` for editing. An additional parameter specifies where to place the extracted file:
+
+```bash
+f="$(GetPackageOriginalFile pipewire /usr/share/pipewire/pipewire.conf /etc/pipewire/pipewire.conf)"
+sed -i 's/^\( *\)#\(default.clock.rate *=\).*/\1\2 96000/' "$f"
 ```
 
 The [Augeas](http://augeas.net/) package can assist in editing configuration files:

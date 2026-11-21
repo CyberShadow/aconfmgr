@@ -195,12 +195,15 @@ function CreateFile() {
 }
 
 #
-# GetPackageOriginalFile [--no-clobber] PACKAGE PATH
+# GetPackageOriginalFile [--no-clobber] PACKAGE PATH [DST-PATH]
 #
 # Extracts the original file from a package's archive for inclusion in the output.
 # Prints its absolute path to standard output.
 #
 # As in the case of CreateFile, the file can be further modified after extraction.
+#
+# If DST-PATH is specified, the file is placed there in the output
+# (instead of at PATH, its location in the package).
 #
 # Avoids overwriting any pre-existing output file if
 # --no-clobber is provided.
@@ -217,8 +220,9 @@ function GetPackageOriginalFile() {
 
 	local package="$1" # Package to extract the file from
 	local file="$2" # Absolute path to file in package
+	local output_path="${3:-$file}" # Absolute path to file in output
 
-	local output_file="$output_dir"/files/"$file"
+	local output_file="$output_dir"/files/"$output_path"
 
 	mkdir --parents "$(dirname "$output_file")"
 
@@ -230,7 +234,7 @@ function GetPackageOriginalFile() {
 			return
 		else
 			ConfigWarning 'Overwriting %s, which was created earlier in the configuration. Use %s to keep old contents, or silence this warning by calling %s first.\n' \
-						  "$(Color C "%q" "$file")" \
+						  "$(Color C "%q" "$output_path")" \
 						  "$(Color Y "GetPackageOriginalFile --no-clobber")" \
 						  "$(Color Y "RemoveFile")"
 		fi

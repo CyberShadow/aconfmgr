@@ -107,6 +107,7 @@ test_durations=(
 	[t-5_helpers-1_copyfile_relative_path]=110747800
 	[t-5_helpers-2_getpackageoriginalfile-1_reg]=8909734800
 	[t-5_helpers-2_getpackageoriginalfile-2_sudo]=8920780700
+	[t-5_helpers-2_getpackageoriginalfile-5_dstpath]=8909734800
 	[t-5_helpers-3_removepackage]=5409231900
 	[t-5_helpers-4_removefile]=5458596700
 	[t-5_helpers-5_addpackagegroup]=8870910400
