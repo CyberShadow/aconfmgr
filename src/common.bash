@@ -462,7 +462,6 @@ BEGIN {
 	LogEnter 'Searching for modified files...\n'
 
 	AconfNeedProgram paccheck pacutils n
-	AconfNeedProgram unbuffer expect n
 	local modified_file_count=0
 	local -A saw_file
 
@@ -472,7 +471,7 @@ BEGIN {
 
 	: > "$tmp_dir"/file-owners
 
-	local paccheck_opts=(unbuffer paccheck --files --file-properties --backup --noupgrade)
+	local paccheck_opts=(paccheck --files --file-properties --backup --noupgrade)
 	if [[ $skip_checksums == n ]]
 	then
 		# Use SHA256 for pacman 7.0+ (libalpm v15+) which uses SHA256 in mtree
@@ -485,7 +484,11 @@ BEGIN {
 		fi
 	fi
 
-	sudo sh -c "LC_ALL=C stdbuf -o0 $(printf ' %q' "${paccheck_opts[@]}") 2>&1 || true" | \
+	# paccheck reads the list of packages to check from its standard input
+	# when that is not a terminal, so give it an empty one (to check all packages).
+	# It exits with status 1 if it found any differences;
+	# any other non-zero status (e.g. a crash) is an error.
+	sudo sh -c "LC_ALL=C stdbuf -o0 $(printf ' %q' "${paccheck_opts[@]}") < /dev/null 2>&1 || [ \$? = 1 ]" | \
 		while read -r line
 		do
 			if [[ $line =~ ^(.*):\ \'(.*)\'\ (type|size|modification\ time|md5sum|sha256sum|UID|GID|permission|symlink\ target)\ mismatch\ \(expected\ (.*)\)$ ]]
