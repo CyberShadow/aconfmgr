@@ -1296,7 +1296,10 @@ EOF
 		# Set CARGO_TARGET_DIR to avoid issues with Rust builds on mounted volumes
 		# This prevents "could not write output" errors when building Rust packages
 		local cargo_target_dir="/tmp/cargo-target-$$"
-		local args=(env -i "PATH=$path" "HOME=$PWD/home" "GNUPGHOME=$gnupg_home" "CARGO_TARGET_DIR=$cargo_target_dir" "${makepkg_opts[@]}")
+		# Set PKGDEST to override any value set in the makepkg configuration,
+		# so that the package files are always placed in the build directory
+		# (which is where AconfNeedPackageFile looks for them).
+		local args=(env -i "PATH=$path" "HOME=$PWD/home" "GNUPGHOME=$gnupg_home" "CARGO_TARGET_DIR=$cargo_target_dir" "PKGDEST=$PWD" "${makepkg_opts[@]}")
 
 		if [[ $EUID == 0 ]]
 		then
