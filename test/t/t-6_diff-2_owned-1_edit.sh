@@ -13,8 +13,7 @@ TestAddFile /testfile.txt $'foo\n'
 TestAddConfig 'echo bar > $(CreateFile /testfile.txt)'
 
 TestPhase_Run #################################################################
-aconfmgr_action_args=(/testfile.txt)
-AconfDiff 2>&1 | tee "$test_dir"/diff-results.txt
+TestDiff 1 /testfile.txt
 
 TestPhase_Check ###############################################################
 grep -Fx -- '-foo' "$test_dir"/diff-results.txt

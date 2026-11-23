@@ -318,6 +318,41 @@ function TestExpectConfig() {
 }
 
 ###############################################################################
+# Actions
+
+# Run 'aconfmgr diff' with the given arguments, saving its output to
+# "$test_dir"/diff-results.txt, and verify its exit status.
+function TestDiff() {
+	local expected_status=$1
+	shift
+
+	# AconfDiff exits, so run it in a subshell. Its exit status is
+	# intercepted, so that a failure (unlike an expected non-zero
+	# status) still fails the test in the usual way.
+	(
+		function Exit() {
+			printf '%s\n' "${1:-0}" > "$test_dir"/diff-status
+			trap '' EXIT ERR
+			exit 0
+		}
+
+		aconfmgr_action_args=("$@")
+		AconfDiff
+		Exit
+	) > "$test_dir"/diff-results.txt 2>&1
+
+	local status
+	status=$(cat "$test_dir"/diff-status)
+
+	cat "$test_dir"/diff-results.txt 1>&2
+
+	test "$status" -eq "$expected_status" || \
+		FatalError 'Unexpected diff exit status: expected %s, encountered %s\n' \
+				   "$(Color G "$expected_status")" \
+				   "$(Color G "$status")"
+}
+
+###############################################################################
 # Test suite overrides
 
 prompt_mode=paranoid

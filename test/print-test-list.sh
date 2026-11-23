@@ -124,6 +124,7 @@ test_durations=(
 	[t-6_diff-1_lost]=3674674500
 	[t-6_diff-2_owned-1_edit]=5617599400
 	[t-6_diff-2_owned-2_revert]=5911366400
+	[t-6_diff-3_same]=3674674500
 )
 
 # Fill in placeholder durations for missing tests

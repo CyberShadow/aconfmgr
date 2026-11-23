@@ -252,6 +252,8 @@ The diff direction is from system to configuration, i.e., it displays changes th
 If the file belongs to a package and is unmodified on the system, `aconfmgr` will display the comparison between the original package version and the configuration version;
 likewise, if the file is absent from the configuration, the comparison will be between the filesystem version and the original package version.
 
+Like `diff`, `aconfmgr diff` exits with status 0 if it found no differences, and 1 if it did (any other status indicates an error), so `aconfmgr diff /` can be used in scripts to check whether the files on the system match the configuration. Note that only files are compared; differences in installed packages or file properties are not considered.
+
 ### Managing multiple systems
 
 You can use the same configuration repository to manage multiple sufficiently-similar systems. One way of doing so is e.g. Git branches (having one main branch plus one branch per machine, and periodically merge in changes from the main branch into the machine-specific branches); however, it is simpler to use shell scripting:

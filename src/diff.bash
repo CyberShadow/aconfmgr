@@ -2,13 +2,37 @@
 
 # This file contains the implementation of aconfmgr's 'diff' command.
 
+# Run diff, and record whether it found any differences
+# (in AconfDiff's found_differences).
 function AconfDiffRun() {
 	local status=0
 	"${diff_args[@]}" "$@" 1>&2 || status=$?
-	if [[ "$status" -ne 0 && "$status" -ne 1 ]]
-	then
-		FatalError 'diff exited with status %d.\n' "$status"
-	fi
+	case "$status" in
+		0)
+			;;
+		1)
+			found_differences=true
+			;;
+		*)
+			FatalError 'diff exited with status %d.\n' "$status"
+			;;
+	esac
+}
+
+# Like AconfDiffRun, but substitutes the original version
+# of the given file from its package for "-" in the arguments.
+function AconfDiffRunWithOriginal() {
+	local file=$1
+	shift
+
+	local package
+	package=$(pacman --quiet --query --owns "$file")
+
+	# Not piped into diff directly, as that would run AconfDiffRun in a subshell.
+	local original="$tmp_dir"/diff-original
+	AconfGetPackageOriginalFile "$package" "$file" > "$original"
+	AconfDiffRun "$@" < "$original"
+	rm "$original"
 }
 
 function AconfDiff() {
@@ -18,6 +42,7 @@ function AconfDiff() {
 	local diff_args=("${diff_opts[@]}" --unified --recursive --no-dereference)
 
 	local found_path=false
+	local found_differences=false
 	local arg
 	for arg in "${aconfmgr_action_args[@]}"
 	do
@@ -31,16 +56,10 @@ function AconfDiff() {
 			if [[ ! -e "$system_dir"/files"$arg" ]] && grep -qFx "$arg" "$tmp_dir"/owned-files
 			then
 				# File is owned by a package - retrieve package version
-				local package
-				package=$(pacman --quiet --query --owns "$arg")
-				AconfGetPackageOriginalFile "$package" "$arg" |
-					AconfDiffRun - "$output_dir"/files"$arg"
+				AconfDiffRunWithOriginal "$arg" - "$output_dir"/files"$arg"
 			elif [[ ! -e "$output_dir"/files"$arg" ]] && grep -qFx "$arg" "$tmp_dir"/owned-files
 			then
-				local package
-				package=$(pacman --quiet --query --owns "$arg")
-				AconfGetPackageOriginalFile "$package" "$arg" |
-					AconfDiffRun "$system_dir"/files"$arg" -
+				AconfDiffRunWithOriginal "$arg" "$system_dir"/files"$arg" -
 			else
 				AconfDiffRun "$system_dir"/files"$arg" "$output_dir"/files"$arg"
 			fi
@@ -60,6 +79,12 @@ function AconfDiff() {
 
 		# For now, reserve argument-less invocation:
 		FatalError 'Specify an absolute path to diff (or %s to diff all files).\n' "$(Color C /)"
+	fi
+
+	# Like diff, exit with status 1 if there were any differences.
+	if $found_differences
+	then
+		Exit 1
 	fi
 }
 
