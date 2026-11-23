@@ -46,9 +46,52 @@ Since the system configuration is described as shell scripts, it is trivially ex
 
 Simply clone (or [download](https://github.com/CyberShadow/aconfmgr/archive/master.zip)+unzip) the GitHub repository. `aconfmgr` will install dependencies as needed during execution. [An AUR package is also available](https://aur.archlinux.org/packages/aconfmgr-git/).
 
+### High level overview
+
+aconfmgr manages 2 states:
+
+* The state of the Arch Linux system in which aconfmgr runs (referred to as "the system").
+* The description of the system state (referred to as "the configuration").
+
+`aconfmgr save` builds/updates the configuration to match the system and `aconfmgr apply` updates the system to match the configuration.
+There is also a 3rd state, which is a intermediate state: the "output" directory (see further below).
+
+The configuration is an abstracted version of the system.  It aims to be a high level, compact representation:
+
+* Any system files/directories part of packages are covered by instructions to install the package (`AddPackage`).
+* Any files and directories part of an installed package, but not on the system result in an instruction to remove them (`SetFileProperty <path> deleted y`).
+* Any files modified from the packages or files/directories added (not part of a package) are covered with an instruction (`CopyFile`) to add them from the "files" directory, which is part of the configuration.
+
+Furthermore, certain paths of the system are ignored and not included in the configuration.  These paths can we provided by the user, but aconfmgr also includes defaults, such as '/home' (users typically have a better way to manage home directories), '/mnt' (data typically not critical enough or better managed differently), '/proc' (not real data), 'var/cache' (unimportant cache data) and more.  See <link to list>. (TODO confirm and specify whether this applies to both save and apply).
+
+Note:
+* No version information is stored for packages.  When an `apply` needs to install a package it may be a newer version than the package that resulted in the `AddPackage` directive.
+* The configuration is imperative and cumulative, not declarative.  Each "save" run resulting in new configuration, will add a new section to the "99-unsorted.sh" configuration file.  For example, a system that at point had package "foo" installed, and then later had it removed, would result in a configuration that contains an `AddPackage foo` directive, followed by `RemovePackage` foo from the next run.  In fact, the configuration consists of shell scripts that will be evaluated in order.  They may contain simple directories, but also more advanced logic.  Users are expected to coalesce calls concerning the same paths, and organize all directives and logic into sensible, minimal configuration into scripts that have filenames starting with numbers lower than 99.  That way, `aconfmgr save` can always append the latest configuration differences into "99-unsorted.sh".
+* `aconfmgr apply` will actually evaluate all configuration scripts and *compile* a system configuration description in the `output` directory. The difference between that directory's contents, and the system, dictates the actions ultimately taken by `aconfmgr apply`.
+
+
+`aconfmgr save` will write the difference to the file `99-unsorted.sh` (under the configuration directory) as a series of shell commands which attempt to bring the configuration up to date with the current system. When starting with an empty configuration, this difference will consist of the entire system description. Since the script only appends to that file, it may end up undoing configuration changes done earlier in the scripts (e.g. removing packages from the package list). It is up to the user to refactor the configuration to remove redundancies, document changes, and improve maintainability.
+
+`aconfmgr apply` will apply the differences to the actual system.
+
+The contracts of both commands are that they are mutually idempotent: after a successful invocation of either, invoking either command immediately after will be a no-op.
+
+### Package handling
+
+Background: On Arch Linux, every installed package is installed either explicitly, or as a dependency for another package. Packages can also have mandatory (hard) or optional dependencies. You can view this information using `pacman -Qi <package>` ("Install Reason", "Depends On", "Optional Deps").
+
+`aconfmgr` only tracks explicitly-installed packages, ignoring their hard dependencies. Therefore:
+
+- `aconfmgr save` will only save installed packages that are marked as explicitly installed.
+- Installed packages that are neither explicitly installed, nor are hard dependencies of other installed packages, are considered prunable orphans and will be removed. // TODO so not mutually idempotent then? apply may remove packages after save noticed such packages -> actually no, looks like apply may remove these - see below
+- Packages that are only optional dependencies of other packages must be listed explicitly, otherwise they will be pruned.
+- `aconfmgr apply` removes unlisted packages by unpinning them (setting their install reason as "installed as a dependency"), after which it prunes all orphan packages. If the package is still required by another package, it will remain on the system (until it is no longer required); otherwise, it is removed.
+- Packages that are installed and explicitly listed in the configuration will have their install reason set to "explicitly installed".
+
+
 ### First run
 
-Run `aconfmgr save` to transcribe the system's configuration to the configuration directory. This will create the file `99-unsorted.sh` in the configuration directory, as well as other files describing the system configuration. (The configuration directory will usually be `~/.config/aconfmgr`, or `./config` if running directly from git, or it can be overridden with `-c`.)
+Run `aconfmgr save` to populate the first configuration. This will create the file `99-unsorted.sh` in the configuration directory, as well as other files describing the system configuration. (The configuration directory will usually be `~/.config/aconfmgr`, or `./config` if running directly from git, or it can be overridden with `-c`.)
 
 On the first run, `aconfmgr` will likely include some files which you may not want to include in your system configuration. These can be temporary or auto-generated files which are not directly owned by a package. To prevent `aconfmgr` from including these files in the configuration, create e.g. `10-ignores.sh` in the configuration directory, with the lines e.g. `IgnorePath '/path/to/file.ext'` or `IgnorePath '/path/to/dir/*'`. (See [ignoring files](#ignoring-files) for details.) Delete everything from the configuration directory except that file and re-run `aconfmgr save` to regenerate a configuration minding these ignore rules.
 
@@ -62,38 +105,11 @@ Note: you don't need to run `aconfmgr` via `sudo`. It will elevate as necessary 
 
 The configuration directory should be versioned using a version control system (e.g. Git). Ideally, the file `99-unsorted.sh` should not be versioned - it will only be created when the current configuration does not reflect the current system state, therefore indicating that there are system changes that have not been accounted for.
 
-Periodic maintenance consists of running `aconfmgr save`; if this results in uncommitted changes to the configuration directory, then there are unaccounted system changes. The changes should be reviewed, sorted, documented, committed and pushed.
+Periodic maintenance consists of running `aconfmgr save`; if this results in uncommitted changes to the configuration directory, then there are unaccounted system changes. The changes should be reviewed, sorted, documented, committed and pushed.  Or removed and applied
 
 ### Restoring
 
 To restore a system to its earlier state, or to set up a new system, simply make sure the correct configuration is in the configuration directory and run `aconfmgr apply`. You will be able to preview and confirm any actual system changes.
-
-## Modus operandi
-
-The `aconfmgr` script has two subcommands:
-
-- `aconfmgr save` calculates the difference between the current system's configuration and the configuration described by the configuration directory, and writes it back to the configuration directory.
-- `aconfmgr apply` applies the difference between the configuration described by the configuration directory and the current system's configuration, installing/removing packages and creating/editing configuration files.
-
-The configuration directory contains shell scripts, initially generated by the `save` subcommand, and then usually edited by the user. Evaluating these scripts will *compile* a system configuration description in the `output` directory. The difference between that directory's contents, and the actual current system configuration, dictates the actions ultimately taken by `aconfmgr`.
-
-`aconfmgr save` will write the difference to the file `99-unsorted.sh` (under the configuration directory) as a series of shell commands which attempt to bring the configuration up to date with the current system. When starting with an empty configuration, this difference will consist of the entire system description. Since the script only appends to that file, it may end up undoing configuration changes done earlier in the scripts (e.g. removing packages from the package list). It is up to the user to refactor the configuration to remove redundancies, document changes, and improve maintainability.
-
-`aconfmgr apply` will apply the differences to the actual system.
-
-The contracts of both commands are that they are mutually idempotent: after a successful invocation of either, invoking either command immediately after will be a no-op.
-
-### Packages
-
-Background: On Arch Linux, every installed package is installed either explicitly, or as a dependency for another package. Packages can also have mandatory (hard) or optional dependencies. You can view this information using `pacman -Qi <package>` ("Install Reason", "Depends On", "Optional Deps").
-
-`aconfmgr` only tracks explicitly-installed packages, ignoring their hard dependencies. Therefore:
-
-- `aconfmgr save` will only save installed packages that are marked as explicitly installed.
-- Installed packages that are neither explicitly installed, nor are hard dependencies of other installed packages, are considered prunable orphans and will be removed.
-- Packages that are only optional dependencies of other packages must be listed explicitly, otherwise they will be pruned.
-- `aconfmgr apply` removes unlisted packages by unpinning them (setting their install reason as "installed as a dependency"), after which it prunes all orphan packages. If the package is still required by another package, it will remain on the system (until it is no longer required); otherwise, it is removed.
-- Packages that are installed and explicitly listed in the configuration will have their install reason set to "explicitly installed".
 
 ## Advanced Usage
 
